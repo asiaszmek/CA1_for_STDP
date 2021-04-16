@@ -235,7 +235,7 @@ proc insertChannel() {
         insert cat
         insert kca
         insert cagk
-        insert cacum
+        insert cad
     }
 
     forsec apical {
@@ -246,7 +246,7 @@ proc insertChannel() {
         insert cat
         insert kca
         insert cagk
-        insert cacum
+        insert cad
     }
 
     forsec basal {
@@ -257,7 +257,7 @@ proc insertChannel() {
         insert cat
         insert kca
         insert cagk
-        insert cacum
+        insert cad
     }
 
     forsec this.axonal {

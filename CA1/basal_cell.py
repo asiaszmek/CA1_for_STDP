@@ -285,7 +285,8 @@ class CA1_PC_cAC:
                                                 "cat", "kca", "mykca", 'h',
                                                 'kad', 'kap', 'kca', 'kdr',
                                                 'na3notrunk', 'nap'],
-                 head_params_dict={"Ra":1200, "cacum":{"taur": 14, "buffer":20}}):
+    def add_head(self, number, spine_type="ball and stick",
+                 head_params_dict={"Ra":1200, "cad":{"taur": 14, "buffer":20}}):
         if isinstance(where, str): 
             dend = self.cell_filter(where)
         else:
@@ -326,7 +327,7 @@ class CA1_PC_cAC:
                             setattr(to_mech, mech_dict[mech], value*ca_i_f)
 
             elif h.ismembrane("ca_ion", sec=sec):
-                sec.insert("cacum")
+                sec.insert("cad")
                 sec.cao = Ca_Ext
         return
 
