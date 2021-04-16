@@ -8,24 +8,24 @@ from neuron.units import nM, uM
 #absolute quantities in mM
 #reaction rates in uM/ms or 1/ms
 my_loc = os.path.dirname(os.path.abspath(__file__))
-hoc_loc = os.path.join(my_loc, 'nrnhoc')
-
 c_unit = 6.0221409e5
-
+my_loc = os.path.dirname(os.path.abspath(__file__))
+mechanisms_path = os.path.join(my_loc, "Mods")
 
 mech_dict = {
-    "h": "gbar",
+    "hd": "ghdbar",
     'kad': "gkabar",
     'kap': "gkabar",
     'kdr': "gkdrbar",
+    "kmb": "gbar",
     'na3notrunk': "gbar",
     'nap': "gnabar",
     "cal": "gcalbar",
-    "calH": "gcalbar",
+    "can": "gcanbar",
     "car": "gcabar",
     "cat": "gcatbar",
     "kca": "gbar", # sk - channel
-    "mykca": "gkbar",
+    "cagk": "gbar",
     "nax": "gbar",
     "pas": ["g", "e"], }
 
@@ -64,56 +64,6 @@ SPINE_DIMENSIONS = {
     }
 }
 
-template_path = os.path.join(my_loc, "template",
-                             "load_templates.hoc")
-morphology_path = os.path.join(my_loc, "morphology",
-                             "n123")
-lib_path = os.path.join(my_loc, "lib")
-generic_path = os.path.join(my_loc, "nrnhoc")
-
-CA1_Bianchi_exec = """
-load_file("stdrun.hoc")
-load_file("%s")
-
-
-objref econ  
-//////// load needed templates////////////
-
-
-show_errs=1
-debug_lev=1
-econ=new ExperimentControl(show_errs, debug_lev)
-econ.self_define(econ)
-
-econ.morphology_dir = "%s"       // set location for morphology files
-econ.add_lib_dir("Terrence", "%s")   // set location for library files
-econ.generic_dir    = "%s"             // set location for cell-setup file 
-
-v_init=-70
-
-econ.xopen_geometry_dependent("cell")
-econ.xopen_geometry_dependent("cell-analysis")
-cell_analysis(econ)
-econ.xopen_generic("cell-setup")
-cell_setup(econ)
-
-
-objref oblique_tip_dendrites, oblique_dendrites
-oblique_tip_dendrites = new SectionList()
-
-forsec apical_tip_list {oblique_tip_dendrites.append()}
-forsec apical_tip_list_addendum {oblique_tip_dendrites.append()}
-
-oblique_dendrites = new SectionList()
-
-for i = 0, 59 {
-	forsec pl[i] { oblique_dendrites.append() }
-}
-oblique_dendrites.unique()
-oblique_dendrites.remove(apical_trunk_list)
-"""
-
-
 
         
 def get_ca_init(reg):
@@ -122,9 +72,7 @@ def get_ca_init(reg):
     return 1.02e-4
 
 
-
-
-class CA1_PC_cAC:
+class CA1_PC:
     
     synlist = []
     nclist = []
@@ -142,9 +90,9 @@ class CA1_PC_cAC:
             return out[0]
         return out
 
-    def __init__(self, where_ca=["apical_dendrite[9]"],
+    def __init__(self, where_ca=["lm_medium2]"],
                  spine_number=1,
-                 where_spines=["apical_dendrite[9]"],
+                 where_spines=["lm_medium2"],
                  add_ER=True, buffer_list=["CaM", "Calbindin"]):
         self.load_neuron()
         h.distance(sec=self.soma[0])
@@ -172,51 +120,36 @@ class CA1_PC_cAC:
             self.add_synapse_nmda(head(0.9))
             
     def load_neuron(self):
-        h.execute1(CA1_Bianchi_exec % (template_path,
-                                       morphology_path,
-                                       lib_path,
-                                       generic_path))
+        working_dir = os.getcwd()
+        os.chdir(mechanisms_path)
+        p = run('nrnivmodl')
+        neuron.load_mechanisms(mechanisms_path)
+        os.chdir(working_dir)
+        h.xopen(os.path.join(my_loc,
+                             'pyramidal_cell_weak_bAP_original.hoc'))
+        self.cell = h.CA1_PC_Tomko()
         for sec in h.allsec():
             self.sections.append(sec)
+            print(sec.name())
         self.axon = []
         self.soma = []
-        self.apical_non_trunk_list = []
-        self.apical_tip_list = []
-        self.apical_tip_list_addendum = []
-        self.apical_trunk_list = []
-        self.basal_tree_list = []
-        self.peri_trunk_list = []
-        self.oblique_dendrites = []
-        self.oblique_tip_dendrites = []
-        for sec in h.axon_sec_list:
-            self.axon.append(sec)
-        for sec in h.soma:
+        self.apical = []
+        self.basal = []
+        self.trunk = []
+        self.oblique = []
+        for sec in h.somatic:
             self.soma.append(sec)
-        for sec in h.apical_non_trunk_list:
-            self.apical_non_trunk_list.append(sec)
-        for sec in h.apical_trunk_list:
-            self.apical_trunk_list.append(sec)
-        for sec in h.apical_tip_list:
-            self.apical_tip_list.append(sec)
-        for sec in h.apical_tip_list_addendum:
-            self.apical_tip_list_addendum.append(sec)
-        for sec in h.basal_tree_list:
-            self.basal_tree_list.append(sec)
-        for sec in h.peri_trunk_list:
-            self.peri_trunk_list.append(sec)
-        for sec in h.oblique_dendrites:
-            self.oblique_dendrites.append(sec)
-        for sec in h.oblique_tip_dendrites:
-            self.oblique_tip_dendrites.append(sec)
-        
-        
-        
-    def add_synapse_ltpltd(self, dend):
-        syn = h.ltpltd(dend)
-        self.synlist.append(syn)
-        return syn
-
-
+        for sec in h.axonal:
+            self.axon.append(sec)
+        for sec in h.apical:
+            self.apical.append(sec)
+        for sec in h.basal:
+            self.basal.append(sec)
+        for sec in h.trunk:
+            self.trunk.append(sec)
+        for sec in h.oblique_sec_list:
+            self.oblique.append(sec)
+ 
     def add_synapse_ampa(self, dend):
         syn = h.MyExp2Syn(dend)
         syn.tau1 = 0.5
@@ -280,12 +213,12 @@ class CA1_PC_cAC:
             to_mech = getattr(seg, mech_name)
             setattr(to_mech, gbar_name, value)
     
-    def add_head(self, number, spine_type="ball and stick", where="apical_dendrite[9]",
-                 position=0.5, head_mechanisms=["pas", "calH", "car", 
-                                                "cat", "kca", "mykca", 'h',
-                                                'kad', 'kap', 'kca', 'kdr',
-                                                'na3notrunk', 'nap'],
     def add_head(self, number, spine_type="ball and stick",
+                 where="apical_dendrite[9]",
+                 position=0.5, head_mechanisms=["pas", "cal", "can", 
+                                                "cat", "kca", "cagk", 'hd',
+                                                'kad', 'kap', 'kdr', "kmb",
+                                                'nax'],
                  head_params_dict={"Ra":1200, "cad":{"taur": 14, "buffer":20}}):
         if isinstance(where, str): 
             dend = self.cell_filter(where)
@@ -312,10 +245,21 @@ class CA1_PC_cAC:
         pass
 
     def add_calcium(self, where_rxd=[], buffer_list=["CaM", "Calbindin"]):
-
         for name in where_rxd:
-            self.sections_rxd += self.cell_filter(name, tolist=True)
-        
+            if name == "apical":
+                self.sections_rxd.extend(self.apical)
+            elif name == "basal":
+                self.sections_rxd.extend(self.basal)
+            elif name == "soma":
+                self.sections_rxd.extend(self.soma)
+            elif name == "trunk":
+                self.sections_rxd.extend(self.trunk)
+            elif name == "oblique":
+                self.sections_rxd.extend(self.oblique)
+            
+            else:
+                self.sections_rxd += self.cell_filter(name, tolist=True)
+        self.sections_rxd = list(set(self.sections_rxd))
         self.add_rxd_calcium(buffer_list)
         for sec in self.sections:
             if sec in self.sections_rxd:
