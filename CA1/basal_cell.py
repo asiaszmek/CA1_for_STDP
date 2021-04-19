@@ -5,6 +5,7 @@ import neuron
 from .ca_params import *
 from neuron.units import nM, uM
 from subprocess import run
+from collections import OrderedDict
 # Nomenclature and values adapted from Harris KM, Jensen FE, Tsao BE.
 # J Neurosci 1992
 #absolute quantities in mM
@@ -78,7 +79,7 @@ class CA1_PC:
     
     synlist = []
     nclist = []
-    spine_dict = {}
+    spine_dict = OrderedDict()
     sections = []
     heads = []
      
@@ -99,8 +100,8 @@ class CA1_PC:
         h.distance(sec=self.soma[0])
         self.add_ER = add_ER
         if self.add_ER:
-            self.ER = {}
-            self.cyt_er_membrane = {}
+            self.ER = OrderedDict()
+            self.cyt_er_membrane = OrderedDict()
             self.fc = 0.8 # fraction of cytoplasmic volume
         else:
             self.fc = 1
@@ -286,24 +287,24 @@ class CA1_PC:
     def _add_rxd_regions(self):
         self.ECS = rxd.Region(self.sections_rxd, name='ECS', nrn_region='o',
                               geometry=rxd.Shell(1, 2))
-        self.membrane = {}
-        self.shells = {}
-        self.borders = {}
-        self.dr = {} # shell thickness 
+        self.membrane = OrderedDict()
+        self.shells = OrderedDict()
+        self.borders = OrderedDict()
+        self.dr = OrderedDict() # shell thickness 
 
-        self.factors = {}  #  membrane_shell_width/max_radius
-        secs_spines = {}
+        self.factors = OrderedDict()  #  membrane_shell_width/max_radius
+        secs_spines = OrderedDict()
         sec_list = self.sections_rxd[:]
         for sec in sec_list:
             if "head" in sec.name():
                 sec_list.remove(sec)
-        dendrites = [[sec] for sec in sec_list]
-        all_geom = {}
+        dendrites = sec_list[:]
+        all_geom = OrderedDict()
         for sec in dendrites:
-            sec_name = sec[0].name()
+            sec_name = sec.name()
             which_dend = sec_name.replace("[", "").replace("]", "")
-            if sec[0] not in self.where_spines: #  add first shell with/withour spines
-                factor = 2*membrane_shell_width/sec[0].diam
+            if sec not in self.where_spines: #  add first shell with/withour spines
+                factor = 2*membrane_shell_width/sec.diam
                 self.shells[sec_name] = [rxd.Region(sec, nrn_region='i',
                                                       geometry=rxd.Shell(1-factor, 1),
                                                       name="%s_Shell_0" % which_dend)]
@@ -338,7 +339,7 @@ class CA1_PC:
             
 
         for sec in dendrites:
-            sec_name = sec[0].name()
+            sec_name = sec.name()
             which_dend = sec_name.replace("[", "").replace("]", "")
             # add other shells
 
@@ -435,10 +436,10 @@ class CA1_PC:
         return value[sec_name]*area*shell_vol
 
     def add_surface_pumps(self):
-        gncx_spine = {}
-        gpmca_spine = {}
-        gncx_dend = {}
-        gpmca_dend = {}
+        gncx_spine = OrderedDict()
+        gpmca_spine = OrderedDict()
+        gncx_dend = OrderedDict()
+        gpmca_dend = OrderedDict()
         for key in gncx_spine_total.keys():
             gncx_spine[key] = gncx_spine_total[key] - gncx_spine_bound[key]
             gpmca_spine[key] = gpmca_spine_total[key] - gpmca_spine_bound[key]
@@ -536,7 +537,7 @@ class CA1_PC:
         self.buffers["CaM"] = [self.cam, self.camn, self.camc]
 
     def add_buffers(self, buffer_names):
-        self.buffers = {}
+        self.buffers = OrderedDict()
         self.indicator = None
         for name in buffer_names:
             if name == "CaM":
