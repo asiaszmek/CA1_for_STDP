@@ -210,7 +210,10 @@ class CA1_PC:
         if not isinstance(gbar_names, list):
             gbar_names = [gbar_names]
         for gbar_name in gbar_names:
-            from_mech = getattr(segment, mech_name)
+            try:
+                from_mech = getattr(segment, mech_name)
+            except AttributeError:
+                continue    
             value = getattr(from_mech, gbar_name)
             to_mech = getattr(seg, mech_name)
             setattr(to_mech, gbar_name, value)
