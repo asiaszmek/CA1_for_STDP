@@ -1,8 +1,10 @@
 import os
 from numpy import pi
 from neuron import rxd, h
+import neuron
 from .ca_params import *
 from neuron.units import nM, uM
+from subprocess import run
 # Nomenclature and values adapted from Harris KM, Jensen FE, Tsao BE.
 # J Neurosci 1992
 #absolute quantities in mM
@@ -126,7 +128,7 @@ class CA1_PC:
         neuron.load_mechanisms(mechanisms_path)
         os.chdir(working_dir)
         h.xopen(os.path.join(my_loc,
-                             'pyramidal_cell_weak_bAP_original.hoc'))
+                             'pyramidal_cell_weak_bAP_updated.hoc'))
         self.cell = h.CA1_PC_Tomko()
         for sec in h.allsec():
             self.sections.append(sec)
@@ -137,17 +139,17 @@ class CA1_PC:
         self.basal = []
         self.trunk = []
         self.oblique = []
-        for sec in h.somatic:
+        for sec in self.cell.somatic:
             self.soma.append(sec)
-        for sec in h.axonal:
+        for sec in self.cell.axonal:
             self.axon.append(sec)
-        for sec in h.apical:
+        for sec in self.cell.apical:
             self.apical.append(sec)
-        for sec in h.basal:
+        for sec in self.cell.basal:
             self.basal.append(sec)
-        for sec in h.trunk:
+        for sec in self.cell.trunk_sec_list:
             self.trunk.append(sec)
-        for sec in h.oblique_sec_list:
+        for sec in self.cell.oblique_sec_list:
             self.oblique.append(sec)
  
     def add_synapse_ampa(self, dend):
