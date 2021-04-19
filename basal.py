@@ -13,20 +13,21 @@ def advance_a_bit(t_stop):
 
 if __name__ == "__main__":
     add_ER = False
-    where_spines = False
-    where_ca = ["lm_medium"]
+    where_spines = ["CA1_PC_Tomko[0].radTprox1"]
+    where_ca = ["apical"]
     t_stop = 10000
     h.CVode()
     h.CVode().active(True)
     h.finitialize(-70)
     h.fcurrent()
-    cell = CA1_PC(add_ER=add_ER, where_ca=where_ca, where_spines=[])
+    cell = CA1_PC(add_ER=add_ER, where_ca=where_ca, where_spines=where_spines)
     h.CVode().re_init()
     h.celsius = 34
     h.finitialize(-70)
     h.fcurrent()
     t = h.Vector().record(h._ref_t, 10)
-    sec_name = list(cell.shells.keys())[0]
+    sec_name = "CA1_PC_Tomko[0].radTprox1"
+    print(sec_name)
     rec_v_soma = h.Vector().record(cell.soma[0](0.5)._ref_v, 10)
     ca_apic_0 = uf.record_specie_vec(cell.ca, cell.shells[sec_name][0], 10)
     ca_apic_1 = uf.record_specie_vec(cell.ca, cell.shells[sec_name][1], 10)
@@ -160,5 +161,5 @@ if __name__ == "__main__":
     ax11.set_xlabel("time (ms)")
     ax11.set_ylabel("dendrite (mm)")
     fig11.savefig("CalbindingCa.png")
-    
+     
     plt.show()
