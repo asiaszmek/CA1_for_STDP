@@ -306,9 +306,9 @@ class CA1_PC:
                 factor = 2*membrane_shell_width/sec[0].diam
                 self.shells[sec_name] = [rxd.Region(sec, nrn_region='i',
                                                       geometry=rxd.Shell(1-factor, 1),
-                                                      name="Shell_%s_0" % which_dend)]
+                                                      name="%s_Shell_0" % which_dend)]
                 self.factors[sec_name] = [factor]
-                self.membrane[sec_name] = rxd.Region(sec, name='membrane_%s' % which_dend,
+                self.membrane[sec_name] = rxd.Region(sec, name='%s_membrane' % which_dend,
                                                  geometry=rxd.membrane())
             
             else:
@@ -326,13 +326,15 @@ class CA1_PC:
         
                 self.shells[sec_name] = [rxd.Region(secs_spines[sec_name],
                                                     nrn_region="i",
-                                                    name="Shell_%s_0"
+                                                    name="%s_Shell_0"
                                                     % which_dend,
                                                     geometry=rxd.MultipleGeometry(secs=secs_spines[sec_name],
                                                                                   geos=all_geom[sec_name]))]
                 self.factors[sec_name] = [factor]
-                self.membrane[sec_name] = rxd.Region(new_secs, name='membrane_%s' % which_dend,
-                                                 geometry=rxd.membrane())
+                self.membrane[sec_name] = rxd.Region(new_secs,
+                                                     name='%s_membrane'
+                                                     % which_dend,
+                                                     geometry=rxd.membrane())
             
 
         for sec in dendrites:
@@ -346,15 +348,17 @@ class CA1_PC:
             while True:
                 new_factor = 2*factor
                 i = i + 1
+                inner = 1-(sum(self.factors[sec_name])+new_factor)
+                outer = 1-sum(self.factors[sec_name])
                 self.shells[sec_name].append(rxd.Region(sec, nrn_region='i',
-                                                        geometry=rxd.Shell(1-(sum(self.factors[sec_name])+new_factor),
-                                                                           1-sum(self.factors[sec_name])),
+                                                        geometry=rxd.Shell(inner,
+                                                                           outer),
                                                         name="%s_Shell_%d" % (which_dend, i)))
                 if sec_name not in self.borders:
                     self.borders[sec_name] = []
                 self.borders[sec_name].append(rxd.Region(sec, name='%s_Border_%d' % (which_dend, i-1),
                                                          geometry=rxd.ScalableBorder(
-                                                             diam_scale=1-factor)))
+                                                             diam_scale=outer)))
                 self.factors[sec_name].append(new_factor)
                 if last_shell:
                     break
