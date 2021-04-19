@@ -81,8 +81,7 @@ class CA1_PC:
     spine_dict = {}
     sections = []
     heads = []
-    fc = 0.8 # fraction of cytoplasmic volume
-    fe = 1-fc # fraction of ER volume    
+     
     def cell_filter(self, name, tolist=False):
         out = []
         for sec in self.sections:
@@ -102,6 +101,10 @@ class CA1_PC:
         if self.add_ER:
             self.ER = {}
             self.cyt_er_membrane = {}
+            self.fc = 0.8 # fraction of cytoplasmic volume
+        else:
+            self.fc = 1
+        
         self.reactions = []
         self.where_spines = []
         self.sections_rxd = []
@@ -127,12 +130,12 @@ class CA1_PC:
         p = run('nrnivmodl')
         neuron.load_mechanisms(mechanisms_path)
         os.chdir(working_dir)
+        h.load_file("stdrun.hoc")
         h.xopen(os.path.join(my_loc,
                              'pyramidal_cell_weak_bAP_updated.hoc'))
         self.cell = h.CA1_PC_Tomko()
         for sec in h.allsec():
             self.sections.append(sec)
-            print(sec.name())
         self.axon = []
         self.soma = []
         self.apical = []
@@ -273,7 +276,7 @@ class CA1_PC:
                         for seg in sec:
                             to_mech = getattr(seg, mech)
                             value = getattr(to_mech, mech_dict[mech])
-                            setattr(to_mech, mech_dict[mech], value*ca_i_f)
+                            setattr(to_mech, mech_dict[mech], value)
 
             elif h.ismembrane("ca_ion", sec=sec):
                 sec.insert("cad")
@@ -287,7 +290,7 @@ class CA1_PC:
         self.shells = {}
         self.borders = {}
         self.dr = {} # shell thickness 
-        #max_radius = max([sec.diam/2 for sec in sec_list])
+
         self.factors = {}  #  membrane_shell_width/max_radius
         secs_spines = {}
         sec_list = self.sections_rxd[:]
@@ -333,56 +336,56 @@ class CA1_PC:
             
 
         for sec in dendrites:
-            sec_name = sec[0].name()           
+            sec_name = sec[0].name()
             which_dend = sec_name.replace("[", "").replace("]", "")
             # add other shells
-            i = 1
+
             factor = self.factors[sec_name][0]
+            last_shell = False
+            i = 0
             while True:
                 new_factor = 2*factor
-                self.factors[sec_name].append(new_factor)
+                i = i + 1
                 self.shells[sec_name].append(rxd.Region(sec, nrn_region='i',
-                                                        geometry=rxd.Shell(1-(factor+new_factor), 1-factor),
-                                                        name="Shell_%s_%d" % (which_dend, i)))
+                                                        geometry=rxd.Shell(1-(sum(self.factors[sec_name])+new_factor),
+                                                                           1-sum(self.factors[sec_name])),
+                                                        name="%s_Shell_%d" % (which_dend, i)))
                 if sec_name not in self.borders:
                     self.borders[sec_name] = []
-                self.borders[sec_name].append(rxd.Region(sec, name='Border_%s_%d' % (which_dend, i-1),
+                self.borders[sec_name].append(rxd.Region(sec, name='%s_Border_%d' % (which_dend, i-1),
                                                          geometry=rxd.ScalableBorder(
                                                              diam_scale=1-factor)))
-                factor = new_factor
-                i = i + 1
-                if sum(self.factors[sec_name]) + new_factor >= self.fc:
+                self.factors[sec_name].append(new_factor)
+                if last_shell:
                     break
-            
-            last_shell_diam = 1 - sum(self.factors[sec_name])
+               
+                if sum(self.factors[sec_name]) + 2*new_factor >= self.fc:
+                    last_shell = True
+                    factor = (self.fc - sum(self.factors[sec_name]))/2
+                else:
+                    factor = new_factor                    
+
             if self.add_ER:
+                last_shell_diam = 1 - sum(self.factors[sec_name])
                 self.ER[sec_name] = rxd.Region(sec, nrn_region='i',
                                                geometry=rxd.Shell(0, last_shell_diam),
-                                               name="ER_%s" % which_dend)
+                                               name="%s_ER" % which_dend)
 
                 self.cyt_er_membrane[sec_name] = rxd.Region(sec,
-                                                            name='ER_membrane_%s' % which_dend,
+                                                            name='%s_ER_membrane' % which_dend,
                                                             geometry=rxd.ScalableBorder(
                                                                 diam_scale=last_shell_diam))
-            else:
-                self.shells[sec_name].append(rxd.Region(sec, nrn_region='i',
-                                              geometry=rxd.Shell(0, last_shell_diam),
-                                              name="Shell_%s_%d" % (which_dend, i)))
-                self.borders[sec_name].append(rxd.Region(sec,
-                                               name='Border_%s_%d' % (which_dend, i-1),
-                                               geometry=rxd.ScalableBorder(
-                                                diam_scale=last_shell_diam)))
-                self.factors[sec_name].append(last_shell_diam)
 
             self.dr[sec_name] = []
             for j, f in enumerate(self.factors[sec_name][:-1]):
-                name = "dr_%s_%d" % (which_dend, j)
+                name = "%s_dr_%d" % (which_dend, j)
                 self.dr[sec_name].append(rxd.Parameter(self.borders[sec_name][j], name=name, 
                                                value=lambda nd: nd.segment.diam/2/f))
             
         self.shell_list = []
         for key in self.shells.keys():
             self.shell_list.extend(self.shells[key])
+
         self.membrane_list = []
         for key in self.membrane.keys():
             self.membrane_list.append(self.membrane[key])
@@ -392,8 +395,8 @@ class CA1_PC:
             self.cyt_er_membrane_list = []
             self.shells_to_ER = []
             for sec_name in self.ER.keys():
-                self.ER_regions.append(self.ER[key])
-                self.cyt_er_membrane_list.append(self.cyt_er_membrane[key])
+                self.ER_regions.append(self.ER[sec_name])
+                self.cyt_er_membrane_list.append(self.cyt_er_membrane[sec_name])
                 self.shells_to_ER.append(self.shells[sec_name][-1])
                 
 
@@ -417,40 +420,44 @@ class CA1_PC:
 
 
     def pump_density(self, node, value):
+
         area = node.sec(node.x).area()
-        if "head" in  node.sec.name():
-            return value*area*head_factor
-        factor = self.factors[node.sec.name()][0]
+        sec_name = node.sec.name()
+        if "head" in sec_name:
+            sec_name = node.sec.name().split("_head")[0]
+            return value[sec_name]*area*head_factor
+        factor = self.factors[sec_name][0]
         shell_vol = pi/4*node.sec.L*node.sec.diam**2*(1-(1-factor)**2)/vol_c
-        return value*area*shell_vol
+        return value[sec_name]*area*shell_vol
 
     def add_surface_pumps(self):
-        gncx_spine = ca_i_f*(gncx_spine_total - gncx_spine_bound)
-        gpmca_spine = ca_i_f*(gpmca_spine_total - gpmca_spine_bound)
-        gncx_dend =  ca_i_f*(gncx_dend_total - gncx_dend_bound)
-        gpmca_dend =  ca_i_f*(gpmca_dend_total - gpmca_dend_bound)
-        gncxca_spine = ca_i_f*gncx_spine_bound
-        gncxca_dend = ca_i_f*gncx_dend_bound
-        gpmcaca_spine = ca_i_f*gpmca_spine_bound
-        gpmcaca_dend = ca_i_f*gpmca_dend_bound
+        gncx_spine = {}
+        gpmca_spine = {}
+        gncx_dend = {}
+        gpmca_dend = {}
+        for key in gncx_spine_total.keys():
+            gncx_spine[key] = gncx_spine_total[key] - gncx_spine_bound[key]
+            gpmca_spine[key] = gpmca_spine_total[key] - gpmca_spine_bound[key]
+            gncx_dend[key] =  gncx_dend_total[key] - gncx_dend_bound[key]
+            gpmca_dend[key] =  gpmca_dend_total[key] - gpmca_dend_bound[key]
         self.ncx = rxd.Species(self.membrane_list, name='ncx', initial=lambda nd:
                                self.pump_density(nd, gncx_spine)
                                if "head" in nd.sec.name()
                                else self.pump_density(nd, gncx_dend))
         self.ncxca = rxd.Species(self.membrane_list, name='ncxca',
                                  initial=lambda nd:
-                                 self.pump_density(nd, gncxca_spine)
+                                 self.pump_density(nd, gncx_spine_bound)
                                  if "head" in nd.sec.name()
-                                 else self.pump_density(nd, gncxca_dend))
+                                 else self.pump_density(nd, gncx_dend_bound))
         self.pmca = rxd.Species(self.membrane_list, name='pmca', initial=lambda nd:
                                 self.pump_density(nd, gpmca_spine)
                                 if "head" in nd.sec.name()
                                 else self.pump_density(nd, gpmca_dend))
         self.pmcaca = rxd.Species(self.membrane_list, name='pmcaca',
                                   initial=lambda nd:
-                                  self.pump_density(nd, gpmcaca_spine)
+                                  self.pump_density(nd, gpmca_spine_bound)
                                   if "head" in nd.sec.name()
-                                  else self.pump_density(nd, gpmcaca_dend))
+                                  else self.pump_density(nd, gpmca_dend_bound))
         
         
     def add_serca(self):
