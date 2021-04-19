@@ -1,11 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from CA1 import CA1_PC
 import neuron
     
 if __name__ == "__main__":
-    neuron.h.nrn_load_dll('./Mods/nrnmech.dll')
-    neuron.h.xopen('pyramidal_cell_weak_bAP_original.hoc')
-    cell = neuron.h.CA1_PC_Tomko()
+   
+    cell = CA1_PC(where_ca=["apical"])
     neuron.h.CVode()
     neuron.h.CVode().active(True)
     fig, ax = plt.subplots(1, 1)
