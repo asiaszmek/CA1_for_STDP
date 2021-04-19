@@ -1,9 +1,10 @@
 import time
 import numpy as np
 import matplotlib.pyplot as plt
-from neuron import h
+
 from CA1 import CA1_PC
 import utility_functions as uf
+from neuron import h
 
 def advance_a_bit(t_stop):
     for i in range(t_stop):
@@ -40,13 +41,14 @@ if __name__ == "__main__":
 
     
     start = time.time()
-    advance_a_bit(t_stop)
+    h.tstop = t_stop
+    h.run(t_stop)
     print(time.time() - start)
 
     ca_new_0 = np.array([c.as_numpy()  for c in ca_apic_0])
     ca_new_1 = np.array([c.as_numpy()  for c in ca_apic_1])
     ca_new_2 = np.array([c.as_numpy()  for c in ca_apic_2])
-    
+
     ca_ecs_new = np.array([c.as_numpy()  for c in ca_ecs])
     camn_new = np.array([c.as_numpy()  for c in camn_apic])
     camc_new = np.array([c.as_numpy()  for c in camc_apic])
@@ -56,30 +58,19 @@ if __name__ == "__main__":
     pmcaca_new = np.array([c.as_numpy()  for c in pmcaca_apic])
     ncxca_new = np.array([c.as_numpy()  for c in ncxca_apic])
 
-    np.savetxt( "time_%d.txt" % t_stop, t)
-    np.savetxt( "ca_dendrite_shell_0%d.txt"% t_stop, ca_new_0)
-    np.savetxt( "ca_dendrite_shell_1%d.txt"% t_stop, ca_new_1)
-    np.savetxt( "outer_ca_dendrite_%d.txt"% t_stop, ca_ecs_new)
-    np.savetxt( "ca_N_calmodulin_dendrite_%d.txt"% t_stop, camn_new)
-    np.savetxt( "ca_C_calmodulin_dendrite_%d.txt"% t_stop, camc_new)
-    np.savetxt( "ca_calbindin_dendrite_%d.txt"% t_stop, calbca_new)
-    np.savetxt( "ca_fixed_dendrite_%d.txt"% t_stop, fixed_new)
-    np.savetxt( "pmcaca_dendrite_%d.txt"% t_stop, pmcaca_new)
-    np.savetxt( "ncxca_dendrite_%d.txt"% t_stop, ncxca_new)    
 
     ca_new_2 = np.array([c.as_numpy()  for c in ca_apic_2])
-    np.savetxt( "ca_dendrite_shell_2%d.txt"% t_stop, ca_new_2)
     
     fig7, ax7 = plt.subplots(1, 1)
-    ax7.plot(t, 1e6*ca_new_0.mean(axis=0), label="Shell 0")
-    ax7.plot(t, 1e6*ca_new_1.mean(axis=0), label="Shell 1")
-    ax7.plot(t, 1e6*ca_new_2.mean(axis=0), label="Shell 2")
+    ax7.plot(t.as_numpy(), 1e6*ca_new_0.mean(axis=0), label="Shell 0")
+    ax7.plot(t.as_numpy(), 1e6*ca_new_1.mean(axis=0), label="Shell 1")
+    ax7.plot(t.as_numpy(), 1e6*ca_new_2.mean(axis=0), label="Shell 2")
     ax7.legend()
     ax7.set_xlabel("time (ms)")
     ax7.set_ylabel("Ca in the dendite (nM)")
     fig7.savefig("Ca_cytosol_dendrite_plot.png")
     fig8, ax8 = plt.subplots(1, 1)
-    ax8.plot(t, rec_v_soma, label="apic[23]")
+    ax8.plot(t.as_numpy(), rec_v_soma.as_numpy(), label="apic[23]")
     ax8.legend()
     ax8.set_xlabel("time (ms)")
     ax8.set_ylabel("Voltage (mM)")
