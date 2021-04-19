@@ -138,17 +138,17 @@ class CA1_PC:
         self.basal = []
         self.trunk = []
         self.oblique = []
-        for sec in h.somatic:
+        for sec in self.cell.somatic:
             self.soma.append(sec)
-        for sec in h.axonal:
+        for sec in self.cell.axonal:
             self.axon.append(sec)
-        for sec in h.apical:
+        for sec in self.cell.apical:
             self.apical.append(sec)
-        for sec in h.basal:
+        for sec in self.cell.basal:
             self.basal.append(sec)
-        for sec in h.trunk:
+        for sec in self.cell.trunk_sec_list:
             self.trunk.append(sec)
-        for sec in h.oblique_sec_list:
+        for sec in self.cell.oblique_sec_list:
             self.oblique.append(sec)
  
     def add_synapse_ampa(self, dend):
