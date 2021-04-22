@@ -262,7 +262,7 @@ class CA1_PC:
             elif name == "soma":
                 self.sections_rxd.extend(self.soma)
             elif name == "trunk":
-                self.sections_rxd.extend(self.trunk)
+                self.sections_rxd.extend(self.trunk_sec_list)
             elif name == "oblique":
                 self.sections_rxd.extend(self.oblique)
             
@@ -271,17 +271,10 @@ class CA1_PC:
         self.sections_rxd = list(set(self.sections_rxd))
         self.add_rxd_calcium(buffer_list)
         for sec in self.sections:
-            if sec in self.sections_rxd:
-                for mech in sec.psection()["density_mechs"]:
-                    if "ica" in sec.psection()["density_mechs"][mech]:
-                        for seg in sec:
-                            to_mech = getattr(seg, mech)
-                            value = getattr(to_mech, mech_dict[mech])
-                            setattr(to_mech, mech_dict[mech], value)
-
-            elif h.ismembrane("ca_ion", sec=sec):
-                sec.insert("cad")
-                sec.cao = Ca_Ext
+            if sec not in self.sections_rxd:
+                if h.ismembrane("ca_ion", sec=sec):
+                    sec.insert("cad")
+                    sec.cao = Ca_Ext
         return
 
     def _add_rxd_regions(self):

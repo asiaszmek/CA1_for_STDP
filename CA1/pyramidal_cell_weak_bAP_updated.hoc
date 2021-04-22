@@ -89,7 +89,7 @@ proc basic_shape() {
   oridist2_2 {pt3dclear() pt3dadd(60, -30, 0, 1) pt3dadd(100, -30, 0, 1)}
 
   axon {pt3dclear() pt3dadd(15, 0, 0, 1) pt3dadd(15, -150, 0, 1)}
-}
+  }
 
 proc subsets() {
   all = new SectionList()
@@ -235,7 +235,7 @@ proc insertChannel() {
         insert cat
         insert kca
         insert cagk
-        insert cad
+        //insert cad
     }
 
     forsec apical {
@@ -246,7 +246,7 @@ proc insertChannel() {
         insert cat
         insert kca
         insert cagk
-        insert cad
+        //insert cad
     }
 
     forsec basal {
@@ -257,7 +257,7 @@ proc insertChannel() {
         insert cat
         insert kca
         insert cagk
-        insert cad
+        //insert cad
     }
 
     forsec this.axonal {
