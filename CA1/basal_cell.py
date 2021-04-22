@@ -596,16 +596,22 @@ class CA1_PC:
             sec_name = sec.name()
             which_dend = sec_name.replace("[", "").replace("]", "")
             if sec not in self.where_spines: #  add first shell with/withour spines
+                #  add first shell with/withour spines
+
                 factor = 2*membrane_shell_width/sec.diam
                 self.shells[sec_name] = [rxd.Region(sec, nrn_region='i',
-                                                      geometry=rxd.Shell(1-factor, 1),
-                                                      name="%s_Shell_0" % which_dend)]
+                                                    geometry=rxd.Shell(1-factor,
+                                                                       1),
+                                                    name="%s_Shell_0" %
+                                                    which_dend)]
                 self.factors[sec_name] = [factor]
-                self.membrane[sec_name] = rxd.Region(sec, name='%s_membrane' % which_dend,
-                                                 geometry=rxd.membrane())
+                self.membrane[sec_name] = rxd.Region(sec, name='%s_membrane' %
+                                                     which_dend,
+                                                     geometry=rxd.membrane())
             
             else:
-                #outermost shell is the outermost shell of the dendrite and the spine/spines
+                #outermost shell is the outermost shell of the dendrite
+                # and the spine/spines
                 new_secs = self.cell_filter(sec_name, tolist=True)
                 secs_spines[sec_name] = new_secs
                 all_geom[sec_name] = []
@@ -615,8 +621,6 @@ class CA1_PC:
                     else:
                         factor = 2*membrane_shell_width/new_sec.diam
                         all_geom[sec_name].append(rxd.Shell(1-factor, 1))
-                
-        
                 self.shells[sec_name] = [rxd.Region(secs_spines[sec_name],
                                                     nrn_region="i",
                                                     name="%s_Shell_0"
