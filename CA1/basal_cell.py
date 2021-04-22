@@ -83,54 +83,10 @@ def get_ca_init(reg):
     return 1.02e-4
 
 
-class CA1_PC:
-    
-    synlist = []
-    nclist = []
-    spine_dict = OrderedDict()
+class CA1_PC_basal:
     sections = []
-    heads = []
-     
-    def cell_filter(self, name, tolist=False):
-        out = []
-        for sec in self.sections:
-            if name in sec.name():
-                out.append(sec)
-        if len(out) == 1 and tolist is False:
-            return out[0]
-        return out
-
-    def __init__(self, where_ca=["lm_medium2]"],
-                 spine_number=1,
-                 where_spines=["lm_medium2"],
-                 add_ER=True, buffer_list=["CaM", "Calbindin"]):
+    def __init__(self):
         self.load_neuron()
-        self.add_ER = add_ER
-        if self.add_ER:
-            self.ER = OrderedDict()
-            self.cyt_er_membrane = OrderedDict()
-            self.fc = 0.8 # fraction of cytoplasmic volume
-        else:
-            self.fc = 1
-        
-        self.reactions = []
-        self.where_spines = []
-        self.sections_rxd = []
-        if where_spines:
-            if not isinstance(where_spines, list):
-                where_spines = [where_spines]
-            for loc in where_spines:
-                self.where_spines.extend(self.cell_filter(loc, tolist=True))
-            for spine_loc in self.where_spines:
-                for a_spine in range(spine_number):
-                    pos = 1/(spine_number+1)*(a_spine+1)
-                    head = self.add_head(a_spine, where=spine_loc, position=pos)
-                    self.heads.append(head)
-            self.compensate_for_spines()
-        self.add_calcium(where_rxd=where_ca, buffer_list=buffer_list)
-        for head in self.heads:
-            self.add_synapse_ampa(head(0.9))
-            self.add_synapse_nmda(head(0.9))
 
     def make_sections(self):
         self.soma = h.Section(name="soma")
@@ -204,7 +160,7 @@ class CA1_PC:
                        self.lm_thin1]
         self.basal = [self.oriprox1, self.oridist1_1, self.oridist1_2,
                       self.oriprox2, self.oridist2_1, self.oridist2_2]
-        self.trunk_sec_list = [
+        self.trunk = [
             self.radTprox1,
             self.radTprox2,
             self.radTmed1,
@@ -318,7 +274,6 @@ class CA1_PC:
         for sec in self.sections:
             sec.nseg = 1+2*int(sec.L/40)
         
-        
     def load_neuron(self):
         working_dir = os.getcwd()
         os.chdir(mechanisms_path)
@@ -411,7 +366,7 @@ class CA1_PC:
             sec.gbar_cagk = 4.4820097108998517e-05
             sec.Ra = 115.3957607556371
             sec.g_pas = 9.031387191839301e-05
-        for sec in self.trunk_sec_list:
+        for sec in self.trunk:
             sec.gkdrbar_kdr = 0.02
             sec.gbar_nax = 0.025
             sec.gcalbar_cal = 8.0324964335287e-06
@@ -454,6 +409,84 @@ class CA1_PC:
         self.rad_t2.gkdrbar_kdr = 0.002
         self.radTdist1.gkabar_kad = 0.2
         self.radTdist2.gkabar_kad = 0.2
+
+
+        
+class CA1_PC:
+    
+    synlist = []
+    nclist = []
+    spine_dict = OrderedDict()
+    heads = []
+    sections = []
+    def cell_filter(self, name, tolist=False):
+        out = []
+        for sec in self.sections:
+            if name in sec.name():
+                out.append(sec)
+        if len(out) == 1 and tolist is False:
+            return out[0]
+        return out
+
+    def __init__(self, model=None,  where_ca=["lm_medium2]"],
+                 spine_number=1,
+                 where_spines=["lm_medium2"],
+                 add_ER=True, buffer_list=["CaM", "Calbindin"]):
+        if model is None:
+            model = CA1_PC_basal()
+        for sec in model.sections:
+            self.sections.append(sec)
+        try:
+            self.apical = model.apical
+        except AttributeError:
+            self.apical = []
+        try:
+            self.somatic = model.somatic
+        except AttributeError:
+            self.somatic = self.cell_filter("soma", tolist=True)
+        try:
+            self.axonal = model.axonal
+        except AttributeError:
+            self.axonal = self.cell_filter("axon", tolist=True)
+        try:
+            self.basal = model.basal
+        except AttributeError:
+            self.basal = []
+        try:
+            self.trunk = model.trunk
+        except AttributeError:
+            self.trunk = []
+        try:
+            self.oblique = model.oblique
+        except AttributeError:
+            self.oblique = []
+        self.add_ER = add_ER
+        if self.add_ER:
+            self.ER = OrderedDict()
+            self.cyt_er_membrane = OrderedDict()
+            self.fc = 0.8 # fraction of cytoplasmic volume
+        else:
+            self.fc = 1
+        
+        self.reactions = []
+        self.where_spines = []
+        self.sections_rxd = []
+        if where_spines:
+            if not isinstance(where_spines, list):
+                where_spines = [where_spines]
+            for loc in where_spines:
+                self.where_spines.extend(self.cell_filter(loc, tolist=True))
+            for spine_loc in self.where_spines:
+                for a_spine in range(spine_number):
+                    pos = 1/(spine_number+1)*(a_spine+1)
+                    head = self.add_head(a_spine, where=spine_loc, position=pos)
+                    self.heads.append(head)
+            self.compensate_for_spines()
+        self.add_calcium(where_rxd=where_ca, buffer_list=buffer_list)
+        for head in self.heads:
+            self.add_synapse_ampa(head(0.9))
+            self.add_synapse_nmda(head(0.9))
+
 
     def add_synapse_ampa(self, dend):
         syn = h.MyExp2Syn(dend)
@@ -561,7 +594,7 @@ class CA1_PC:
             elif name == "soma":
                 self.sections_rxd.extend(self.soma)
             elif name == "trunk":
-                self.sections_rxd.extend(self.trunk_sec_list)
+                self.sections_rxd.extend(self.trunk)
             elif name == "oblique":
                 self.sections_rxd.extend(self.oblique)
             
