@@ -1,0 +1,7 @@
+CA1/Mods/x86_64/*
+CA1/__pycache__/*
+__pycache__/*
+*~
+\#*
+*png
+*txt
