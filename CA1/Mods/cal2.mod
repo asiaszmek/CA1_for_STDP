@@ -13,7 +13,7 @@ UNITS {
 
 PARAMETER {
 	v (mV)
-	celsius 	(degC)
+	celsius = 34 	(degC)
 	gcalbar=.003 (mho/cm2)
 	ki=.001 (mM)
 	cai = 50.e-6 (mM)
