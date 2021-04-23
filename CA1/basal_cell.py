@@ -683,15 +683,12 @@ class CA1_PC:
             factor = 2*membrane_shell_width/sec.diam
             if sec not in self.where_spines: 
                 self.add_shells(sec, 0, factor)
-
             else:
                 #outermost shell is the outermost shell of the dendrite
                 # and the spine/spines
                 sec_name = sec.name()
                 which_dend = sec_name.replace("[", "").replace("]", "")
-
                 new_secs = self.cell_filter(sec_name, tolist=True)
-                secs_spines[sec_name] = new_secs
                 all_geom[sec_name] = []
                 for new_sec in new_secs:
                     if "head" in new_sec.name():
@@ -699,19 +696,17 @@ class CA1_PC:
                     else:
                         factor = 2*membrane_shell_width/new_sec.diam
                         all_geom[sec_name].append(rxd.Shell(1-factor, 1))
-                self.shells[sec_name] = [rxd.Region(secs_spines[sec_name],
+                self.shells[sec_name] = [rxd.Region(new_secs,
                                                     nrn_region="i",
                                                     name="%s_Shell_0"
                                                     % which_dend,
-                                                    geometry=rxd.MultipleGeometry(secs=secs_spines[sec_name],
-                                                                                  geos=all_geom[sec_name]))]
+                                                    geometry=rxd.MultipleGeometry(secs=new_secs, geos=all_geom[sec_name]))]
                 self.factors[sec_name] = [factor]
                 self.membrane[sec_name] = rxd.Region(new_secs,
                                                      name='%s_membrane'
                                                      % which_dend,
                                                      geometry=rxd.membrane())
                 self.add_shells(sec, 1, 2*factor)
-
         if self.add_ER:
             self._add_ER_and_membrane()
         self._make_object_lists()
