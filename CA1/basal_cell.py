@@ -603,9 +603,13 @@ class CA1_PC:
                 self.sections_rxd.extend(self.trunk)
             elif name == "oblique":
                 self.sections_rxd.extend(self.oblique)
-            
             else:
                 self.sections_rxd += self.cell_filter(name, tolist=True)
+        for sec in self.where_spines:
+            if sec in self.sections_rxd:
+                sec_list = self.cell_filter(sec.name(), tolist=True)
+                self.sections_rxd.extend(sec_list)
+
         self.sections_rxd = list(set(self.sections_rxd))
         self.add_rxd_calcium(buffer_list)
         for sec in self.sections:
@@ -1060,7 +1064,7 @@ class CA1_PC:
         if self.sections_rxd:
             for sec in self.sections_rxd:
                  if "head" in sec.name():
-                     sec.nseg = n_seg
+                     sec.nseg = self.params["n_seg"]
             self._add_rxd_regions()
             self._add_species(buffer_names)
             self._add_diffusion()
