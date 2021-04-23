@@ -940,31 +940,35 @@ class CA1_PC:
 
 
     def add_surface_pump_reactions(self):
+        self.pmca_1_r = []
+        self.pmca_2_r = []
+        self.ncx_1_r = []
+        self.ncx_2_r = []
         for key in self.shells.keys():
             membrane_shell = self.shells[key][0]
             membrane = self.membrane[key]
-            self.pmca_1_r = rxd.MultiCompartmentReaction(self.ca[membrane_shell] +
-                                                         self.pmca[membrane],
-                                                         self.pmcaca[membrane],
-                                                         kf_pmca*c_unit,
-                                                         kb_pmca*c_unit,
-                                                         membrane=membrane)
-            self.pmca_2_r = rxd.MultiCompartmentReaction(self.pmcaca[membrane],
-                                                         self.pmca[membrane] +
-                                                         self.ca[self.ECS],
-                                                         kcat_pmca*c_unit,
-                                                         membrane=membrane)
-            self.ncx_1_r = rxd.MultiCompartmentReaction(self.ca[membrane_shell] +
-                                                        self.ncx[membrane],
-                                                        self.ncxca[membrane],
-                                                        kf_ncx*c_unit,
-                                                        kb_ncx*c_unit,
-                                                        membrane=membrane)
-            self.ncx_2_r = rxd.MultiCompartmentReaction(self.ncxca[membrane],
-                                                        self.ncx[membrane] +
-                                                        self.ca[self.ECS],
-                                                        kcat_ncx*c_unit,
-                                                        membrane=membrane)
+            self.pmca_1_r.append(rxd.MultiCompartmentReaction(self.ca[membrane_shell] +
+                                                              self.pmca[membrane],
+                                                              self.pmcaca[membrane],
+                                                              kf_pmca*c_unit,
+                                                              kb_pmca*c_unit,
+                                                              membrane=membrane))
+            self.pmca_2_r.append(rxd.MultiCompartmentReaction(self.pmcaca[membrane],
+                                                              self.pmca[membrane] +
+                                                              self.ca[self.ECS],
+                                                              kcat_pmca*c_unit,
+                                                              membrane=membrane))
+            self.ncx_1_r.append(rxd.MultiCompartmentReaction(self.ca[membrane_shell] +
+                                                             self.ncx[membrane],
+                                                             self.ncxca[membrane],
+                                                             kf_ncx*c_unit,
+                                                             kb_ncx*c_unit,
+                                                             membrane=membrane))
+            self.ncx_2_r.append(rxd.MultiCompartmentReaction(self.ncxca[membrane],
+                                                             self.ncx[membrane] +
+                                                             self.ca[self.ECS],
+                                                             kcat_ncx*c_unit,
+                                                             membrane=membrane))
             
     def _add_diffusion(self):
         self.diffusions = []
