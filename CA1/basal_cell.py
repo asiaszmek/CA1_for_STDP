@@ -708,6 +708,7 @@ class CA1_PC:
     def _add_ER_and_membrane(self):
         for sec in self.sections_rxd:
             sec_name = sec.name()
+            which_dend = sec_name.replace("[", "").replace("]", "")
             l_s_d = 1 - sum(self.factors[sec_name]) #last shell diameter
             self.ER[sec_name] = rxd.Region(sec, nrn_region='i',
                                            geometry=rxd.Shell(0,
