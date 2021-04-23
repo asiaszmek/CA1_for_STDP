@@ -90,6 +90,10 @@ class CA1_PC:
                  add_ER=True, buffer_list=["CaM", "Calbindin"]):
         if model is None:
             model = CA1_PC_basal()
+        try:
+            self.soma = model.soma[0]
+        except TypeError:
+            self.soma = model.soma
         for sec in model.sections:
             self.sections.append(sec)
         try:
@@ -259,7 +263,7 @@ class CA1_PC:
             elif name == "basal":
                 self.sections_rxd.extend(self.basal)
             elif name == "soma":
-                self.sections_rxd.extend(self.soma)
+                self.sections_rxd.extend(self.somatic)
             elif name == "trunk":
                 self.sections_rxd.extend(self.trunk)
             elif name == "oblique":
