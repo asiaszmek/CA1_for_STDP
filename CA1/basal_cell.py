@@ -609,6 +609,49 @@ class CA1_PC:
                     sec.cao = Ca_Ext
         return
 
+    def outermost_shell(diam, shell_width):
+        return 2*shell_width/diam
+    
+    def add_shells(self, section, start_from, first_shell):
+        name = section.name()
+        which_dend = name.replace("[", "").replace("]", "")
+        i = start_from
+        new_factor = first_shell
+        last_shell = False
+        while True:
+            if i == 0:
+                self.membrane[name] = rxd.Region(section,
+                                                 name='%s_membrane' %
+                                                 which_dend,
+                                                 geometry=rxd.membrane())
+                self.factors[name] = []
+                self.shells[name] = []
+                
+            inner = 1-(sum(self.factors[name])+new_factor)
+            outer = 1-sum(self.factors[name])
+            self.shells[name].append(rxd.Region(section, nrn_region='i',
+                                                geometry=rxd.Shell(inner,
+                                                                   outer),
+                                                name="%s_Shell_%d" %
+                                                (which_dend, i)))
+            if i == 1:
+                self.borders[name] = []
+            if i > 0:
+                self.borders[name].append(rxd.Region(section,
+                                                     name='%s_Border_%d'
+                                                     % (which_dend, i-1),
+                                                     geometry=rxd.ScalableBorder(diam_scale=outer)))
+
+            self.factors[name].append(new_factor)
+            if last_shell:
+                break
+            if sum(self.factors[name]) + 2*new_factor >= self.fc:
+                last_shell = True
+                new_factor = (self.fc - sum(self.factors[name]))
+            else:
+                new_factor = 2*new_factor 
+            i = i+1               
+        
     def _add_rxd_regions(self):
         self.ECS = rxd.Region(self.sections_rxd, name='ECS', nrn_region='o',
                               geometry=rxd.Shell(1, 2))
@@ -626,25 +669,16 @@ class CA1_PC:
         dendrites = sec_list[:]
         all_geom = OrderedDict()
         for sec in dendrites:
-            sec_name = sec.name()
-            which_dend = sec_name.replace("[", "").replace("]", "")
-            if sec not in self.where_spines: #  add first shell with/withour spines
-                #  add first shell with/withour spines
+            factor = 2*membrane_shell_width/sec.diam
+            if sec not in self.where_spines: 
+                self.add_shells(sec, 0, factor)
 
-                factor = 2*membrane_shell_width/sec.diam
-                self.shells[sec_name] = [rxd.Region(sec, nrn_region='i',
-                                                    geometry=rxd.Shell(1-factor,
-                                                                       1),
-                                                    name="%s_Shell_0" %
-                                                    which_dend)]
-                self.factors[sec_name] = [factor]
-                self.membrane[sec_name] = rxd.Region(sec, name='%s_membrane' %
-                                                     which_dend,
-                                                     geometry=rxd.membrane())
-            
             else:
                 #outermost shell is the outermost shell of the dendrite
                 # and the spine/spines
+                sec_name = sec.name()
+                which_dend = sec_name.replace("[", "").replace("]", "")
+
                 new_secs = self.cell_filter(sec_name, tolist=True)
                 secs_spines[sec_name] = new_secs
                 all_geom[sec_name] = []
@@ -665,57 +699,30 @@ class CA1_PC:
                                                      name='%s_membrane'
                                                      % which_dend,
                                                      geometry=rxd.membrane())
-            
+                self.add_shells(sec, 1, 2*factor)
 
-        for sec in dendrites:
+        if self.add_ER:
+            self._add_ER_and_membrane()
+        self._make_object_lists()
+
+    def _add_ER_and_membrane(self):
+        for sec in self.sections_rxd:
             sec_name = sec.name()
-            which_dend = sec_name.replace("[", "").replace("]", "")
-            # add other shells
+            l_s_d = 1 - sum(self.factors[sec_name]) #last shell diameter
+            self.ER[sec_name] = rxd.Region(sec, nrn_region='i',
+                                           geometry=rxd.Shell(0,
+                                                              l_s_d),
+                                           name="%s_ER" % which_dend)
 
-            factor = self.factors[sec_name][0]
-            last_shell = False
-            i = 0
-            while True:
-                new_factor = 2*factor
-                i = i + 1
-                inner = 1-(sum(self.factors[sec_name])+new_factor)
-                outer = 1-sum(self.factors[sec_name])
-                self.shells[sec_name].append(rxd.Region(sec, nrn_region='i',
-                                                        geometry=rxd.Shell(inner,
-                                                                           outer),
-                                                        name="%s_Shell_%d" % (which_dend, i)))
-                if sec_name not in self.borders:
-                    self.borders[sec_name] = []
-                self.borders[sec_name].append(rxd.Region(sec, name='%s_Border_%d' % (which_dend, i-1),
-                                                         geometry=rxd.ScalableBorder(
-                                                             diam_scale=outer)))
-                self.factors[sec_name].append(new_factor)
-                if last_shell:
-                    break
-               
-                if sum(self.factors[sec_name]) + 2*new_factor >= self.fc:
-                    last_shell = True
-                    factor = (self.fc - sum(self.factors[sec_name]))/2
-                else:
-                    factor = new_factor                    
+            self.cyt_er_membrane[sec_name] = rxd.Region(sec,
+                                                        name='%s_ER_membrane'
+                                                        % which_dend,
+                                                        geometry=rxd.ScalableBorder(
+                                                            diam_scale=l_s_d))
 
-            if self.add_ER:
-                last_shell_diam = 1 - sum(self.factors[sec_name])
-                self.ER[sec_name] = rxd.Region(sec, nrn_region='i',
-                                               geometry=rxd.Shell(0, last_shell_diam),
-                                               name="%s_ER" % which_dend)
 
-                self.cyt_er_membrane[sec_name] = rxd.Region(sec,
-                                                            name='%s_ER_membrane' % which_dend,
-                                                            geometry=rxd.ScalableBorder(
-                                                                diam_scale=last_shell_diam))
 
-            self.dr[sec_name] = []
-            for j, f in enumerate(self.factors[sec_name][:-1]):
-                name = "%s_dr_%d" % (which_dend, j)
-                self.dr[sec_name].append(rxd.Parameter(self.borders[sec_name][j], name=name, 
-                                               value=lambda nd: nd.segment.diam/2/f))
-            
+    def _make_object_lists(self):
         self.shell_list = []
         for key in self.shells.keys():
             self.shell_list.extend(self.shells[key])
@@ -933,7 +940,7 @@ class CA1_PC:
 
 
     def add_surface_pump_reactions(self):
-        for key in self.shells:
+        for key in self.shells.keys():
             membrane_shell = self.shells[key][0]
             membrane = self.membrane[key]
             self.pmca_1_r = rxd.MultiCompartmentReaction(self.ca[membrane_shell] +
@@ -963,10 +970,16 @@ class CA1_PC:
         self.diffusions = []
         for sec_name in self.shells.keys():
             for i, shell in enumerate(self.shells[sec_name][:-1]):
+                dname = sec_name.replace("[", "").replace("]", "")
+                f = self.factors[sec_name][i]
+                dr = rxd.Parameter(self.borders[sec_name][i],
+                                   name=dname, 
+                                   value=lambda nd:
+                                   nd.segment.diam/2/f)
                 rxn = rxd.MultiCompartmentReaction(self.ca[shell],
                                                    self.ca[self.shells[sec_name][i+1]], 
-                                                   c_unit*caDiff/self.dr[sec_name][i], 
-                                                   c_unit*caDiff/self.dr[sec_name][i],
+                                                   c_unit*caDiff/dr, 
+                                                   c_unit*caDiff/dr,
                                                    border=self.borders[sec_name][i])
                 self.diffusions.append(rxn)
                 for buf_name in self.buffers.keys():
@@ -974,8 +987,8 @@ class CA1_PC:
                     for buffs in self.buffers[buf_name]:
                         rxn = rxd.MultiCompartmentReaction(buffs[shell],
                                                            buffs[self.shells[sec_name][i+1]], 
-                                                           c_unit*dif_const/self.dr[sec_name][i], 
-                                                           c_unit*dif_const/self.dr[sec_name][i],
+                                                           c_unit*dif_const/dr, 
+                                                           c_unit*dif_const/dr,
                                                            border=self.borders[sec_name][i])
                         self.diffusions.append(rxn)
 
