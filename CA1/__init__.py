@@ -1,1 +1,1 @@
-from .basal_cell import CA1_PC
+from .calcium_cell import CA1_PC
