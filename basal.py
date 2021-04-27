@@ -8,9 +8,9 @@ from neuron import h
 
 if __name__ == "__main__":
     add_ER = False
-    where_spines = ["radTprox1"]
+    where_spines = []#["radTprox1"]
     where_ca = ["apical"]
-    t_stop = 100
+    t_stop = 500000
     h.load_file("stdrun.hoc")
     h.CVode()
     h.CVode().active(True)
@@ -22,22 +22,22 @@ if __name__ == "__main__":
     section_order = [sec.name() for sec in cell.sections_rxd]
     first_shells = [cell.shells[name][0] for name in section_order
                     if "head" not in name]
-    camn_apic = uf.record_specie_vec(cell.camn, first_shells, 10)
-    camc_apic = uf.record_specie_vec(cell.camc, first_shells, 10)
-    calbca_apic = uf.record_specie_vec(cell.calbca, first_shells, 10)
-    fixed_apic = uf.record_specie_vec(cell.fixedca, first_shells, 10)
-    pmcaca_apic = uf.record_specie_vec(cell.pmca, cell.membrane_list, 10)
-    ncxca_apic = uf.record_specie_vec(cell.ncx, cell.membrane_list, 10)
-    t = h.Vector().record(h._ref_t, 10)
+    camn_apic = uf.record_specie_vec(cell.camn, first_shells, 100)
+    camc_apic = uf.record_specie_vec(cell.camc, first_shells, 100)
+    calbca_apic = uf.record_specie_vec(cell.calbca, first_shells, 100)
+    fixed_apic = uf.record_specie_vec(cell.fixedca, first_shells, 100)
+    pmcaca_apic = uf.record_specie_vec(cell.pmcaca, cell.membrane_list, 100)
+    ncxca_apic = uf.record_specie_vec(cell.ncxca, cell.membrane_list, 100)
+    t = h.Vector().record(h._ref_t, 100)
     ca_apic = {}
     for sec in cell.sections:
         sec_name = sec.name()
         if sec_name in cell.shells:
             ca_apic[sec_name] = []
-            for shell in cell.shells[sec_name]:
+            for shell in first_shells:
                 ca_apic[sec_name].append(uf.record_specie_vec(cell.ca,
-                                                              shell, 10))
-    ca_ecs = uf.record_specie_vec(cell.ca, cell.ECS, 10)
+                                                              shell, 100))
+    ca_ecs = uf.record_specie_vec(cell.ca, cell.ECS, 100)
     start = time.time()
     h.tstop = t_stop
     h.run(t_stop)
@@ -47,17 +47,18 @@ if __name__ == "__main__":
     print(time.time() - start)
     ca_new = {}
     for sec_name in ca_apic.keys():
-        ca_new[sec_name] = []
         for shell in ca_apic[sec_name]:
-            ca_new[sec_name].append(np.array([c.as_numpy() for c in shell]))
+            ca_new[sec_name] = np.array([c.as_numpy() for c in shell])
 
     ca_ecs_new = np.array([c.as_numpy()  for c in ca_ecs])
+    print(ca_ecs_new.shape, ca_ecs_new[:, -1])
     for sec in ca_new.keys():
                                     
         fig7, ax7 = plt.subplots(1, 1)
-        for i, ca_shell in enumerate(ca_new[sec]):
-            ax7.plot(t.as_numpy(), 1e6*ca_shell.mean(axis=0),
-                     label="Shell %d" %i)
+        print(sec, ca_new[sec].shape, ca_new[sec][:, -1])
+        for i in range(ca_new[sec].shape[0]):
+            ax7.plot(t.as_numpy(), 1e6*ca_new[sec][i, :],
+                     label="segment %d" %i)
         ax7.legend()
         ax7.set_xlabel("time (ms)")
         ax7.set_ylabel("Ca in the dendite (nM)")
@@ -81,7 +82,7 @@ if __name__ == "__main__":
     ncxca_new = np.array([c.as_numpy()  for c in ncxca_apic])
 
     fig1, ax1 = plt.subplots(1, 1)
-    show1 = ax1.imshow(pmcaca_new, extent=[0, t_stop, 0, 1000],
+    show1 = ax1.imshow(pmcaca_new, extent=[0, t_stop, 0, 10000],
                        origin="lower", interpolation="none", aspect="auto")
     fig1.colorbar(show1)
     ax1.set_title("pmcaCa membrane")
@@ -89,7 +90,7 @@ if __name__ == "__main__":
     ax1.set_ylabel("dendrite (mm)")
     fig1.savefig("pmcaca_membrane_dend.png")
     fig3, ax3 = plt.subplots(1, 1)
-    show3 = ax3.imshow(ncxca_new, extent=[0, t_stop, 0, 1000], origin="lower",
+    show3 = ax3.imshow(ncxca_new, extent=[0, t_stop, 0, 10000], origin="lower",
                        interpolation="none", aspect="auto")
     fig3.colorbar(show3)
     ax3.set_title("ncxCa membrane")
@@ -98,7 +99,7 @@ if __name__ == "__main__":
     fig3.savefig("ncxca_membrane.png")
 
     fig5, ax5 = plt.subplots(1, 1)
-    show5 = ax5.imshow(fixed_new, extent=[0, t_stop, 0, 1000], origin="lower",
+    show5 = ax5.imshow(fixed_new, extent=[0, t_stop, 0, 10000], origin="lower",
                        interpolation="none", aspect="auto")
     fig5.colorbar(show5)
     ax5.set_title("Ca bound fixed")
@@ -107,7 +108,7 @@ if __name__ == "__main__":
     fig5.savefig("fixed_bound_dendrite.png")
 
     fig9, ax9 = plt.subplots(1, 1)
-    show9 = ax9.imshow(camn_new, extent=[0, t_stop, 0, 1000], origin="lower",
+    show9 = ax9.imshow(camn_new, extent=[0, t_stop, 0, 10000], origin="lower",
                        interpolation="none", aspect="auto")
     fig9.colorbar(show9)
     ax9.set_title("CalmodulinNCa cytosol")
@@ -117,7 +118,7 @@ if __name__ == "__main__":
 
 
     fig10, ax10 = plt.subplots(1, 1)
-    show10 = ax10.imshow(camc_new, extent=[0, t_stop, 0, 1000], origin="lower",
+    show10 = ax10.imshow(camc_new, extent=[0, t_stop, 0, 10000], origin="lower",
                        interpolation="none", aspect="auto")
     fig10.colorbar(show10)
     ax10.set_title("CalmodulinCCa cytosol")
