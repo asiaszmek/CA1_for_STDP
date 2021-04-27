@@ -435,6 +435,7 @@ class CA1_PC:
         self.add_surface_pumps()
 
     def pump_density(self, node, value):
+        dist_factor = 1#(1+0.0*h.distance(0, node.segment))
         area = node.sec(node.x).area()
         sec_name = node.sec.name()
         if "head" in sec_name:
@@ -444,7 +445,7 @@ class CA1_PC:
         factor = self.factors[sec_name][0]
         vol_c = self.params["vol_c"]
         shell_vol = pi/4*node.sec.L*node.sec.diam**2*(1-(1-factor)**2)/vol_c
-        return value[sec_name]*area*shell_vol
+        return value[sec_name]*area*shell_vol*dist_factor
 
     def add_surface_pumps(self):
         gncx_spine = OrderedDict()
