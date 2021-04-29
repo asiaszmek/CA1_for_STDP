@@ -19,9 +19,9 @@ if __name__ == "__main__":
     h.finitialize(-65)
     cell = CA1_PC(add_ER=add_ER, where_ca=where_ca, where_spines=where_spines)
     h.CVode().re_init()
-    section_order = [sec.name() for sec in cell.sections_rxd]
-    first_shells = [cell.shells[name][0] for name in section_order
-                    if "head" not in name]
+    section_order = [sec.name() for sec in cell.sections_rxd
+                     if "head" not in sec.name()]
+    first_shells = [cell.shells[name][0] for name in section_order]
     camn_apic = uf.record_specie_vec(cell.camn, first_shells, 100)
     camc_apic = uf.record_specie_vec(cell.camc, first_shells, 100)
     calbca_apic = uf.record_specie_vec(cell.calbca, first_shells, 100)
@@ -30,30 +30,21 @@ if __name__ == "__main__":
     ncxca_apic = uf.record_specie_vec(cell.ncxca, cell.membrane_list, 100)
     t = h.Vector().record(h._ref_t, 100)
     ca_apic = {}
-    for sec in cell.sections:
-        sec_name = sec.name()
-        if sec_name in cell.shells:
-            ca_apic[sec_name] = []
-            for shell in first_shells:
-                ca_apic[sec_name].append(uf.record_specie_vec(cell.ca,
-                                                              shell, 100))
+    for idx, sec_name in enumerate(section_order):
+        shell = first_shells[idx]
+        ca_apic[sec_name] = uf.record_specie_vec(cell.ca,
+                                                 shell, 100)
     ca_ecs = uf.record_specie_vec(cell.ca, cell.ECS, 100)
     start = time.time()
     h.tstop = t_stop
     h.run(t_stop)
-
-
-    
     print(time.time() - start)
     ca_new = {}
     for sec_name in ca_apic.keys():
-        for shell in ca_apic[sec_name]:
-            ca_new[sec_name] = np.array([c.as_numpy() for c in shell])
+        ca_new[sec_name] = np.array([c.as_numpy() for c in ca_apic[sec_name]])
 
     ca_ecs_new = np.array([c.as_numpy()  for c in ca_ecs])
-    print(ca_ecs_new.shape, ca_ecs_new[:, -1])
     for sec in ca_new.keys():
-                                    
         fig7, ax7 = plt.subplots(1, 1)
         print(sec, ca_new[sec].shape, ca_new[sec][:, -1])
         for i in range(ca_new[sec].shape[0]):
