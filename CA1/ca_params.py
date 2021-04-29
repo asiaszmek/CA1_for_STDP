@@ -35,10 +35,10 @@ ip3r_gate_state = 0.8
 calbindin_tot = 0.150 #(150 uM)
 calmodulin_tot = 0.03 #(30 uM)
 fixed_buffer_tot = 2 #(2 mM)
-fixed_buffer_ca = 4.07965e-3
-camn = 2.927e-05
-camc = 1.965e-04
-calbca = 2.189e-5
+fixed_buffer_ca = 4.07754e-3
+camn = 2.92719e-05
+camc = 1.9651e-04
+calbca = 2.18847e-5
 
 
 kf_calbindin = 2.8e-2
@@ -60,21 +60,22 @@ kf_pmca = 50
 kb_pmca = 7e-3
 kcat_pmca = 3.5e-3
 gpmca_dend_bound = {
-    "radTprox1": 0,
-    "radTprox2": 0,
-    "radTmed1": 0,
-    "radTmed2": 0,
-    "radTdist1": 0,
-    "radTdist2": 0,
-    "rad_t1": 0,
-    "rad_t2": 0,
-    "rad_t3": 0,
-    "lm_thick2": 0,
-    "lm_medium2": 0,
-    "lm_thin2": 0,
-    "lm_thick1": 0,
-    "lm_medium1": 0,
-    "lm_thin1": 0,
+
+    "radTprox1": 0.391034e-10*3.26,
+    "radTprox2": 0.396503e-10*3.26,
+    "radTmed1": 0.43048e-10*3.26,
+    "radTmed2": 0.4425e-10*3.26,
+    "radTdist1": 0.4286e-10*3.26,
+    "radTdist2": 0.47585e-10*3.26,
+    "rad_t1": 1.9005e-10*3.26,
+    "rad_t2": 1.8784e-10*3.26,
+    "rad_t3": 1.985e-10*3.26,
+    "lm_thick2": 0.5101e-10*3.26,
+    "lm_medium2": 1.2752e-10*3.26,
+    "lm_thin2": 5.5575e-10*3.26,
+    "lm_thick1": 0.5101e-10*3.26,
+    "lm_medium1": 1.2752e-10*3.26,
+    "lm_thin1": 5.5575e-10*3.26,
 }
 gpmca_spine_bound = {
     "radTprox1": 0,
@@ -94,21 +95,21 @@ gpmca_spine_bound = {
     "lm_thin1": 0,
 }
 gpmca_dend_total = {
-    "radTprox1": 0.75e-9,
-    "radTprox2": 0.75e-9,
-    "radTmed1": 0.75e-9,
-    "radTmed2": 0.75e-9,
-    "radTdist1": 0.75e-9,
-    "radTdist2": 0.75e-9,
-    "rad_t1": 0.75e-9,
-    "rad_t2": 0.75e-9,
-    "rad_t3": 0.75e-9,
-    "lm_thick2": 0.75e-9,
-    "lm_medium2": 0.75e-9,
-    "lm_thin2": 0.75e-9,
-    "lm_thick1": 0.75e-9,
-    "lm_medium1": 0.75e-9,
-    "lm_thin1": 0.75e-9,
+    "radTprox1": 0.391034e-9,
+    "radTprox2": 0.396503e-9,
+    "radTmed1": 0.43048e-9,
+    "radTmed2": 0.4425e-9,
+    "radTdist1": 0.4286e-9,
+    "radTdist2": 0.47585e-9,
+    "rad_t1": 1.9005e-9,
+    "rad_t2": 1.8784e-9,
+    "rad_t3": 1.985e-9,
+    "lm_thick2": 0.5101e-9,
+    "lm_medium2": 1.2752e-9,
+    "lm_thin2": 5.5575e-9,
+    "lm_thick1": 0.5101e-9,
+    "lm_medium1": 1.2752e-9,
+    "lm_thin1": 5.5575e-9,
 }
 gpmca_spine_total = {
     "radTprox1": 0,
@@ -132,21 +133,21 @@ kf_ncx = 1.68e1  # 1/mM/ms
 kb_ncx = 0.0112
 kcat_ncx = 5.6e-3
 gncx_dend_bound = {
-    "radTprox1": 0,
-    "radTprox2": 0,
-    "radTmed1": 0,
-    "radTmed2": 0,
-    "radTdist1": 0,
-    "radTdist2": 0,
-    "rad_t1": 0,
-    "rad_t2": 0,
-    "rad_t3": 0,
-    "lm_thick2": 0,
-    "lm_medium2": 0,
-    "lm_thin2": 0,
-    "lm_thick1": 0,
-    "lm_medium1": 0,
-    "lm_thin1": 0,
+   "radTprox1": 0.2e-10*0.93,
+    "radTprox2": 0.2e-10*0.93,
+    "radTmed1": 1e-10*0.93,
+    "radTmed2": 1e-10*0.93,
+    "radTdist1": 1e-10*0.93,
+    "radTdist2": 1e-10*0.93,
+    "rad_t1": 1e-10*0.93,
+    "rad_t2": 1e-10*0.93,
+    "rad_t3": 1e-10*0.93,
+    "lm_thick2": 1e-10*0.93,
+    "lm_medium2": 1.115e-10*0.93,
+    "lm_thin2": 10e-10*0.93,
+    "lm_thick1": 1e-10*0.93,
+    "lm_medium1": 1.115e-10*0.93,
+    "lm_thin1": 10e-10*0.93,
 }
 gncx_spine_bound = {
     "radTprox1": 0,
@@ -167,21 +168,21 @@ gncx_spine_bound = {
 }
 
 gncx_dend_total = {
-    "radTprox1": 50.01225e-9,
-    "radTprox2": 50.01225e-9,
-    "radTmed1": 50.01225e-9,
-    "radTmed2": 50.01225e-9,
-    "radTdist1": 50.01225e-9,
-    "radTdist2": 50.01225e-9,
-    "rad_t1": 50.01225e-9,
-    "rad_t2": 50.01225e-9,
-    "rad_t3": 50.01225e-9,
-    "lm_thick2": 50.01225e-9,
-    "lm_medium2": 50.01225e-9,
-    "lm_thin2": 50.01225e-9,
-    "lm_thick1": 50.01225e-9,
-    "lm_medium1": 50.01225e-9,
-    "lm_thin1": 50.01225e-9,
+    "radTprox1": 0.2e-9,
+    "radTprox2": 0.2e-9,
+    "radTmed1": 1e-9,
+    "radTmed2": 1e-9,
+    "radTdist1": 1e-9,
+    "radTdist2": 1e-9,
+    "rad_t1": 1e-9,
+    "rad_t2": 1e-9,
+    "rad_t3": 1e-9,
+    "lm_thick2": 1e-9,
+    "lm_medium2": 1.115e-9,
+    "lm_thin2": 10e-9,
+    "lm_thick1": 1e-9,
+    "lm_medium1": 1.115e-9,
+    "lm_thin1": 10e-9,
 }
 gncx_spine_total = {
     "radTprox1": 0,
