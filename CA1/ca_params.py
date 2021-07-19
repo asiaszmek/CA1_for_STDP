@@ -168,6 +168,7 @@ gncx_spine_bound = {
 }
 
 gncx_dend_total = {
+
     "radTprox1": 0.2e-9,
     "radTprox2": 0.2e-9,
     "radTmed1": 1e-9,
