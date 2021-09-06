@@ -32,12 +32,12 @@ NEURON {
     THREADSAFE
     SUFFIX can
     USEION ca READ cai, cao WRITE ica VALENCE 2
-    RANGE pbar, ica
+    RANGE gbar, ica
     RANGE damod, maxMod, level, max2, lev2
 }
 
 PARAMETER {
-    pbar = 0.0 (cm/s)
+    gbar = 0.0 (cm/s)
     a = 0.21
     :q = 1	: room temperature 22-25 C
     q = 2	: body temperature 35 C
@@ -65,7 +65,7 @@ STATE { m h }
 
 BREAKPOINT {
     SOLVE states METHOD cnexp
-    ica = pbar*m*m*(h*a+1-a)*ghk(v, cai, cao) *modulation()
+    ica = gbar*m*m*(h*a+1-a)*ghk(v, cai, cao) *modulation()
 }
 
 INITIAL {

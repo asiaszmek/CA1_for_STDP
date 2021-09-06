@@ -32,12 +32,12 @@ NEURON {
     THREADSAFE
     SUFFIX cal13
     USEION cal READ cali, calo WRITE ical VALENCE 2
-    RANGE pbar, ical
+    RANGE gbar, ical
     RANGE damod, maxMod, level, max2, lev2
 }
 
 PARAMETER {
-    pbar = 0.0 (cm/s)
+    gbar = 0.0 (cm/s)
     :q = 1	: room temperature 22-25 C
     q = 2	: body temperature 35 C
     damod = 0
@@ -64,7 +64,7 @@ STATE { m h }
 
 BREAKPOINT {
     SOLVE states METHOD cnexp
-    ical = pbar*m*m*h*ghk(v, cali, calo) *modulation()
+    ical = gbar*m*m*h*ghk(v, cali, calo) *modulation()
 }
 
 INITIAL {

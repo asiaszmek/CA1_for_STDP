@@ -231,33 +231,42 @@ proc insertChannel() {
         insert kap
         insert hd
         insert can
-        insert cal
-        insert cat
+	insert car
+        insert cal12
+	insert cal13		
+        insert cav33
+	insert cav32
         insert kca
         insert cagk
-        //insert cad
+        insert cad
     }
 
     forsec apical {
         insert kad
         insert hd
-        insert can
-        insert cal
-        insert cat
+	insert can
+	insert car
+        insert cal12
+	insert cal13		
+        insert cav33
+	insert cav32
         insert kca
         insert cagk
-        //insert cad
+        insert cad
     }
 
     forsec basal {
         insert kad
         insert hd
-        insert can
-        insert cal
-        insert cat
+	insert can
+	insert car
+        insert cal12
+	insert cal13		
+        insert cav33
+	insert cav32
         insert kca
         insert cagk
-        //insert cad
+        insert cad
     }
 
     forsec this.axonal {
@@ -283,9 +292,11 @@ proc biophys() {
         gbar_kmb = 0.001 // 0.0054486096208209286
         gkdrbar_kdr = 0.0015 //0.0043036502438625682
         gbar_nax = 0.035 //0.0035 // 0.038280628170345957
-        gcalbar_cal =  0.0005 //8.0324964335287e-06
-        gcanbar_can = 2.2618914062501833e-06
-        gcatbar_cat =  0.00005 // 1.184948741542104e-06
+        gbar_cal12 =  0.00025 //8.0324964335287e-06
+	gbar_cal13 =  0.00025 //8.0324964335287e-06
+        gbar_can = 2.2618914062501833e-06
+        gbar_cav32 =  0.000025 // 1.184948741542104e-06	
+        gbar_cav33 =  0.000025 // 1.184948741542104e-06
         gbar_kca = 0.0015 //9.0311387916396796e-05
         gbar_cagk = 4.4820097108998517e-05
         Ra = 115.3957607556371
@@ -305,10 +316,12 @@ proc biophys() {
     forsec apical {
         gkdrbar_kdr = 0.0043036502438625682 //0.02
         gbar_nax = 0.038280628170345957 //0.025
-        gcalbar_cal = 8.0324964335287e-06
-        gcanbar_can = 2.2618914062501833e-06
-        gcatbar_cat = 1.184948741542104e-06
-        gbar_kca = 9.0311387916396796e-05
+        gbar_cal12 = 8.0324964335287e-06
+        gbar_cal13 = 8.0324964335287e-06
+	gbar_can = 2.2618914062501833e-06
+        gbar_cav32 = 1.184948741542104e-06
+        gbar_cav33 = 1.184948741542104e-06
+	gbar_kca = 9.0311387916396796e-05
         gbar_cagk = 4.4820097108998517e-05
         Ra = 115.3957607556371
         g_pas = 9.031387191839301e-05
@@ -319,9 +332,11 @@ proc biophys() {
     forsec trunk_sec_list {
         gkdrbar_kdr = 0.02
         gbar_nax = 0.025
-        gcalbar_cal = 8.0324964335287e-06
-        gcanbar_can = 2.2618914062501833e-06
-        gcatbar_cat = 1.184948741542104e-06
+	gbar_cal12 = 8.0324964335287e-06
+        gbar_cal13 = 8.0324964335287e-06
+	gbar_can = 2.2618914062501833e-06
+        gbar_cav32 = 1.184948741542104e-06
+        gbar_cav33 = 1.184948741542104e-06
         gbar_kca = 9.0311387916396796e-05
         gbar_cagk = 4.4820097108998517e-05
         Ra = 115.3957607556371
@@ -331,9 +346,11 @@ proc biophys() {
     forsec basal {
         gkdrbar_kdr = 0.0043036502438625682
         gbar_nax = 0.038280628170345957
-        gcalbar_cal = 8.0324964335287e-06
-        gcanbar_can = 2.2618914062501833e-06
-        gcatbar_cat = 1.184948741542104e-06
+	gbar_cal12 = 8.0324964335287e-06
+        gbar_cal13 = 8.0324964335287e-06
+	gbar_can = 2.2618914062501833e-06
+        gbar_cav32 = 1.184948741542104e-06
+        gbar_cav33 = 1.184948741542104e-06
         gbar_kca = 9.0311387916396796e-05
         gbar_cagk = 4.4820097108998517e-05
         Ra = 115.3957607556371

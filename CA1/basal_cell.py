@@ -239,8 +239,10 @@ class CA1_PC_basal:
             sec.insert("kap")
             sec.insert("hd")
             sec.insert("can")
-            sec.insert("cal")
-            sec.insert("cat")
+            sec.insert("cal12")
+            sec.insert("cal13")
+            sec.insert("cav33")
+            sec.insert("cav32")
             sec.insert("kca")
             sec.insert("cagk")
 
@@ -248,8 +250,10 @@ class CA1_PC_basal:
             sec.insert("kad")
             sec.insert("hd")
             sec.insert("can")
-            sec.insert("cal")
-            sec.insert("cat")
+            sec.insert("cal12")
+            sec.insert("cal13")
+            sec.insert("cav33")
+            sec.insert("cav32")
             sec.insert("kca")
             sec.insert("cagk")
 
@@ -257,8 +261,12 @@ class CA1_PC_basal:
             sec.insert("kad")
             sec.insert("hd")
             sec.insert("can")
-            sec.insert("cal")
-            sec.insert("cat")
+            sec.insert("car")
+            sec.insert("cal12")
+            sec.insert("cal13")
+            sec.insert("cav33")
+            sec.insert("cav32")
+
             sec.insert("kca")
             sec.insert("cagk")
 
@@ -278,9 +286,11 @@ class CA1_PC_basal:
             sec.gbar_kmb = 0.001 
             sec.gkdrbar_kdr = 0.0015 
             sec.gbar_nax = 0.035 
-            sec.gcalbar_cal =  0.0005 
-            sec.gcanbar_can = 2.2619e-06
-            sec.gcatbar_cat =  0.00005 
+            sec.gbar_cal12 =  0.00025
+            sec.gbar_cal13 =  0.00025 
+            sec.gbar_can = 2.2619e-06
+            sec.gbar_cav32 =  0.000025
+            sec.gbar_cav33 =  0.000025 
             sec.gbar_kca = 0.0015 
             sec.gbar_cagk = 4.482e-05
             sec.Ra = 115.3958
@@ -297,9 +307,11 @@ class CA1_PC_basal:
         for sec in self.apical: 
             sec.gkdrbar_kdr = 0.0043036502438625682 #0.02
             sec.gbar_nax = 0.038280628170345957 #0.025
-            sec.gcalbar_cal = 8.0324964335287e-06
-            sec.gcanbar_can = 2.2618914062501833e-06
-            sec.gcatbar_cat = 1.184948741542104e-06
+            sec.gbar_cal12 = 8.0324964335287e-06
+            sec.gbar_cal13 = 8.0324964335287e-06
+            sec.gbar_can = 2.2618914062501833e-06
+            sec.gbar_cav32 = 1.184948741542104e-06
+            sec.gbar_cav33 = 1.184948741542104e-06
             sec.gbar_kca = 9.0311387916396796e-05
             sec.gbar_cagk = 4.4820097108998517e-05
             sec.Ra = 115.3957607556371
@@ -307,9 +319,11 @@ class CA1_PC_basal:
         for sec in self.trunk:
             sec.gkdrbar_kdr = 0.02
             sec.gbar_nax = 0.025
-            sec.gcalbar_cal = 8.0324964335287e-06
-            sec.gcanbar_can = 2.2618914062501833e-06
-            sec.gcatbar_cat = 1.184948741542104e-06
+            sec.gbar_cal12 = 8.0324964335287e-06
+            sec.gbar_cal13 = 8.0324964335287e-06
+            sec.gbar_can = 2.2618914062501833e-06
+            sec.gbar_cav32 = 1.184948741542104e-06
+            sec.gbar_cav33 = 1.184948741542104e-06
             sec.gbar_kca = 9.0311387916396796e-05
             sec.gbar_cagk = 4.4820097108998517e-05
             sec.Ra = 115.3957607556371
@@ -317,9 +331,11 @@ class CA1_PC_basal:
         for sec in self.basal:
             sec.gkdrbar_kdr = 0.0043036502438625682
             sec.gbar_nax = 0.038280628170345957
-            sec.gcalbar_cal = 8.0324964335287e-06
-            sec.gcanbar_can = 2.2618914062501833e-06
-            sec.gcatbar_cat = 1.184948741542104e-06
+            sec.gbar_cal12 = 8.0324964335287e-06
+            sec.gbar_cal13 = 8.0324964335287e-06
+            sec.gbar_can = 2.2618914062501833e-06
+            sec.gbar_cav32 = 1.184948741542104e-06
+            sec.gbar_cav33 = 1.184948741542104e-06
             sec.gbar_kca = 9.0311387916396796e-05
             sec.gbar_cagk = 4.4820097108998517e-05
             sec.Ra = 115.3957607556371

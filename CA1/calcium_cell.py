@@ -1,38 +1,19 @@
 import os
 from collections import OrderedDict
-
-from numpy import pi, exp
-
+import numpy as np
 from neuron import rxd, h
-import neuron
-from neuron.units import nM, uM
+from .ca_params import *
 from .basal_cell import CA1_PC_basal
+
+
 # Nomenclature and values adapted from Harris KM, Jensen FE, Tsao BE.
 # J Neurosci 1992
 #absolute quantities in mM
 #reaction rates in uM/ms or 1/ms
 my_loc = os.path.dirname(os.path.abspath(__file__))
 params_file = os.path.join(my_loc, "ca_params.py")
+
 c_unit = 6.0221409e5
-mechanisms_path = os.path.join(my_loc, "Mods")
-
-mech_dict = {
-    "hd": "ghdbar",
-    'kad': "gkabar",
-    'kap': "gkabar",
-    'kdr': "gkdrbar",
-    "kmb": "gbar",
-    'na3notrunk': "gbar",
-    'nap': "gnabar",
-    "cal": "gcalbar",
-    "can": "gcanbar",
-    "car": "gcabar",
-    "cat": "gcatbar",
-    "kca": "gbar", # sk - channel
-    "cagk": "gbar",
-    "nax": "gbar",
-    "pas": ["g", "e"], }
-
 
 
 SPINE_DIMENSIONS = {
@@ -67,7 +48,8 @@ SPINE_DIMENSIONS = {
         "neck_len": 0.5,
     }
 }
-        
+
+
 class CA1_PC:
     
     synlist = []
@@ -84,10 +66,14 @@ class CA1_PC:
             return out[0]
         return out
 
-    def __init__(self, model=None, params=params_file, where_ca=["lm_medium2]"],
+    def __init__(self, model=None, params=params_file,
+                 where_ca=["lm_medium2"],
                  spine_number=1,
                  where_spines=["lm_medium2"],
-                 add_ER=True, buffer_list=["CaM", "Calbindin"]):
+                 add_ER=False, buffer_list=["CaM", "Calbindin", "Fixed"],
+                 pump_list=["ncx", "pmca"], receptor_list=["AMPA", "NMDA"],
+                 spine_pos=[]):
+
         if model is None:
             model = CA1_PC_basal()
         try:
@@ -124,7 +110,9 @@ class CA1_PC:
         #read in parameters from file
         self.params = {}
         exec(open(params).read(), {}, self.params)
-
+        self.pumps = []
+        self.leak = []
+        self.g = {}
         self.add_ER = add_ER
         if self.add_ER:
             self.ER = OrderedDict()
@@ -132,49 +120,77 @@ class CA1_PC:
             self.fc = 0.8 # fraction of cytoplasmic volume
         else:
             self.fc = 1
-        
+        self.where_ca = where_ca
+        secs = []
+        for sec in where_ca:
+            secs.extend(self.cell_filter(sec, tolist=True))
+        for sec in secs:
+            channels = sec.psection()["density_mechs"].keys()
+            for key in channels:
+                if not key.startswith("ca"):
+                    continue
+                for seg in sec:
+                    from_mech = getattr(seg, key)
+                    value = getattr(from_mech, "gbar")
+                    setattr(from_mech, "gbar", self.params["ca_factor"]*value)
+        self.comp_factors = {}
         self.reactions = []
         self.where_spines = []
         self.sections_rxd = []
-        if where_spines:
-            if not isinstance(where_spines, list):
-                where_spines = [where_spines]
-            for loc in where_spines:
-                self.where_spines.extend(self.cell_filter(loc, tolist=True))
-            for spine_loc in self.where_spines:
-                for a_spine in range(spine_number):
-                    pos = 1/(spine_number+1)*(a_spine+1)
+        self.add_spines(where_spines, spine_number, spine_pos)
+        self.pump_list = pump_list
+        self.add_calcium(where_rxd=where_ca, buffer_list=buffer_list,
+                         pump_list=pump_list)
+        for head in self.heads:
+            if "AMPA" in receptor_list:
+                self.add_synapse_ampa(head(0.9),
+                                      self.params["gAMPA"])
+            if "NMDA" in receptor_list:
+                self.add_synapse_nmda(head(0.9),
+                                      self.params["gNMDA"],
+                                      self.params["Ca_per"],
+                                      is_ca=True)
+
+    def add_spines(self, dends, spine_no, spine_pos=[]):
+        if dends:
+            new_locs = []
+            if not isinstance(dends, list):
+                dends = [dends]
+            for loc in dends:
+                new_locs.extend(self.cell_filter(loc, tolist=True))
+                self.where_spines.extend(new_locs)
+            for spine_loc in new_locs:
+                for a_spine in range(spine_no):
+                    if not spine_pos or a_spine >= len(spine_pos):
+                        pos = 1/(spine_no+1)*(a_spine+1)
+                    else:
+                        pos = spine_pos[a_spine]
                     head = self.add_head(a_spine, where=spine_loc, position=pos)
                     self.heads.append(head)
-            self.compensate_for_spines()
-        self.add_calcium(where_rxd=where_ca, buffer_list=buffer_list)
-        for head in self.heads:
-            self.add_synapse_ampa(head(0.9))
-            self.add_synapse_nmda(head(0.9))
-
+                self.compensate_for_spines(spine_loc)
+        
     def get_ca_init(self, reg):
         if "ECS" in reg:
             return self.params["ca_ECS"]
-        return 1.02e-4
+        return ca_init
 
-            
-    def add_synapse_ampa(self, dend):
-        syn = h.MyExp2Syn(dend)
-        syn.tau1 = 0.5
-        syn.tau2 = 3
-        syn.e = 0
-        syn.gAMPAmax = self.params["gAMPA"]
+    def add_synapse_ampa(self, dend, gmax):
+        syn = h.AMPADJ(dend)
+        syn.gmax = gmax
         self.synlist.append(syn)
         return syn
 
-    def add_synapse_nmda(self, dend):
-        syn = h.NMDAca(dend)
-        syn.fCa = self.params["Ca_per"]
-        syn.tcon = 3
-        syn.tcoff = 40
-        syn.mgconc = 2
-        syn.gamma = 0.08
-        syn.gNMDAmax = self.params["gNMDA"]
+    def add_synapse_nmda(self, dend, gmax, ca_per,
+                         is_ca=True):
+        if not is_ca:
+            syn = h.NR2A(dend)
+            syn.gmax = gmax
+            self.synlist.append(syn)
+            return syn
+
+        syn = h.NR2A_CA(dend)
+        syn.fCa = ca_per
+        syn.gmax = gmax
         self.synlist.append(syn)
         return syn
 
@@ -183,7 +199,7 @@ class CA1_PC:
         for mech_name in spine_mechanisms:
             spine.insert(mech_name)
         head_factor = self.params["head_factor"]
-        for seg in spine:
+        for i, seg in enumerate(spine):
             if "cm" not in spine_params_dict:
                 seg.cm = segment.cm
             else:
@@ -193,24 +209,45 @@ class CA1_PC:
                 seg.ek = segment.ek
             else:
                 seg.ek = spine_params_dict["ek"]
+                
             if "Ra" not in spine_params_dict:
                 seg.sec.Ra = segment.sec.Ra
             else:
                 seg.sec.Ra = spine_params_dict["Ra"]
+            
+
             for mech_name in spine_mechanisms:
                 if mech_name  in spine_params_dict:
                     to_mech = getattr(seg, mech_name)
-                    for name in spine_params_dict[mech_name]:
-                        if head:
-                            if mech_name in head_factor:
-                                value = spine_params_dict[mech_name][name]*head_factor
+                    if mech_name == "pas":
+                        value_e = spine_params_dict[mech_name]["e"]
+                        setattr(to_mech, "e", value_)
+                        value_e = spine_params_dict[mech_name]["g"]
+                        setattr(to_mech, "g", value_)
+                    else:
+                        for name in spine_params_dict[mech_name]:
+                            if i > spine.nseg/2 - 1 or mech_name == "cad":
+                                if mech_name in head_factor:
+                                    value = spine_params_dict[mech_name][name]*head_factor
+                                else:
+                                    value = spine_params_dict[mech_name][name]
                             else:
-                                value = spine_params_dict[mech_name][name]
-                        setattr(to_mech, name, value)
+                                value = 0
+                            setattr(to_mech, name, value)
                 else:
-                    gbar_name = mech_dict[mech_name]
-                    self.set_val_from_segment(seg, segment, mech_name, gbar_name)
-
+                    if mech_name == "pas":
+                        self.set_val_from_segment(seg, segment,
+                                                  mech_name, "e")
+                        self.set_val_from_segment(seg, segment,
+                                                  mech_name, "g")
+                    else:
+                        if i > spine.nseg/2 - 1:
+                            self.set_val_from_segment(seg, segment,
+                                                  mech_name, "gbar")
+                        else:
+                            to_mech = getattr(seg, mech_name)
+                            setattr(to_mech, "gbar", 0)
+                
         return spine
 
     def set_val_from_segment(self, seg, segment, mech_name, gbar_names):
@@ -220,32 +257,45 @@ class CA1_PC:
             try:
                 from_mech = getattr(segment, mech_name)
             except AttributeError:
-                continue    
+                continue
             value = getattr(from_mech, gbar_name)
             to_mech = getattr(seg, mech_name)
             setattr(to_mech, gbar_name, value)
     
     def add_head(self, number, spine_type="ball and stick",
-                 where="apical_dendrite[9]",
-                 position=0.5, head_mechanisms=["pas", "cal", "can", 
-                                                "cat", "kca", "cagk", 'hd',
-                                                'kad', 'kap', 'kdr', "kmb",
-                                                'nax'],
-                 head_params_dict={"Ra":1200, "cad":{"taur": 14, "buffer":20}}):
+                 where="apical_dendrite[10]",
+                 position=0.5, head_mechanisms=["pas", "calH", "car", 
+                                                "cat", "kca", "mykca", 'h',
+                                                'kad', 'kap', 'kca', 'kdr',
+                                                'na3notrunk', 'nap', "na3"],
+                 head_params_dict={"Ra":1200}):
+    
         if isinstance(where, str): 
             dend = self.cell_filter(where)
         else:
             dend = where
+            where = dend.name()
         segment = dend(position)
         head = h.Section(name="%s_%s_%d" % (dend.name(), 'head', number))
-        head.L = SPINE_DIMENSIONS[spine_type]["head_len"]
-        head.diam = SPINE_DIMENSIONS[spine_type]["head_diam"]
-        head.connect(segment)
+        if where in self.where_ca:
+            head.nseg = 5
+        else:
+            head.nseg = 3
 
+        head.L = (SPINE_DIMENSIONS[spine_type]["head_len"] +
+                  SPINE_DIMENSIONS[spine_type]["neck_len"])
+                  
+        for i, seg in enumerate(head):
+            if i > head.nseg/2 - 1 :
+                seg.diam = SPINE_DIMENSIONS[spine_type]["head_diam"]
+            else:
+                seg.diam = SPINE_DIMENSIONS[spine_type]["neck_diam"]
+        head.connect(segment)
+        
         self.sections.append(head)
-        if where not in self.spine_dict:
-            self.spine_dict[where] = []
-        self.spine_dict[where] = (head)
+        if segment not in self.spine_dict:
+            self.spine_dict[segment] = []
+        self.spine_dict[segment].append(head)
         self.add_spine_mechs(head, segment, head_mechanisms,
                              head_params_dict)
         return head
@@ -253,10 +303,45 @@ class CA1_PC:
     #Add a number of spines to a dendritic branch.
     #lower conductances, scale resistance and capacitance
 
-    def compensate_for_spines(self):
-        pass
+    def compensate_for_spines(self, dend):
+        for segment in dend:
+            if segment in self.spine_dict:
+                spines = self.spine_dict[segment]
+                section = segment.sec
+                seg_surf = segment.area()
+                mech_dict = section.psection()["density_mechs"]
+                ca_channels = []
+                for mech in mech_dict:
+                    if 'gbar' in mech_dict[mech].keys():  # is a channel
+                        tot_spine_cond = 0
+                        for spine in spines:
+                            for i, spine_seg in enumerate(spine):
+                                cond = spine.psection()["density_mechs"][mech]['gbar'][i]
 
-    def add_calcium(self, where_rxd=[], buffer_list=["CaM", "Calbindin"]):
+                                tot_spine_cond += spine_seg.area() * cond
+                        seg_mech = getattr(segment, mech)
+                        seg_cond = getattr(seg_mech, "gbar")
+                        new_cond = (seg_cond*seg_surf - tot_spine_cond)/seg_surf
+                        setattr(seg_mech, "gbar", new_cond)
+                        if mech.startswith("ca") or mech.startswith("Ca"):
+                            if seg_cond:
+                                ca_channels.append(new_cond/seg_cond)
+                self.comp_factors[segment] = np.array(ca_channels).mean()
+                
+                spine_g = 0
+                spine_cm = 0
+                for spine in spines:
+                    for spine_seg in spine:
+                        spine_g += spine_seg.area()*spine_seg.g_pas
+                        spine_cm += spine_seg.area()*spine_seg.cm
+                new_g = (segment.g_pas*seg_surf - spine_g)/seg_surf
+                segment.g_pas = new_g
+                new_cm = (segment.cm*seg_surf - spine_cm)/seg_surf
+                segment.cm = new_cm
+
+    def add_calcium(self, where_rxd=[], buffer_list=["CaM", "Calbindin"],
+                    pump_list=["pmca", "ncx"]):
+
         for name in where_rxd:
             if name == "apical":
                 self.sections_rxd.extend(self.apical)
@@ -274,13 +359,16 @@ class CA1_PC:
             if sec in self.sections_rxd:
                 sec_list = self.cell_filter(sec.name(), tolist=True)
                 self.sections_rxd.extend(sec_list)
-
         self.sections_rxd = list(set(self.sections_rxd))
-        self.add_rxd_calcium(buffer_list)
+        self.add_rxd_calcium(buffer_list, pump_list)
         for sec in self.sections:
             if sec not in self.sections_rxd:
                 if h.ismembrane("ca_ion", sec=sec):
+                    #print("Adding simple Ca dynamics to %s" % sec.name())
                     sec.insert("cad")
+                    if len(buffer_list) > 2:
+                        sec.Buffer_cad = 25
+                        #an additional buffer will change Ca dynamics
                     sec.cao = self.params["Ca_Ext"]
         return
 
@@ -303,12 +391,19 @@ class CA1_PC:
                 self.shells[name] = []
                 
             inner = 1-(sum(self.factors[name])+new_factor)
+            if inner < 0:
+                inner = 0
             outer = 1-sum(self.factors[name])
-            self.shells[name].append(rxd.Region(section, nrn_region='i',
-                                                geometry=rxd.Shell(inner,
-                                                                   outer),
-                                                name="%s_Shell_%d" %
-                                                (which_dend, i)))
+            if i == 0 and inner == 0:
+                self.shells[name].append(rxd.Region(section, nrn_region='i',
+                                                    name="%s_Shell_%d" %
+                                                    (which_dend, i)))
+            else:
+                self.shells[name].append(rxd.Region(section, nrn_region='i',
+                                                    geometry=rxd.Shell(inner,
+                                                                       outer),
+                                                    name="%s_Shell_%d" %
+                                                    (which_dend, i)))
             if i == 1:
                 self.borders[name] = []
             if i > 0:
@@ -320,31 +415,33 @@ class CA1_PC:
             self.factors[name].append(new_factor)
             if last_shell:
                 break
+            if not inner:
+                break
             if sum(self.factors[name]) + 2*new_factor >= self.fc:
                 last_shell = True
                 new_factor = (self.fc - sum(self.factors[name]))
             else:
                 new_factor = 2*new_factor 
             i = i+1               
-        
+
     def _add_rxd_regions(self):
-        self.ECS = rxd.Region(self.sections_rxd, name='ECS', nrn_region='o',
-                              geometry=rxd.Shell(1, 2))
         self.membrane = OrderedDict()
         self.shells = OrderedDict()
         self.borders = OrderedDict()
-        self.dr = OrderedDict() # shell thickness 
 
         self.factors = OrderedDict()  #  membrane_shell_width/max_radius
         secs_spines = OrderedDict()
-        sec_list = self.sections_rxd[:]
-        for sec in sec_list:
+        sec_list = []
+        for sec in self.sections_rxd:
             if "head" in sec.name():
-                sec_list.remove(sec)
+                continue
+            sec_list.append(sec)
         dendrites = sec_list[:]
         all_geom = OrderedDict()
         membrane_shell_width = self.params["membrane_shell_width"]
+
         for sec in dendrites:
+            print("Add rxd Ca to %s" % sec.name())
             factor = 2*membrane_shell_width/sec.diam
             if sec not in self.where_spines: 
                 self.add_shells(sec, 0, factor)
@@ -360,17 +457,23 @@ class CA1_PC:
                         all_geom[sec_name].append(rxd.inside)
                     else:
                         factor = 2*membrane_shell_width/new_sec.diam
+                        if factor > 1:
+                            factor = 1
                         all_geom[sec_name].append(rxd.Shell(1-factor, 1))
+                geom = rxd.MultipleGeometry(secs=new_secs,
+                                            geos=all_geom[sec_name])
                 self.shells[sec_name] = [rxd.Region(new_secs,
                                                     nrn_region="i",
                                                     name="%s_Shell_0"
                                                     % which_dend,
-                                                    geometry=rxd.MultipleGeometry(secs=new_secs, geos=all_geom[sec_name]))]
+                                                    geometry=geom)]
                 self.factors[sec_name] = [factor]
                 self.membrane[sec_name] = rxd.Region(new_secs,
                                                      name='%s_membrane'
                                                      % which_dend,
                                                      geometry=rxd.membrane())
+                if factor == 1:
+                    break
                 self.add_shells(sec, 1, 2*factor)
         if self.add_ER:
             self._add_ER_and_membrane()
@@ -378,6 +481,8 @@ class CA1_PC:
 
     def _add_ER_and_membrane(self):
         for sec in self.sections_rxd:
+            if "head" in sec.name():
+                continue
             sec_name = sec.name()
             which_dend = sec_name.replace("[", "").replace("]", "")
             l_s_d = 1 - sum(self.factors[sec_name]) #last shell diameter
@@ -392,17 +497,14 @@ class CA1_PC:
                                                         geometry=rxd.ScalableBorder(
                                                             diam_scale=l_s_d))
 
-
-
     def _make_object_lists(self):
         self.shell_list = []
         for key in self.shells.keys():
             self.shell_list.extend(self.shells[key])
 
         self.membrane_list = []
-        for key in self.membrane.keys():
-            self.membrane_list.append(self.membrane[key])
-
+        for key in self.shells.keys():
+            self.membrane_list.append(self.shells[key][0])
         if self.add_ER:
             self.ER_regions = []
             self.cyt_er_membrane_list = []
@@ -412,12 +514,13 @@ class CA1_PC:
                 self.cyt_er_membrane_list.append(self.cyt_er_membrane[sec_name])
                 self.shells_to_ER.append(self.shells[sec_name][-1])
 
-    def _add_species(self, buffer_list):
-        regions = self.shell_list + [self.ECS]
+    def _add_species(self, buffer_list, pump_list):
+        regions = self.shell_list 
         caDiff = self.params["caDiff"]
         self.ca = rxd.Species(regions, d=caDiff, name='ca', charge=2,
-                              initial=lambda nd: self.get_ca_init(nd.region.name),
-                              atolscale=1e-8)
+                              initial=lambda nd:
+                              self.get_ca_init(nd.region.name),
+                              atolscale=1e-9)
         
         if self.add_ER:
             ip3Diff = self.params["ip3Diff"]
@@ -425,95 +528,236 @@ class CA1_PC:
             calr_tot = self.params["calr_tot"]
             calr_bound = self.params["calr_bound"]
             self.ip3 = rxd.Species(self.shell_list, d=ip3Diff, initial=ip3_init,
-                                   atolscale=1e-8)
-            self.ca_ER = rxd.Species(self.ER_regions, d=caDiff, name='ca_er', charge=2,
+                                   atolscale=1e-9)
+            self.ca_ER = rxd.Species(self.ER_regions, d=caDiff, name='caer',
+                                     charge=2,
                                      initial=self.params["ca_init_ER"],
-                                     atolscale=1e-8)
-            self.calr = rxd.Species(self.ER_regions, initial=calr_tot-calr_bound)
+                                     atolscale=1e-9)
+            self.calr = rxd.Species(self.ER_regions,
+                                    initial=calr_tot-calr_bound)
             self.calrca = rxd.Species(self.ER_regions, initial=calr_bound)
         self.add_buffers(buffer_list)
-        self.add_surface_pumps()
+        #self.add_surface_pumps(pump_list)
+
+    def add_surface_pumps(self, pump_list):
+        if "ncx" in pump_list:
+            gncx_spine = OrderedDict()
+            gncx_dend = OrderedDict()
+            gncx_spine_bound = OrderedDict()
+            gncx_dend_bound = OrderedDict()
+            gncx_dend_total = self.params["gncx"]
+            gncx_spine_total = self.params["gncx_spine"]
+            n = self.params["ncx_pow"]
+            for key in gncx_dend_total.keys():
+                gncx_spine_bound[key] = (gncx_spine_total[key] * ca_init /
+                                         (((kb_ncx+kcat_ncx)/kf_ncx)
+                                          + ca_init))
+                gncx_dend_bound[key] = (gncx_dend_total[key] * ca_init**n /
+                                        (((kb_ncx+kcat_ncx)/kf_ncx)
+                                         + ca_init**n))
+
+                gncx_spine[key] = (gncx_spine_total[key]
+                                   - gncx_spine_bound[key])
+                
+                gncx_dend[key] = gncx_dend_total[key] - gncx_dend_bound[key]
+            self.ncx = rxd.Species(self.membrane_list, name='ncx', d=0,
+                                   initial=lambda nd:
+                                   self.pump_density(nd, gncx_spine)
+                                   if "head" in nd.sec.name()
+                                   else self.pump_density(nd,
+                                                          gncx_dend),
+                                   atolscale=1e-9)
+            self.ncxca = rxd.Species(self.membrane_list, name='ncxca', d=0,
+                                     initial=lambda nd:
+                                     self.pump_density(nd, gncx_spine_bound)
+                                     if "head" in nd.sec.name()
+                                     else self.pump_density(nd,
+                                                            gncx_dend_bound),
+                                     atolscale=1e-9)
+            
+        if "pmca" in pump_list:
+            gpmca_spine = OrderedDict()
+            gpmca_dend = OrderedDict()
+            gpmca_spine_bound = OrderedDict()
+            gpmca_dend_bound = OrderedDict()
+            gpmca_spine_total = self.params["gpmca_spine"]
+            gpmca_dend_total = self.params["gpmca"]
+
+            for key in gpmca_spine_total.keys():
+                gpmca_spine_bound[key] = (gpmca_spine_total[key] * ca_init /
+                                         (((kb_pmca+kcat_pmca)/kf_pmca)
+                                          + ca_init))
+                gpmca_dend_bound[key] = (gpmca_dend_total[key] * ca_init /
+                                        (((kb_pmca+kcat_pmca)/kf_pmca)
+                                         + ca_init))
+                
+                gpmca_spine[key] = gpmca_spine_total[key] - gpmca_spine_bound[key]
+                gpmca_dend[key] = gpmca_dend_total[key] - gpmca_dend_bound[key]
+
+            self.pmca = rxd.Species(self.membrane_list, name='pmca', d=0,
+                                    initial=lambda nd:
+                                    self.pump_density(nd, gpmca_spine)
+                                    if "head" in nd.sec.name()
+                                    else self.pump_density(nd, gpmca_dend),
+                                    atolscale=1e-9)
+            self.pmcaca = rxd.Species(self.membrane_list, name='pmcaca', d=0,
+                                      initial=lambda nd:
+                                      self.pump_density(nd, gpmca_spine_bound)
+                                      if "head" in nd.sec.name()
+                                      else self.pump_density(nd,
+                                                             gpmca_dend_bound),
+                                      atolscale=1e-9)
 
     def pump_density(self, node, value):
-        dist_factor = 1#(1+0.0*h.distance(0, node.segment))
-        area = node.sec(node.x).area()
         sec_name = node.sec.name()
+        my_seg = node.segment
         if "head" in sec_name:
             sec_name = node.sec.name().split("_head")[0]
             head_factor = self.params["head_factor"]
-            return value[sec_name]*area*head_factor
-        factor = self.factors[sec_name][0]
-        vol_c = self.params["vol_c"]
-        shell_vol = pi/4*node.sec.L*node.sec.diam**2*(1-(1-factor)**2)/vol_c
-        return value[sec_name]*area*shell_vol*dist_factor
+            gmax = value[sec_name]
+            return gmax*head_factor
+        else:
+            gmax = value[sec_name]
+            if node.segment in self.comp_factors:
+                return gmax*self.comp_factors[node.segment]
+            return gmax
 
-    def add_surface_pumps(self):
-        gncx_spine = OrderedDict()
-        gpmca_spine = OrderedDict()
-        gncx_dend = OrderedDict()
-        gpmca_dend = OrderedDict()
-        gncx_spine_total = self.params["gncx_spine_total"]
-        gncx_spine_bound = self.params["gncx_spine_bound"]
-        gpmca_spine_total = self.params["gpmca_spine_total"]
-        gpmca_spine_bound = self.params["gpmca_spine_bound"]
-        gncx_dend_total = self.params["gncx_dend_total"]
-        gncx_dend_bound = self.params["gncx_dend_bound"]
-        gpmca_dend_total = self.params["gpmca_dend_total"]
-        gpmca_dend_bound = self.params["gpmca_dend_bound"]
-        for key in gncx_spine_total.keys():
-            gncx_spine[key] = gncx_spine_total[key] - gncx_spine_bound[key]
-            gpmca_spine[key] = gpmca_spine_total[key] - gpmca_spine_bound[key]
-            gncx_dend[key] = gncx_dend_total[key] - gncx_dend_bound[key]
-            gpmca_dend[key] = gpmca_dend_total[key] - gpmca_dend_bound[key]
-        self.ncx = rxd.Species(self.membrane_list, name='ncx', initial=lambda nd:
-                               self.pump_density(nd, gncx_spine)
-                               if "head" in nd.sec.name()
-                               else self.pump_density(nd, gncx_dend))
-        self.ncxca = rxd.Species(self.membrane_list, name='ncxca',
-                                 initial=lambda nd:
-                                 self.pump_density(nd, gncx_spine_bound)
-                                 if "head" in nd.sec.name()
-                                 else self.pump_density(nd, gncx_dend_bound))
-        self.pmca = rxd.Species(self.membrane_list, name='pmca', initial=lambda nd:
-                                self.pump_density(nd, gpmca_spine)
-                                if "head" in nd.sec.name()
-                                else self.pump_density(nd, gpmca_dend))
-        self.pmcaca = rxd.Species(self.membrane_list, name='pmcaca',
-                                  initial=lambda nd:
-                                  self.pump_density(nd, gpmca_spine_bound)
-                                  if "head" in nd.sec.name()
-                                  else self.pump_density(nd, gpmca_dend_bound))
-        
-        
-    def add_serca(self):
-        # SERCA pump: pumps ca from cyt -> ER
-        # Vmax = 500 uM/s = 0.5 mM/s, Kserca = 0.4 uM = 3 e-4 mM (in agreement with the sig. pathways model)
+    def add_surface_pump_reactions(self, pump_list):
+        if "ncx" in pump_list:
+            n = self.params["ncx_pow"]
+            self.ncx_1_r = []
+            self.ncx_2_r = []
+            kf_ncx  = self.params["kf_ncx"]
+            kb_ncx = self.params["kb_ncx"]
+            kcat_ncx = self.params["kcat_ncx"]
+            for key in self.shells.keys():
+                membrane_shell = self.shells[key][0]
+                membrane = self.membrane[key]
+                reac = rxd.Reaction(n*self.ca[membrane_shell] +
+                                    self.ncx[membrane_shell],
+                                    self.ncxca[membrane_shell],
+                                    kf_ncx, 
+                                    kb_ncx)
+                self.ncx_1_r.append(reac)
+                reac = rxd.Reaction(self.ncxca[membrane_shell],
+                                    self.ncx[membrane_shell],
+                                    kcat_ncx)
+                self.ncx_2_r.append(reac)
+        if "pmca" in pump_list:
+            self.pmca_1_r = []
+            self.pmca_2_r = []
+            kf_pmca = self.params["kf_pmca"]
+            kb_pmca = self.params["kb_pmca"]
+            kcat_pmca = self.params["kcat_pmca"]
+            for key in self.shells.keys():
+                membrane_shell = self.shells[key][0]
+                membrane = self.membrane[key]
+                reac = rxd.Reaction(self.ca[membrane_shell] +
+                                    self.pmca[membrane_shell],
+                                    self.pmcaca[membrane_shell],
+                                    kf_pmca,
+                                    kb_pmca)
+                self.pmca_1_r.append(reac)
+                reac = rxd.Reaction(self.pmcaca[membrane_shell],
+                                                    self.pmca[membrane_shell],
+                                                    kcat_pmca)
+
+                self.pmca_2_r.append(reac)
+
+    def ncx_val(self, node):
+        if "head" in node.sec.name():
+            return self.params["gncx_spine"]*self.params["kcat_ncx"]
+        return self.params["gncx"]*self.params["kcat_ncx"]
+
+    def pmca_val(self, node):
+        if "head" in node.sec.name():
+            return self.params["gpmca_spine"]*self.params["kcat_pmca"]
+        return self.params["gpmca"]*self.params["kcat_pmca"]
+
+    def add_pump(self, name):
+        memb_flux = False
+        if name == "Serca":
+            membranes = self.cyt_er_membrane
+            n = 2
+            membrane_list = [membranes[key] for key in membranes.keys()]
+            self.g[name] = rxd.Parameter(membrane_list,
+                                         value=lambda nd:
+                                         self.params["g%s" % name])
+        # tu shell a nie membrane
+        elif name == "pmca":
+            membranes = self.membrane
+            memb_flux = True
+            n = 1
+            membrane_list = self.membrane_list
+            #[membranes[key] for key in membranes.keys()]
+            self.g[name] = rxd.Parameter(membrane_list,
+                                         value=lambda nd: self.pmca_val(nd))
+            g_leak = rxd.Parameter(membrane_list,
+                                         value=lambda nd: self.get_leak_val(nd))
+        elif name == "ncx":
+            membranes = self.membrane
+            memb_flux = True
+            n = 1
+            membrane_list = self.membrane_list
+            # [membranes[key] for key in membranes.keys()]
+            self.g[name] = rxd.Parameter(membrane_list,
+                                         value=lambda nd: self.ncx_val(nd))
+            g_leak = rxd.Parameter(membrane_list,
+                                   value=lambda nd: self.get_leak_val(nd))
+
+        else:
+            membranes = self.membrane
+            membrane_list = [membranes[key] for key in membranes.keys()]
+            n = 1
+            g_leak = rxd.Parameter(membrane_list,
+                                   value=lambda nd: self.get_leak_val(nd))
+
+        kcat_pump = self.params["kcat_%s" % name]
+        Km_pump = self.params["Km_%s" % name]
+        for key in self.shells.keys():
+            print(key)
+            if "head" in key:
+                continue
+            if name == "Serca":
+                outside = self.ca_ER[self.ER[key]]
+                inside = self.ca[self.shells[key][-1]]
+            else:
+                outside = None
+                inside = self.ca[self.shells[key][0]]
+            membrane = membranes[key]
+            if outside is not None:
+                rate = self.g[name]*inside**n*kcat_pump/(Km_pump**n+inside**n)
+                pump = rxd.MultiCompartmentReaction(inside > outside,
+                                                    rate,
+                                                    membrane=membrane,
+                                                    custom_dynamics=True,
+                                                    membrane_flux=memb_flux)
+                self.pumps.append(pump)
+            else:
+                kf_pump = self.params["kf_%s" % name]
+                kb_pump = self.params["kb_%s" % name]
+                # Keener and Sneyd, mathematical physiology, page 32
+                basal = self.params["ca_init"]
+                extrusion =-kcat_pump*self.g[name]*inside /(Km_pump + inside)/(1+self.g[name]*Km_pump/(Km_pump+inside)**2)
+                leak = g_leak*kcat_pump*self.g[name]*basal/(Km_pump + basal)/(1+self.g[name]*Km_pump/(Km_pump+basal)**2)
+                                
+                pump = rxd.Rate(inside, extrusion + leak,
+                                regions=[self.shells[key][0]])
+                self.pumps.append(pump)
     
-        self.gserca = rxd.Parameter(self.cyt_er_membrane_list,
-                                    initial=self.params["gserca"])
-        #Serca from the sig paths model
-        kcat_Serca = self.params["kcat_Serca"]
-        Kserca = self.params["Kserca"]
-        self.serca = []
-        for key in self.ER.keys():
-            er_region = self.ER[key]
-            ca_region = self.shells[key][-1]
-            membrane = self.cyt_er_membrane[key]
-            self.serca.append(rxd.MultiCompartmentReaction(self.ca[ca_region]> self.ca_ER[er_region],
-                                                           self.gserca*kcat_Serca/((Kserca / self.ca[ca_region]) ** 2 + 1),
-                                                           membrane=membrane, custom_dynamics=True))
-
     def add_leak(self):
         # leak channel: bidirectional ca flow btwn cyt <> ER
-        self.gleak = rxd.Parameter(self.cyt_er_membrane_list,
-                                   initial=self.params["gleak"])
         self.leak = []
         for key in self.ER.keys():
             er_region =	self.ER[key]
             ca_region =	self.shells[key][-1]
             membrane = self.cyt_er_membrane[key]
-            self.leak.append(rxd.MultiCompartmentReaction(self.ca_ER[er_region], self.ca[ca_region],
-                                                          self.gleak, self.gleak,
+            gleak = rxd.Parameter(ca_region, value=lambda nd:
+                                  self.params["gleak"])
+            self.leak.append(rxd.MultiCompartmentReaction(self.ca_ER[er_region],
+                                                          self.ca[ca_region],
+                                                          gleak,
+                                                          gleak,
                                                           membrane=membrane))
 
     def add_ip3r(self):
@@ -543,16 +787,23 @@ class CA1_PC:
             minf = self.m[i] * self.n[i]
         
 
-            self.ip3rg.append(rxd.Rate(self.h_gate[membrane], (self.h_inf[i] - self.h_gate[membrane]) /
-                                       self.params["ip3rtau"]))
-            k = self.gip3r[membrane] * (minf * self.h_gate[membrane]) ** 3
+            self.ip3rg.append(rxd.Rate(self.h_gate[membrane],
+                                       (self.h_inf[i] - self.h_gate[membrane])
+                                       /self.params["ip3rtau"]))
+            self.k = self.gip3r[membrane] * (minf * self.h_gate[membrane]) ** 3
 
             self.ip3r.append(rxd.MultiCompartmentReaction(self.ca_ER[er_region],
-                                                         self.ca[ca_region],
-                                                         k, k, membrane=membrane))
+                                                          self.ca[ca_region],
+                                                          self.k, self.k,
+                                                          membrane=membrane))
         
-        # IP3 receptor gating
-
+            # IP3 degradation
+            for shell in self.shells[key]:
+                self.reactions.append(rxd.Rate(self.ip3,
+                                               (ip3_init-self.ip3[shell])
+                                               /ip3degTau,
+                                               regions=shell,
+                                               membrane_flux=False))
 
 
     def add_calmodulin(self):
@@ -562,11 +813,11 @@ class CA1_PC:
         camc = self.params["camc"]
         self.cam = rxd.Species(self.shell_list, d=camDiff,
                                initial=calmodulin_tot-camn-camc,
-                               name='CaM', charge=0, atolscale=1e-8)
+                               name='CaM', charge=0, atolscale=1e-9)
         self.camn = rxd.Species(self.shell_list, d=camDiff, initial=camn, name='CaMN',
-                                charge=0, atolscale=1e-8)
+                                charge=0, atolscale=1e-9)
         self.camc = rxd.Species(self.shell_list, d=camDiff, initial=camc, name='CaMC',
-                                charge=0, atolscale=1e-8)
+                                charge=0, atolscale=1e-9)
         self.buffers["CaM"] = [self.cam, self.camn, self.camc]
 
     def add_buffers(self, buffer_names):
@@ -582,11 +833,11 @@ class CA1_PC:
                 self.calb = rxd.Species(self.shell_list, d=calbDiff,
                                         initial=calbindin_tot-calbca,
                                         name='Calbindin',
-                                        charge=0, atolscale=1e-8)
+                                        charge=0, atolscale=1e-9)
                 self.calbca = rxd.Species(self.shell_list, d=calbDiff,
                                           initial=calbca,
                                           name='CalbindinCa',
-                                          charge=0, atolscale=1e-8)
+                                          charge=0, atolscale=1e-9)
                 self.buffers["Calb"] = [self.calb, self.calbca]
 
             if name == "Mg Green":
@@ -597,22 +848,38 @@ class CA1_PC:
                                              initial=tot_magnesium_green_BS -
                                              magnesium_green_bound, d=mggreenDiff,
                                              name='MgGreen',
-                                             charge=0, atolscale=1e-8)
+                                             charge=0, atolscale=1e-9)
                 self.indicator_ca = rxd.Species(self.shell_list,
                                              initial=magnesium_green_bound,
                                              name='MgGreenCa', d=mggreenDiff,
-                                                charge=0, atolscale=1e-8)
+                                                charge=0, atolscale=1e-9)
                 self.buffers["Mg Green"] = [self.indicator, self.indicator_ca]
-        fixed_buffer_tot = self.params["fixed_buffer_tot"]
-        fixed_buffer_ca = self.params["fixed_buffer_ca"]
-        self.fixed = rxd.Species(self.shell_list,
-                                 initial=fixed_buffer_tot-fixed_buffer_ca,
-                                 name='FixedBuffer',
-                                 charge=0, atolscale=1e-8)
-        self.fixedca = rxd.Species(self.shell_list,
-                                   initial=fixed_buffer_ca,
-                                   name='FixedBufferCa',
-                                   charge=0, atolscale=1e-8)
+            if name == "Fluo3":
+                tot_indicator = self.params["tot_fluo3"]
+                indicator_bound = ca_init*tot_indicator*kf_fluo3/kb_fluo3
+                indicatorDiff = self.params["fluo3Diff"]
+                self.indicator = rxd.Species(self.shell_list,
+                                             initial=tot_indicator -
+                                             indicator_bound, d=indicatorDiff,
+                                             name='Fluo3',
+                                             charge=0, atolscale=1e-9)
+                self.indicator_ca = rxd.Species(self.shell_list,
+                                             initial=indicator_bound,
+                                             name='Fluo3Ca', d=indicatorDiff,
+                                            charge=0, atolscale=1e-9)
+                self.buffers["Fluo3"] = [self.indicator, self.indicator_ca]
+            if name == "Fixed":
+                fixed_buffer_tot = self.params["fixed_buffer_tot"]
+                fixed_buffer_ca = self.params["fixed_buffer_ca"]
+                self.fixed = rxd.Species(self.shell_list,
+                                         initial=fixed_buffer_tot
+                                         -fixed_buffer_ca,
+                                         name='FixedBuffer',
+                                         charge=0, atolscale=1e-9)
+                self.fixedca = rxd.Species(self.shell_list,
+                                           initial=fixed_buffer_ca,
+                                           name='FixedBufferCa',
+                                           charge=0, atolscale=1e-9)
 
 
         
@@ -627,9 +894,11 @@ class CA1_PC:
         kb_calbindin = self.params["kb_calbindin"]
         kf_magnesium_green = self.params["kf_magnesium_green"]
         kb_magnesium_green = self.params["kb_magnesium_green"]
-        fixed_rxn = rxd.Reaction(self.fixed + self.ca, self.fixedca, kf_fixed_b,
-                                 kb_fixed_b)
-        self.reactions.append(fixed_rxn)
+        if "Fixed" in buffer_list:
+            fixed_rxn = rxd.Reaction(self.fixed + self.ca, self.fixedca,
+                                     kf_fixed_b,
+                                     kb_fixed_b)
+            self.reactions.append(fixed_rxn)
         if "CaM" in buffer_list:
             rn = rxd.Reaction(self.cam + self.ca, self.camn, kf_camn,
                               kb_camn)
@@ -647,6 +916,12 @@ class CA1_PC:
                                             kf_magnesium_green,
                                             kb_magnesium_green)
             self.reactions.append(mg_green_binding)
+        if "Fluo3" in buffer_list:
+            fluo3_binding = rxd.Reaction(self.indicator + self.ca,
+                                         self.indicator_ca,
+                                         kf_fluo3,
+                                         kb_fluo3)
+            self.reactions.append(fluo3_binding)
         if self.add_ER:
             kf_calr = self.params["kf_calr"]
             kb_calr = self.params["kb_calr"]
@@ -655,48 +930,12 @@ class CA1_PC:
             self.reactions.append(rxn1)
 
 
-    def add_surface_pump_reactions(self):
-        self.pmca_1_r = []
-        self.pmca_2_r = []
-        self.ncx_1_r = []
-        self.ncx_2_r = []
-        kf_pmca = self.params["kf_pmca"]
-        kb_pmca = self.params["kb_pmca"]
-        kcat_pmca = self.params["kcat_pmca"]
-        kf_ncx  = self.params["kf_ncx"]
-        kb_ncx = self.params["kb_ncx"]
-        kcat_ncx = self.params["kcat_ncx"]
-       
-        for key in self.shells.keys():
-            membrane_shell = self.shells[key][0]
-            membrane = self.membrane[key]
-            self.pmca_1_r.append(rxd.MultiCompartmentReaction(self.ca[membrane_shell] +
-                                                              self.pmca[membrane],
-                                                              self.pmcaca[membrane],
-                                                              kf_pmca*c_unit,
-                                                              kb_pmca*c_unit,
-                                                              membrane=membrane))
-            self.pmca_2_r.append(rxd.MultiCompartmentReaction(self.pmcaca[membrane],
-                                                              self.pmca[membrane] +
-                                                              self.ca[self.ECS],
-                                                              kcat_pmca*c_unit,
-                                                              membrane=membrane))
-            self.ncx_1_r.append(rxd.MultiCompartmentReaction(self.ca[membrane_shell] +
-                                                             self.ncx[membrane],
-                                                             self.ncxca[membrane],
-                                                             kf_ncx*c_unit,
-                                                             kb_ncx*c_unit,
-                                                             membrane=membrane))
-            self.ncx_2_r.append(rxd.MultiCompartmentReaction(self.ncxca[membrane],
-                                                             self.ncx[membrane] +
-                                                             self.ca[self.ECS],
-                                                             kcat_ncx*c_unit,
-                                                             membrane=membrane))
             
     def _add_diffusion(self):
         self.diffusions = []
         caDiff = self.params["caDiff"]
         diffusions = self.params["diffusions"]
+        self.drs = []
         for sec_name in self.shells.keys():
             for i, shell in enumerate(self.shells[sec_name][:-1]):
                 dname = sec_name.replace("[", "").replace("]", "")
@@ -705,6 +944,7 @@ class CA1_PC:
                                    name=dname, 
                                    value=lambda nd:
                                    nd.segment.diam/2/f)
+                self.drs.append(dr)
                 rxn = rxd.MultiCompartmentReaction(self.ca[shell],
                                                    self.ca[self.shells[sec_name][i+1]], 
                                                    c_unit*caDiff/dr, 
@@ -720,20 +960,30 @@ class CA1_PC:
                                                            c_unit*dif_const/dr,
                                                            border=self.borders[sec_name][i])
                         self.diffusions.append(rxn)
+                if self.add_ER:
+                    rxn = rxd.MultiCompartmentReaction(self.ip3[shell],
+                                                       self.ip3[self.shells[sec_name][i+1]], 
+                                                       c_unit*ip3Diff/dr, 
+                                                       c_unit*ip3Diff/dr,
+                                                       border=self.borders[sec_name][i])
+                    self.diffusions.append(rxn)
 
-    def add_rxd_calcium(self, buffer_names):
+    def get_leak_val(self, node):
+        if "head" in node.sec.name():
+            return self.params["g_leak_spine"]
+        return self.params["g_leak_ECS"]
+                    
+
+    def add_rxd_calcium(self, buffer_names, pump_list):
         if self.sections_rxd:
-            for sec in self.sections_rxd:
-                 if "head" in sec.name():
-                     sec.nseg = self.params["n_seg"]
             self._add_rxd_regions()
-            self._add_species(buffer_names)
+            self._add_species(buffer_names, pump_list)
             self._add_diffusion()
             if self.add_ER:
-                 self.add_serca()
+                 self.add_pump("Serca")
                  self.add_ip3r()
                  self.add_leak()
             self.add_buffer_reactions(buffer_names)
-            self.add_surface_pump_reactions()
-     
-
+            #self.add_surface_pump_reactions(pump_list)
+            for pump in self.pump_list:
+                self.add_pump(pump)

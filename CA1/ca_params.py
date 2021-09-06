@@ -1,8 +1,11 @@
 head_factor = 1
+ca_factor = 1
+c_unit = 6.0221409e5
 ip3rtau = 2000 #wagner
-gip3r = 0.85e-3
+ip3degTau = 1000
+gip3r = 120400
 
-gleak = 1.0625e-5
+gleak = 15.905e-3
 ip3_init = 0 # 50 nM? signalling pathways model
 
 calr_tot = 86 #  calreticulin
@@ -11,34 +14,31 @@ kf_calr = 0.1 # 1/mM/ms
 kb_calr = 0.2 #  1/ms
 
 Ca_per = .1 # 10% at 2mM, 5% at 1mM, 20% at 4mM extracellular Ca  doi: 10.1073/pnas.90.24.11573
-
+ca_i_f = 1  # increase VGCC conductance by a factor for sections with rxd Calcium
+ca_init = 100e-6
 ca_init_ER = .180512
 ca_ECS = 2.
 
-caDiff = 0.174 
+caDiff = 0.174
 ip3Diff = 0.1
-camDiff = 0.004
-calbDiff = 0.009
+camDiff = 0.066
+calbDiff = 0.066
 
-AtoN_ratio = 2.1 # at 6-8 weeks  doi: 10.1113/jphysiol.2008.160929
+AtoN_ratio = 1
+gAMPA = 25e-3
+gNMDA = gAMPA/AtoN_ratio
 
-gNMDA =2e-4
-gAMPA = AtoN_ratio * gNMDA
 
 Kip3 = 0.15e-3 #Wagner 2004 oocytes and later Ausra's astrocyte model
 Kact = 0.8e-3 #Wagner 2004 oocytes and later Ausra's astrocyte model
 k_inh = 2e-3 #Wagner 2004 oocytes and later Ausra's astrocyte model
-Kserca = 0.1e-3 # Michaelis constant for SERCA pump
+Km_Serca = 0.13e-3 # Michaelis constant for SERCA pump
 kcat_Serca = 7.5e-3 #ms
-gserca = 0.5e-3 #Avramas hermissenda model
+gSerca = 1#signaling pathways model
 ip3r_gate_state = 0.8
 calbindin_tot = 0.150 #(150 uM)
 calmodulin_tot = 0.03 #(30 uM)
 fixed_buffer_tot = 2 #(2 mM)
-fixed_buffer_ca = 4.07754e-3
-camn = 2.92719e-05
-camc = 1.9651e-04
-calbca = 2.18847e-5
 
 
 kf_calbindin = 2.8e-2
@@ -46,162 +46,37 @@ kb_calbindin = 0.0196
 
 kf_camn = 2*7.7e2
 kb_camn = 1.6e2
-kf_camnn = 3.2e4
-kb_camnn = 1.1e1
 kf_camc = 2*8.4e1
 kb_camc = 2.6
-kf_camcc = 2.5e1
-kb_camcc = 0.6e-3
-
 kf_fixed_b = 400
-kb_fixed_b = 20
+kb_fixed_b = 40
+fixed_buffer_ca = kf_fixed_b*ca_init*fixed_buffer_tot/kb_fixed_b
 
-kf_pmca = 50
-kb_pmca = 7e-3
-kcat_pmca = 3.5e-3
-gpmca_dend_bound = {
+camn = kf_camn*ca_init*calmodulin_tot/kb_camn
+camc = kf_camc*ca_init*calmodulin_tot/kb_camc
+calbca = kf_calbindin*ca_init*calbindin_tot/kb_calbindin
 
-    "radTprox1": 0.391034e-10*3.26,
-    "radTprox2": 0.396503e-10*3.26,
-    "radTmed1": 0.43048e-10*3.26,
-    "radTmed2": 0.4425e-10*3.26,
-    "radTdist1": 0.4286e-10*3.26,
-    "radTdist2": 0.47585e-10*3.26,
-    "rad_t1": 1.9005e-10*3.26,
-    "rad_t2": 1.8784e-10*3.26,
-    "rad_t3": 1.985e-10*3.26,
-    "lm_thick2": 0.5101e-10*3.26,
-    "lm_medium2": 1.2752e-10*3.26,
-    "lm_thin2": 5.5575e-10*3.26,
-    "lm_thick1": 0.5101e-10*3.26,
-    "lm_medium1": 1.2752e-10*3.26,
-    "lm_thin1": 5.5575e-10*3.26,
-}
-gpmca_spine_bound = {
-    "radTprox1": 0,
-    "radTprox2": 0,
-    "radTmed1": 0,
-    "radTmed2": 0,
-    "radTdist1": 0,
-    "radTdist2": 0,
-    "rad_t1": 0,
-    "rad_t2": 0,
-    "rad_t3": 0,
-    "lm_thick2": 0,
-    "lm_medium2": 0,
-    "lm_thin2": 0,
-    "lm_thick1": 0,
-    "lm_medium1": 0,
-    "lm_thin1": 0,
-}
-gpmca_dend_total = {
-    "radTprox1": 0.391034e-9,
-    "radTprox2": 0.396503e-9,
-    "radTmed1": 0.43048e-9,
-    "radTmed2": 0.4425e-9,
-    "radTdist1": 0.4286e-9,
-    "radTdist2": 0.47585e-9,
-    "rad_t1": 1.9005e-9,
-    "rad_t2": 1.8784e-9,
-    "rad_t3": 1.985e-9,
-    "lm_thick2": 0.5101e-9,
-    "lm_medium2": 1.2752e-9,
-    "lm_thin2": 5.5575e-9,
-    "lm_thick1": 0.5101e-9,
-    "lm_medium1": 1.2752e-9,
-    "lm_thin1": 5.5575e-9,
-}
-gpmca_spine_total = {
-    "radTprox1": 0,
-    "radTprox2": 0,
-    "radTmed1": 0,
-    "radTmed2": 0,
-    "radTdist1": 0,
-    "radTdist2": 0,
-    "rad_t1": 0,
-    "rad_t2": 0,
-    "rad_t3": 0,
-    "lm_thick2": 0,
-    "lm_medium2": 0,
-    "lm_thin2": 0,
-    "lm_thick1": 0,
-    "lm_medium1": 0,
-    "lm_thin1": 0
-}
+g_leak_ECS = 1
+g_leak_spine = 1
 
-kf_ncx = 1.68e1  # 1/mM/ms
-kb_ncx = 0.0112
-kcat_ncx = 5.6e-3
-gncx_dend_bound = {
-   "radTprox1": 0.2e-10*0.93,
-    "radTprox2": 0.2e-10*0.93,
-    "radTmed1": 1e-10*0.93,
-    "radTmed2": 1e-10*0.93,
-    "radTdist1": 1e-10*0.93,
-    "radTdist2": 1e-10*0.93,
-    "rad_t1": 1e-10*0.93,
-    "rad_t2": 1e-10*0.93,
-    "rad_t3": 1e-10*0.93,
-    "lm_thick2": 1e-10*0.93,
-    "lm_medium2": 1.115e-10*0.93,
-    "lm_thin2": 10e-10*0.93,
-    "lm_thick1": 1e-10*0.93,
-    "lm_medium1": 1.115e-10*0.93,
-    "lm_thin1": 10e-10*0.93,
-}
-gncx_spine_bound = {
-    "radTprox1": 0,
-    "radTprox2": 0,
-    "radTmed1": 0,
-    "radTmed2": 0,
-    "radTdist1": 0,
-    "radTdist2": 0,
-    "rad_t1": 0,
-    "rad_t2": 0,
-    "rad_t3": 0,
-    "lm_thick2": 0,
-    "lm_medium2": 0,
-    "lm_thin2": 0,
-    "lm_thick1": 0,
-    "lm_medium1": 0,
-    "lm_thin1": 0
-}
+kf_pmca = 5000
+kb_pmca = 0.7
+kcat_pmca = 1
+Km_pmca = kb_pmca/kf_pmca
+gpmca = 100e-5*ca_factor # {"apical_dendrite[10]":0.1e-5*ca_factor}
+gpmca_spine = 50e-5*ca_factor # {"apical_dendrite[10]": 0.1e-5*ca_factor}
 
-gncx_dend_total = {
-
-    "radTprox1": 0.2e-9,
-    "radTprox2": 0.2e-9,
-    "radTmed1": 1e-9,
-    "radTmed2": 1e-9,
-    "radTdist1": 1e-9,
-    "radTdist2": 1e-9,
-    "rad_t1": 1e-9,
-    "rad_t2": 1e-9,
-    "rad_t3": 1e-9,
-    "lm_thick2": 1e-9,
-    "lm_medium2": 1.115e-9,
-    "lm_thin2": 10e-9,
-    "lm_thick1": 1e-9,
-    "lm_medium1": 1.115e-9,
-    "lm_thin1": 10e-9,
-}
-gncx_spine_total = {
-    "radTprox1": 0,
-    "radTprox2": 0,
-    "radTmed1": 0,
-    "radTmed2": 0,
-    "radTdist1": 0,
-    "radTdist2": 0,
-    "rad_t1": 0,
-    "rad_t2": 0,
-    "rad_t3": 0,
-    "lm_thick2": 0,
-    "lm_medium2": 0,
-    "lm_thin2": 0,
-    "lm_thick1": 0,
-    "lm_medium1": 0,
-    "lm_thin1": 0
-}  # 1/7 of dends  https://doi.org/10.1073/pnas.0605412104 
+ncx_pow = 1
+kf_ncx = 168
+kb_ncx = 0.112
+kcat_ncx = 5
+Km_ncx = kb_ncx/kf_ncx
+#  this dynamics is more similar to quasi-steady state approx
+gncx = 1e-6*ca_factor#0.6e-8*ca_factor#1.035e-5*ca_factor#{"apical_dendrite[10]": 1.035e-5*ca_factor}#4.6875e-3}
+gncx_spine = gncx/7 #{}
+# for key in gncx:
+#     gncx_spine[key] = gncx[key]/7
+# 1/7 of dends  https://doi.org/10.1073/pnas.0605412104 
 Ca_Ext = 2
 n_seg = 1
 
@@ -212,11 +87,21 @@ n_seg = 1
 tot_magnesium_green_BS = 0.100
 magnesium_green_bound = 0.0014972
 kf_magnesium_green = 9e1#1/mM/ms from doi: 10.1016/j.ymeth.2008.09.025
-kb_magnesium_green = 0.6 #1/ms", Kd in vitro 6uM", doi: 10.1016/j.ymeth.2008.09.025 and Sabatini
+kb_magnesium_green = 0.6 #1/ms, Kd in vitro 6uM, doi: 10.1016/j.ymeth.2008.09.025 and Sabatini
 mggreenDiff = 15e-3   #15 um^2/s doi:10.1016/S0006-3495(96)79633-9 
+
+#For Marsden et al. 10.1073/pnas.1010346107
+#Fluo-3, constants Pflügers Arch – Eur J Physiol (1997) 434:615–631
+tot_fluo3 = 1e-3 #  1 uM
+kf_fluo3 = 0.0236e3 # 0.236 1/uM/ms
+kb_fluo3 = 0.0236   # 1/ms
+fluo3Diff = 0.0 # um^2/ms take Fluo5's
 
 diffusions = {"CaM": camDiff,
               "Calb": calbDiff,
-              "Mg Green": mggreenDiff}
-membrane_shell_width = 0.1
-vol_c = 34.19592685263736
+              "Mg Green": mggreenDiff,
+              "Fluo3":fluo3Diff}
+              
+membrane_shell_width = .1
+
+

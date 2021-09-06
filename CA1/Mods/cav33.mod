@@ -13,11 +13,11 @@ UNITS {
 NEURON {
     SUFFIX cav33
     USEION cal READ cali, calo WRITE ical VALENCE 2
-    RANGE pbar, ical, mvhalf, hvhalf, a, p, perm, I
+    RANGE gbar, ical, mvhalf, hvhalf, a, p, perm, I
 }
 
 PARAMETER {
-    pbar = 6.7e-6 (cm/s)
+    gbar = 6.7e-6 (cm/s)
     mvhalf = -73.5 (mV)     : 73.5 +/- 1.3
     mslope =  -4.4 (mV)
     hvhalf = -73.4 (mV)     : 73.4 +/- 2.5
@@ -48,7 +48,7 @@ STATE { m h }
 
 BREAKPOINT {
     SOLVE states METHOD cnexp
-    perm = pbar*(m^p)*h
+    perm = gbar*(m^p)*h
     ical = ghk(v, cali, calo)*perm
     I    = ical
 }

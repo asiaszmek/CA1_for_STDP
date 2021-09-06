@@ -31,12 +31,12 @@ UNITS {
 NEURON {
     SUFFIX car
     USEION ca READ cai, cao WRITE ica VALENCE 2
-    RANGE pbar, ica
+    RANGE gbar, ica
     RANGE damod, maxMod, level, max2, lev2
 }
 
 PARAMETER {
-    pbar = 0.0 (cm/s)
+    gbar = 0.0 (cm/s)
     :q = 1	: room temperature 22 C
     q = 3	: body temperature 35 C
     damod = 0
@@ -63,7 +63,7 @@ STATE { m h }
 
 BREAKPOINT {
     SOLVE states METHOD cnexp
-    ica = pbar*m*m*m*h*ghk(v, cai, cao) *modulation()
+    ica = gbar*m*m*m*h*ghk(v, cai, cao) *modulation()
 }
 
 INITIAL {
