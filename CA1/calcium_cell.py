@@ -368,6 +368,7 @@ class CA1_PC:
                     sec.insert("cad")
                     if len(buffer_list) > 2:
                         sec.Buffer_cad = 25
+                        sec.cainf_cad = ca_init
                         #an additional buffer will change Ca dynamics
                     sec.cao = self.params["Ca_Ext"]
         return

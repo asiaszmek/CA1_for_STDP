@@ -15,7 +15,7 @@ kb_calr = 0.2 #  1/ms
 
 Ca_per = .1 # 10% at 2mM, 5% at 1mM, 20% at 4mM extracellular Ca  doi: 10.1073/pnas.90.24.11573
 ca_i_f = 1  # increase VGCC conductance by a factor for sections with rxd Calcium
-ca_init = 100e-6
+ca_init = 50e-6
 ca_init_ER = .180512
 ca_ECS = 2.
 
