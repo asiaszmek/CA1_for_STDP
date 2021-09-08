@@ -31,8 +31,8 @@ UNITS {
 NEURON {
     THREADSAFE
     SUFFIX cal13
-    USEION cal READ cali, calo WRITE ical VALENCE 2
-    RANGE gbar, ical
+    USEION ca READ cai, cao WRITE ica VALENCE 2
+    RANGE gbar, ica
     RANGE damod, maxMod, level, max2, lev2
 }
 
@@ -49,11 +49,10 @@ PARAMETER {
 
 ASSIGNED { 
     v (mV)
-    ical (mA/cm2)
-    ecal (mV)
+    ica (mA/cm2)
     celsius (degC)
-    cali (mM)
-    calo (mM)
+    cai (mM)
+    cao (mM)
     minf
     mtau (ms)
     hinf
@@ -64,7 +63,7 @@ STATE { m h }
 
 BREAKPOINT {
     SOLVE states METHOD cnexp
-    ical = gbar*m*m*h*ghk(v, cali, calo) *modulation()
+    ica = gbar*m*m*h*ghk(v, cai, cao) *modulation()
 }
 
 INITIAL {
