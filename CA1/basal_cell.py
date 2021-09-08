@@ -289,8 +289,8 @@ class CA1_PC_basal:
             sec.gbar_cal12 =  0.00025*0.35e-6
             sec.gbar_cal13 =  0.00025 *0.35e-6
             sec.gbar_can = 2.26e-06*0.35e-6
-            sec.gbar_cav32 =  0.000025*0.35e-6
-            sec.gbar_cav33 =  0.000025*0.35e-6
+            sec.gbar_cav32 =  1.18e-06*0.35e-6
+            sec.gbar_cav33 =  3*1.18e-06*0.35e-6
             sec.gbar_kca = 0.0015 
             sec.gbar_cagk = 4.482e-05
             sec.Ra = 115.4
@@ -310,8 +310,8 @@ class CA1_PC_basal:
             sec.gbar_cal12 = 0.000025*0.35e-6
             sec.gbar_cal13 = 0.000025*0.35e-6
             sec.gbar_can = 2.26e-06*0.35e-6
-            sec.gbar_cav32 = 1.18e-06*0.35e-6
-            sec.gbar_cav33 = 1.18e-06*0.35e-6
+            sec.gbar_cav32 = 0
+            sec.gbar_cav33 = 0 #no Cav3.* in distal dendrites
             sec.gbar_kca = 9.03e-05
             sec.gbar_cagk = 4.48e-05
             sec.Ra = 115.4
@@ -323,7 +323,7 @@ class CA1_PC_basal:
             sec.gbar_cal13 = 0.00025*0.35e-6
             sec.gbar_can = 2.26e-06*0.35e-6
             sec.gbar_cav32 = 1.18e-06*0.35e-6
-            sec.gbar_cav33 = 1.18e-06*0.35e-6
+            sec.gbar_cav33 = 3*e-06*0.35e-6
             sec.gbar_kca = 9.0311e-05
             sec.gbar_cagk = 4.48e-05
             sec.Ra = 115.4
@@ -335,7 +335,7 @@ class CA1_PC_basal:
             sec.gbar_cal13 = 8.032e-06*0.35e-6
             sec.gbar_can = 2.26e-06*0.35e-6
             sec.gbar_cav32 = 1.18e-06*0.35e-6
-            sec.gbar_cav33 = 1.18e-06*0.35e-6
+            sec.gbar_cav33 = 3*1.18e-06*0.35e-6
             sec.gbar_kca = 9.03e-05
             sec.gbar_cagk = 4.48e-05
             sec.Ra = 115.4
