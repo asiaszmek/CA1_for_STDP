@@ -23,7 +23,8 @@ mechanisms_path = os.path.join(my_loc, "Mods")
       
 class CA1_PC_basal:
     sections = []
-    def __init__(self):
+    def __init__(self, recompile=True):
+        self.recompile = recompile
         self.load_neuron()
 
     def make_sections(self):
@@ -215,7 +216,8 @@ class CA1_PC_basal:
     def load_neuron(self):
         working_dir = os.getcwd()
         os.chdir(mechanisms_path)
-        p = run('nrnivmodl')
+        if self.recompile:
+            p = run('nrnivmodl')
         neuron.load_mechanisms(mechanisms_path)
         os.chdir(working_dir)
 
@@ -319,8 +321,8 @@ class CA1_PC_basal:
         for sec in self.trunk:
             sec.gkdrbar_kdr = 0.02
             sec.gbar_nax = 0.025
-            sec.gbar_cal12 = 0.00025*0.35e-6
-            sec.gbar_cal13 = 0.000125*0.35e-6
+            sec.gbar_cal12 = 0.5*0.00025*0.35e-6
+            sec.gbar_cal13 = 0.5*0.000125*0.35e-6
             sec.gbar_can = 2.26e-06*0.35e-6
             sec.gbar_cav32 = 1.18e-06*0.35e-6
             sec.gbar_cav33 = 3*1.18e-06*0.35e-6

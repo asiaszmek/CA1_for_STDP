@@ -66,16 +66,21 @@ class CA1_PC:
             return out[0]
         return out
 
+    def find_sec(self, name):
+        for sec in self.sections:
+            if sec.name() == name:
+                return sec
+
     def __init__(self, model=None, params=params_file,
                  where_ca=["lm_medium2"],
                  spine_number=1,
                  where_spines=["lm_medium2"],
                  add_ER=False, buffer_list=["CaM", "Calbindin", "Fixed"],
                  pump_list=["ncx", "pmca"], receptor_list=["AMPA", "NMDA"],
-                 spine_pos=[]):
+                 spine_pos=[], recompile=True):
 
         if model is None:
-            model = CA1_PC_basal()
+            model = CA1_PC_basal(recompile=recompile)
         try:
             self.soma = model.soma[0]
         except TypeError:

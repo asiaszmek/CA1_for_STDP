@@ -9,7 +9,7 @@ from neuron import h
 if __name__ == "__main__":
     add_ER = False
     where_spines = []#["radTprox1"]
-    where_ca = ["apical"]
+    where_ca = ["soma", "apical"]
     t_stop = 50000
     h.load_file("stdrun.hoc")
     h.CVode()
