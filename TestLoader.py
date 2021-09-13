@@ -1,6 +1,3 @@
-from __future__ import print_function
-from __future__ import division
-# from builtins import str
 from builtins import range
 import os
 import numpy
@@ -8,7 +5,7 @@ import sciunit
 import hippounit.capabilities as cap
 from quantities import ms,mV,Hz
 from neuron import h
-
+from subprocess import run
 import multiprocessing
 import zipfile
 import collections
@@ -32,17 +29,20 @@ class ModelLoader(sciunit.Model,
                  cap.ProvidesRandomDendriticLocations,
                  cap.ReceivesEPSCstim):
 
-    def __init__(self, name="model", mod_files_path=None):
+    def __init__(self, model_class, mods_dir, model_params,
+                 name="model",
+                 libpath='x86_64/.libs/libnrnmech.so',
+                 NMDA_name=""):
         """ Constructor. """
 
         """ This class should be used with Jupyter notebooks"""
-
-        self.modelpath = mod_files_path
-        self.libpath = 'x86_64/.libs/libnrnmech.so'
-        self.hocpath = None
-
-        self.cvode_active = False
-
+        self.class_name = model_class
+        self.model_args = model_params
+        self.modelpath = mods_dir
+        
+        self.model_args["recompile"] = False
+        self.cvode_active = True
+        self.libpath = libpath
         self.template_name = None
         self.SomaSecList_name = None
         self.max_dist_from_soma = 150
@@ -61,11 +61,13 @@ class ModelLoader(sciunit.Model,
 
         self.ObliqueSecList_name = None
         self.TrunkSecList_name = None
-        self.dend_loc = []  #self.dend_loc = [['dendrite[80]',0.27],['dendrite[80]',0.83],['dendrite[54]',0.16],['dendrite[54]',0.95],['dendrite[52]',0.38],['dendrite[52]',0.83],['dendrite[53]',0.17],['dendrite[53]',0.7],['dendrite[28]',0.35],['dendrite[28]',0.78]]
+        self.dend_loc = []  
         self.dend_locations = collections.OrderedDict()
-        self.NMDA_name = None
+        self.NMDA_name = NMDA_name
         self.default_NMDA_name = 'NMDA_CA1_pyr_SC'
-        self.default_NMDA_path = pkg_resources.resource_filename("hippounit", "tests/default_NMDAr/")
+        nmda_pkg_path = os.path.join("tests", "default_NMDAr")
+        self.default_NMDA_path = pkg_resources.resource_filename("hippounit",
+                                                                 nmda_pkg_path)
 
         self.AMPA_name = None
         self.AMPA_NMDA_ratio = 2.0
@@ -92,85 +94,49 @@ class ModelLoader(sciunit.Model,
         self.base_directory = './validation_results/'   # inside current directory
 
         self.find_section_lists = False
-
         self.compile_mod_files()
         self.compile_default_NMDA()
 
-    def translate(self, sectiontype, distance=0):
-
-        if "soma" in sectiontype:
-            return self.soma
-        else:
-            return False
-
     def compile_mod_files(self):
-
         if self.modelpath is None:
             raise Exception("Please give the path to the mod files (eg. mod_files_path = \'/home/models/CA1_pyr/mechanisms/\') as an argument to the ModelLoader class")
 
-        if os.path.isfile(self.modelpath + self.libpath) is False:
-            os.system("cd " + "\'" + self.modelpath + "\'" + "; nrnivmodl")
+        #if os.path.isfile(self.modelpath + self.libpath) is False:
+        working_dir = os.getcwd()
+        os.chdir(self.modelpath)
+        p = run('nrnivmodl')
+        os.chdir(working_dir)
+
+    def translate(self, sectiontype, distance=0):
+        if "soma" in sectiontype:
+            return "soma"
+        else:
+            return False
 
     def compile_default_NMDA(self):
+        # Fix paths
         if os.path.isfile(self.default_NMDA_path + self.libpath) is False:
             os.system("cd " + "\'" + self.default_NMDA_path  + "\'" + "; nrnivmodl")
 
-    def load_mod_files(self):
-
-        h.nrn_load_dll(str(self.modelpath + self.libpath))
-
-
-    def initialise(self):
-
-        save_stdout=sys.stdout                   #To supress hoc output from Jupyter notebook 
-        # sys.stdout=open("trash","w")
-        sys.stdout=open('/dev/stdout', 'w')      #rather print it to the console 
-
-        self.load_mod_files()
-
-        if self.hocpath is None:
-            raise Exception("Please give the path to the hoc file (eg. model.modelpath = \"/home/models/CA1_pyr/CA1_pyr_model.hoc\")")
-
-
+    def initialize(self):
+        save_stdout = sys.stdout
+        sys.stdout = open('/dev/stdout', 'w')      #rather print it to the console 
         h.load_file("stdrun.hoc")
-        h.load_file(str(self.hocpath))
-
-        if self.soma is None and self.SomaSecList_name is None:
-            raise Exception("Please give the name of the soma (eg. model.soma=\"soma[0]\"), or the name of the somatic section list (eg. model.SomaSecList_name=\"somatic\")")
-
+        cell = self.class_name(**self.model_args)
         try:
-            if self.template_name is not None and self.SomaSecList_name is not None:
+            self.soma = cell.soma[0]
+        except TypeError:
+            self.soma = cell.soma
+        print(dir(cell))
+        self.trunk = cell.trunk
+        self.sections = cell.sections
+        sys.stdout = save_stdout    #setting output back to normal
+        return cell
 
-                h('objref testcell')
-                h('testcell = new ' + self.template_name)
+    def inject_current(self, amp, delay, dur, section_stim,
+                       loc_stim, section_rec, loc_rec):
 
-                exec('self.soma_ = h.testcell.'+ self.SomaSecList_name)
-
-                for s in self.soma_ :
-                    self.soma = h.secname()
-
-            elif self.template_name is not None and self.SomaSecList_name is None:
-                h('objref testcell')
-                h('testcell = new ' + self.template_name)
-                # in this case self.soma is set in the jupyter notebook
-            elif self.template_name is None and self.SomaSecList_name is not None:
-                exec('self.soma_ = h.' +  self.SomaSecList_name)
-                for s in self.soma_ :
-                    self.soma = h.secname()
-            # if both is None, the model is loaded, self.soma will be used
-        except AttributeError:
-            print ("The provided model template is not accurate. Please verify!")
-        except Exception:
-            print ("If a model template is used, please give the name of the template to be instantiated (with parameters, if any). Eg. model.template_name=CCell(\"morph_path\")")
-            raise
-
-
-        sys.stdout=save_stdout    #setting output back to normal 
-
-    def inject_current(self, amp, delay, dur, section_stim, loc_stim, section_rec, loc_rec):
-
-        self.initialise()
-
+        self.initialize()
         if self.cvode_active:
             h.cvode_active(1)
         else:
@@ -178,48 +144,43 @@ class ModelLoader(sciunit.Model,
 
         stim_section_name = self.translate(section_stim, distance=0)
         rec_section_name = self.translate(section_rec, distance=0)
-        #exec("self.sect_loc=h." + str(self.soma)+"("+str(0.5)+")")
-
-        exec("self.sect_loc_stim=h." + str(stim_section_name)+"("+str(loc_stim)+")")
-
-        print("- running amplitude: " + str(amp)  + " on model: " + self.name + " at: " + stim_section_name + "(" + str(loc_stim) + ")")
+        print(stim_section_name, loc_stim)
+        exec_expression = "self.sect_loc_stim = self.%s(%s)" % (stim_section_name,
+                                                                loc_stim)
+        exec(exec_expression)
+        print("- running amplitude: %f on model: %s at: %s(%s)" % (amp, self.name,
+                                                                   stim_section_name,
+                                                                   loc_stim))
 
         self.stim = h.IClamp(self.sect_loc_stim)
-
         self.stim.amp = amp
         self.stim.delay = delay
         self.stim.dur = dur
-
-        #print "- running model", self.name, "stimulus at: ", str(self.soma), "(", str(0.5), ")"
-
-        exec("self.sect_loc_rec=h." + str(rec_section_name)+"("+str(loc_rec)+")")
-
+        exec_expression = "self.sect_loc_rec = self.%s(%s)" % (rec_section_name,
+                                                               loc_rec)
+        exec(exec_expression)
         rec_t = h.Vector()
         rec_t.record(h._ref_t)
-
         rec_v = h.Vector()
         rec_v.record(self.sect_loc_rec._ref_v)
-
         h.stdinit()
-
         dt = 0.025
         h.dt = dt
         h.steps_per_ms = 1/dt
-        h.v_init = self.v_init#-65
-
+        h.v_init = self.v_init
         h.celsius = self.celsius
         h.init()
         h.tstop = delay + dur + 200
         h.run()
-
         t = numpy.array(rec_t)
         v = numpy.array(rec_v)
-
         return t, v
 
-    def inject_current_record_respons_multiple_loc(self, amp, delay, dur, section_stim, loc_stim, dend_locations):
+    def inject_current_record_respons_multiple_loc(self, amp, delay, dur,
+                                                   section_stim, loc_stim,
+                                                   dend_locations):
 
-        self.initialise()
+        self.initialize()
 
         if self.cvode_active:
             h.cvode_active(1)
@@ -227,13 +188,13 @@ class ModelLoader(sciunit.Model,
             h.cvode_active(0)
 
         stim_section_name = self.translate(section_stim, distance=0)
-        #rec_section_name = self.translate(section_rec, distance=0)
-        #exec("self.sect_loc=h." + str(self.soma)+"("+str(0.5)+")")
+        exec("self.sect_loc_stim = self.%s(%s)" % (stim_section_name, loc_stim))
+        exec("self.sect_loc_rec = self."
+             + str(stim_section_name)+"("+str(loc_stim)+")")
 
-        exec("self.sect_loc_stim=h." + str(stim_section_name)+"("+str(loc_stim)+")")
-        exec("self.sect_loc_rec=h." + str(stim_section_name)+"("+str(loc_stim)+")")
-
-        print("- running amplitude: " + str(amp)  + " on model: " + self.name + " at: " + stim_section_name + "(" + str(loc_stim) + ")")
+        print("- running amplitude: %f on model: %s at: %s(%s)" % (amp, self.name,
+                                                                   stim_section_name,
+                                                                   loc_stim))
 
         self.stim = h.IClamp(self.sect_loc_stim)
 
@@ -251,18 +212,10 @@ class ModelLoader(sciunit.Model,
         v = collections.OrderedDict()
         self.dend_loc_rec =[]
 
-        '''
-        for i in range(0,len(dend_loc)):
-
-            exec("self.dend_loc_rec.append(h." + str(dend_loc[i][0])+"("+str(dend_loc[i][1])+"))")
-            rec_v.append(h.Vector())
-            rec_v[i].record(self.dend_loc_rec[i]._ref_v)
-            #print self.dend_loc[i]
-        '''
         #print dend_locations
         for key, value in dend_locations.items():
             for i in range(len(dend_locations[key])):
-                exec("self.dend_loc_rec.append(h." + str(dend_locations[key][i][0])+"("+str(dend_locations[key][i][1])+"))")
+                exec("self.dend_loc_rec.append(self.%s(%f))" % (dend_locations[key][i][0], dend_locations[key][i][1]))
                 rec_v.append(h.Vector())
 
         for i in range(len(self.dend_loc_rec)):
@@ -293,10 +246,11 @@ class ModelLoader(sciunit.Model,
         for key, value in dend_locations.items():
             v[key] = collections.OrderedDict()
             for j in range(len(dend_locations[key])):
-                loc_key = (dend_locations[key][j][0],dend_locations[key][j][1]) # list can not be a key, but tuple can
-                v[key][loc_key] = numpy.array(rec_v[i])     # the list that specifies dendritic location will be a key too.
-                i+=1
-
+                loc_key = (dend_locations[key][j][0], dend_locations[key][j][1])
+                # list can not be a key, but tuple can
+                v[key][loc_key] = numpy.array(rec_v[i])
+                # the list that specifies dendritic location will be a key too.
+                i += 1
         return t, v_stim, v
 
     def classify_apical_point_sections(self, icell):
@@ -329,66 +283,27 @@ class ModelLoader(sciunit.Model,
         return apical_trunk_isections, apical_tuft_isections, oblique_isections
 
     def find_trunk_locations(self, distances, tolerance, trunk_origin):
-
-        if self.TrunkSecList_name is None and not self.find_section_lists:
-            raise NotImplementedError("Please give the name of the section list containing the trunk sections. (eg. model.TrunkSecList_name=\"trunk\" or set model.find_section_lists to True)")
-
-        #locations={}
-        locations=collections.OrderedDict()
-        actual_distances ={}
-        dend_loc=[]
-
-        if self.TrunkSecList_name is not None:
-            self.initialise()
-
-            if self.template_name is not None:
-                exec('self.trunk=h.testcell.' + self.TrunkSecList_name)
-            else:
-                exec('self.trunk=h.' + self.TrunkSecList_name)
-
-
-        if self.find_section_lists:
-
-            self.initialise()
-
-            if self.template_name is not None:
-                exec('self.icell=h.testcell')
-
-            apical_trunk_isections, apical_tuft_isections, oblique_isections = self.classify_apical_point_sections(self.icell)
-
-            self.trunk = []
-            for i in range(len(apical_trunk_isections)):
-                exec('self.sec = h.testcell.apic[' + str(apical_trunk_isections[i]) + ']')
-                self.trunk.append(self.sec)
+        locations = collections.OrderedDict()
+        actual_distances = {}
 
         for sec in self.trunk:
             #for seg in sec:
             if not trunk_origin:
-                h(self.soma + ' ' +'distance(0,1)') # For apical dendrites the default reference point is the end of the soma (point 1)
+                h.distance(sec=self.soma)
             elif len(trunk_origin) == 1:
-                h(self.soma + ' ' +'distance(0,'+str(trunk_origin[0]) + ')') # Trunk origin point (reference for distance measurement) can be
-            elif len(trunk_origin) == 2:
-                h(trunk_origin[0] + ' ' +'distance(0,'+str(trunk_origin[1]) + ')') # Trunk origin point (reference for distance measurement) can be added by the user as an argument to the test
-            #print sec.name()
-            if self.find_section_lists:
-                h('access ' + sec.name())
-
+                h.distance(sec=trunk_origin[0])
+            else:
+                h.distance(sec=trunk_origin)
             for seg in sec:
-                #print('SEC: ', sec.name())
-                #print('SEG.X', seg.x)
-                #print('DIST', h.distance(seg.x, sec=sec))
-                #print('DIST0', h.distance(0, sec=sec))
-                #print('DIST1', h.distance(1, sec=sec))
                 for i in range(0, len(distances)):
-                    locations.setdefault(distances[i], []) # if this key doesn't exist it is added with the value: [], if exists, value not altered
-                    if h.distance(seg.x, sec=sec) < (distances[i] + tolerance) and h.distance(seg.x, sec=sec) > (distances[i]- tolerance): # if the seq is between distance +- 20
-                        #print 'SEC: ', sec.name()
-                        #print 'seg.x: ', seg.x
-                        #print 'DIST: ', h.distance(seg.x)
-                        locations[distances[i]].append([sec.name(), seg.x])
+                    # if this key doesn't exist it is added with the value: [],
+                    # if it exists, value not altered
+                    locations.setdefault(distances[i], [])
+                    # if the seq is between distance +- 20
+                    if (h.distance(seg.x, sec=sec) < (distances[i] + tolerance)
+                        and h.distance(seg.x, sec=sec) > (distances[i]- tolerance)): 
+                        locations[distances[i]].append([sec(seg.x)])
                         actual_distances[sec.name(), seg.x] = h.distance(seg.x, sec=sec)
-
-        #print actual_distances
         return locations, actual_distances
 
     def get_random_locations(self, num, seed, dist_range, trunk_origin):
@@ -400,7 +315,7 @@ class ModelLoader(sciunit.Model,
         locations_distances = {}
 
         if self.TrunkSecList_name is not None:
-            self.initialise()
+            self.initialize()
 
             if self.template_name is not None:
                 exec('self.trunk=h.testcell.' + self.TrunkSecList_name)
@@ -410,7 +325,7 @@ class ModelLoader(sciunit.Model,
 
         if self.find_section_lists:
 
-            self.initialise()
+            self.initialize()
 
             if self.template_name is not None:
                 exec('self.icell=h.testcell')
@@ -508,13 +423,13 @@ class ModelLoader(sciunit.Model,
             raise NotImplementedError("Please give the names of the section lists containing the oblique dendrites and the trunk sections. (eg. model.ObliqueSecList_name=\"obliques\", model.TrunkSecList_name=\"trunk\" or set model.find_section_lists to True)")
 
 
-        #self.initialise()
+        #self.initialize()
 
         good_obliques = h.SectionList()
         dend_loc=[]
 
         if self.TrunkSecList_name is not None and self.ObliqueSecList_name is not None:
-            self.initialise()
+            self.initialize()
 
             if self.template_name is not None:
 
@@ -528,7 +443,7 @@ class ModelLoader(sciunit.Model,
 
         if self.find_section_lists:
 
-            self.initialise()
+            self.initialize()
 
             if self.template_name is not None:
                 exec('self.icell=h.testcell')
@@ -678,7 +593,7 @@ class ModelLoader(sciunit.Model,
     def run_syn(self, dend_loc, interval, number, AMPA_weight):
         """Currently not used - Used to be used in ObliqueIntegrationTest"""
 
-        self.initialise()
+        self.initialize()
 
         if self.cvode_active:
             h.cvode_active(1)
@@ -775,7 +690,7 @@ class ModelLoader(sciunit.Model,
         self.nmda_nc_list = [None] * number
 
 
-        self.initialise()
+        self.initialize()
 
         if self.cvode_active:
             h.cvode_active(1)
@@ -855,7 +770,7 @@ class ModelLoader(sciunit.Model,
     def run_EPSCstim(self, dend_loc, weight, tau1, tau2):
         """Used in PSPAttenuationTest"""
 
-        self.initialise()
+        self.initialize()
 
         if self.cvode_active:
             h.cvode_active(1)
