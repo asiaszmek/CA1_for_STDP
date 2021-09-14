@@ -721,7 +721,6 @@ class CA1_PC:
         kcat_pump = self.params["kcat_%s" % name]
         Km_pump = self.params["Km_%s" % name]
         for key in self.shells.keys():
-            print(key)
             if "head" in key:
                 continue
             if name == "Serca":
