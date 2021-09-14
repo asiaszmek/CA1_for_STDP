@@ -120,7 +120,7 @@ class ModelLoader(sciunit.Model,
 
     def initialize(self):
         save_stdout = sys.stdout
-        sys.stdout = open('/dev/stdout', 'w')      #rather print it to the console 
+        sys.stdout = open('/dev/stdout', 'w')     
         h.load_file("stdrun.hoc")
         cell = self.class_name(**self.model_args)
         try:
@@ -283,6 +283,7 @@ class ModelLoader(sciunit.Model,
         return apical_trunk_isections, apical_tuft_isections, oblique_isections
 
     def find_trunk_locations(self, distances, tolerance, trunk_origin):
+        self.initialize()
         locations = collections.OrderedDict()
         actual_distances = {}
 
