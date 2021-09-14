@@ -99,7 +99,8 @@ class ModelLoader(sciunit.Model,
 
     def compile_mod_files(self):
         if self.modelpath is None:
-            raise Exception("Please give the path to the mod files (eg. mod_files_path = \'/home/models/CA1_pyr/mechanisms/\') as an argument to the ModelLoader class")
+            raise Exception("""Please give the path to the mod files (eg. mod_files_path = \'/home/models/CA1_pyr/mechanisms/\') 
+            as an argument to the ModelLoader class""")
 
         #if os.path.isfile(self.modelpath + self.libpath) is False:
         working_dir = os.getcwd()
@@ -127,9 +128,9 @@ class ModelLoader(sciunit.Model,
             self.soma = cell.soma[0]
         except TypeError:
             self.soma = cell.soma
-        print(dir(cell))
         self.trunk = cell.trunk
         self.sections = cell.sections
+        self.cell = cell
         sys.stdout = save_stdout    #setting output back to normal
         return cell
 
@@ -142,23 +143,21 @@ class ModelLoader(sciunit.Model,
         else:
             h.cvode_active(0)
 
-        stim_section_name = self.translate(section_stim, distance=0)
-        rec_section_name = self.translate(section_rec, distance=0)
-        print(stim_section_name, loc_stim)
-        exec_expression = "self.sect_loc_stim = self.%s(%s)" % (stim_section_name,
-                                                                loc_stim)
-        exec(exec_expression)
-        print("- running amplitude: %f on model: %s at: %s(%s)" % (amp, self.name,
-                                                                   stim_section_name,
+        stim_sec_name = self.translate(section_stim, distance=0)
+        rec_sec_name = self.translate(section_rec, distance=0)
+        new_sec = self.cell.find_sec(stim_sec_name)
+        self.sect_loc_stim = new_sec(float(loc_stim))
+        print("- running amplitude: %f on model: %s at: %s(%s)" % (amp,
+                                                                   self.name,
+                                                                   stim_sec_name,
                                                                    loc_stim))
 
         self.stim = h.IClamp(self.sect_loc_stim)
         self.stim.amp = amp
         self.stim.delay = delay
         self.stim.dur = dur
-        exec_expression = "self.sect_loc_rec = self.%s(%s)" % (rec_section_name,
-                                                               loc_rec)
-        exec(exec_expression)
+        new_sec = self.cell.find_sec(rec_sec_name)
+        self.sect_loc_rec = new_sec(float(loc_rec))
         rec_t = h.Vector()
         rec_t.record(h._ref_t)
         rec_v = h.Vector()
@@ -180,8 +179,6 @@ class ModelLoader(sciunit.Model,
                                                    section_stim, loc_stim,
                                                    dend_locations):
 
-        self.initialize()
-
         if self.cvode_active:
             h.cvode_active(1)
         else:
@@ -189,8 +186,7 @@ class ModelLoader(sciunit.Model,
 
         stim_section_name = self.translate(section_stim, distance=0)
         exec("self.sect_loc_stim = self.%s(%s)" % (stim_section_name, loc_stim))
-        exec("self.sect_loc_rec = self."
-             + str(stim_section_name)+"("+str(loc_stim)+")")
+        exec("self.sect_loc_rec = self.%s(%s)" % (stim_section_name, loc_stim))
 
         print("- running amplitude: %f on model: %s at: %s(%s)" % (amp, self.name,
                                                                    stim_section_name,
@@ -215,12 +211,12 @@ class ModelLoader(sciunit.Model,
         #print dend_locations
         for key, value in dend_locations.items():
             for i in range(len(dend_locations[key])):
-                exec("self.dend_loc_rec.append(self.%s(%f))" % (dend_locations[key][i][0], dend_locations[key][i][1]))
+                new_sec = self.cell.find_sec(dend_locations[key][i][0])
+                self.dend_loc_rec.append(new_sec(dend_locations[key][i][1]))
                 rec_v.append(h.Vector())
 
-        for i in range(len(self.dend_loc_rec)):
-            rec_v[i].record(self.dend_loc_rec[i]._ref_v)
-            #print self.dend_loc[i]
+        for i, sec in enumerate(self.dend_loc_rec):
+            rec_v[i].record(sec._ref_v)
 
         h.stdinit()
 
@@ -303,8 +299,9 @@ class ModelLoader(sciunit.Model,
                     # if the seq is between distance +- 20
                     if (h.distance(seg.x, sec=sec) < (distances[i] + tolerance)
                         and h.distance(seg.x, sec=sec) > (distances[i]- tolerance)): 
-                        locations[distances[i]].append([sec(seg.x)])
-                        actual_distances[sec.name(), seg.x] = h.distance(seg.x, sec=sec)
+                        locations[distances[i]].append([[sec.name(), seg.x]])
+                        actual_distances[sec.name(), seg.x] = h.distance(seg.x,
+                                                                         sec=sec)
         return locations, actual_distances
 
     def get_random_locations(self, num, seed, dist_range, trunk_origin):

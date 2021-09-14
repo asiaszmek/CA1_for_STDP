@@ -42,8 +42,9 @@ if __name__ == "__main__":
     
     # Instantiate test class   
     test = tests.SomaticFeaturesTest(observation=observation, config=config,
-                                     force_run=False, show_plot=True,
-                                     save_all=False, base_directory=base_directory)
+                                     force_run=True, show_plot=True,
+                                     save_all=False,
+                                     base_directory=base_directory)
     test.specify_data_set = 'UCL_data'
 
     # Number of parallel processes
