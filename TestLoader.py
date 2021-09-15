@@ -251,34 +251,6 @@ class ModelLoader(sciunit.Model,
                 i += 1
         return t, v_stim, v
 
-    def classify_apical_point_sections(self, icell):
-
-        import os
-        import neurom as nm
-        from hippounit import classify_apical_sections as cas
-
-        '''
-        for file_name in os.listdir(self.morph_path[1:-1]):
-            filename = self.morph_path[1:-1]+ '/' + file_name
-            break
-        '''
-
-        morph = nm.load_neuron(self.morph_full_path)
-
-        apical_point_sections = cas.multiple_apical_points(morph)
-
-        sections = cas.get_list_of_diff_section_types(morph, apical_point_sections)
-
-        apical_trunk_isections = cas.get_neuron_isections(icell, sections['trunk'])
-        #print sorted(apical_trunk_isections)
-
-        apical_tuft_isections = cas.get_neuron_isections(icell, sections['tuft'])
-        #print sorted(apical_tuft_isections)
-
-        oblique_isections = cas.get_neuron_isections(icell, sections['obliques'])
-        #print sorted(oblique_isections)
-
-        return apical_trunk_isections, apical_tuft_isections, oblique_isections
 
     def find_trunk_locations(self, distances, tolerance, trunk_origin):
         self.initialize()
@@ -475,7 +447,6 @@ class ModelLoader(sciunit.Model,
 
         ndend, xloc, loc_type = dend_loc
 
-        exec("self.dendrite=h." + ndend)
 
         self.ampa = h.Exp2Syn(xloc, sec=self.dendrite)
         self.ampa.tau1 = self.AMPA_tau1
