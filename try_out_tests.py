@@ -85,3 +85,14 @@ if __name__ == "__main__":
     #Summarize and print the score achieved by the model on the test using SciUnit's summarize function
     #score.summarize()
     
+    with open('target_features/depol_block_target_data.json') as f:
+        observation = json.load(f,
+                                object_pairs_hook=collections.OrderedDict)
+    
+    test = tests.DepolarizationBlockTest(observation=observation,
+                                         force_run=False,
+                                         show_plot=True,
+                                         save_all=True,
+                                         base_directory=base_directory)
+    score = test.judge(my_model)
+    score.summarize()

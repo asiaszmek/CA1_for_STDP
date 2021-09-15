@@ -143,13 +143,13 @@ class ModelLoader(sciunit.Model,
         else:
             h.cvode_active(0)
 
-        stim_sec_name = self.translate(section_stim, distance=0)
+        stim_s_name = self.translate(section_stim, distance=0)
         rec_sec_name = self.translate(section_rec, distance=0)
-        new_sec = self.cell.find_sec(stim_sec_name)
+        new_sec = self.cell.find_sec(stim_s_name)
         self.sect_loc_stim = new_sec(float(loc_stim))
         print("- running amplitude: %f on model: %s at: %s(%s)" % (amp,
                                                                    self.name,
-                                                                   stim_sec_name,
+                                                                   stim_s_name,
                                                                    loc_stim))
 
         self.stim = h.IClamp(self.sect_loc_stim)
@@ -184,12 +184,13 @@ class ModelLoader(sciunit.Model,
         else:
             h.cvode_active(0)
 
-        stim_section_name = self.translate(section_stim, distance=0)
-        exec("self.sect_loc_stim = self.%s(%s)" % (stim_section_name, loc_stim))
-        exec("self.sect_loc_rec = self.%s(%s)" % (stim_section_name, loc_stim))
-
-        print("- running amplitude: %f on model: %s at: %s(%s)" % (amp, self.name,
-                                                                   stim_section_name,
+        stim_s_name = self.translate(section_stim, distance=0)
+        new_sec = self.cell.find_sec(stim_s_name)
+        self.sect_loc_stim = new_sec(float(loc_stim))
+        self.sect_loc_rec = new_sec(float(loc_stim))
+        print("- running amplitude: %f on model: %s at: %s(%s)" % (amp,
+                                                                   self.name,
+                                                                   stim_s_name,
                                                                    loc_stim))
 
         self.stim = h.IClamp(self.sect_loc_stim)
