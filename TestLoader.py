@@ -128,8 +128,6 @@ class ModelLoader(sciunit.Model,
             self.soma = cell.soma[0]
         except TypeError:
             self.soma = cell.soma
-        self.trunk = cell.trunk
-        self.sections = cell.sections
         self.cell = cell
         sys.stdout = save_stdout    #setting output back to normal
         return cell
@@ -175,10 +173,11 @@ class ModelLoader(sciunit.Model,
         v = numpy.array(rec_v)
         return t, v
 
-    def inject_current_record_respons_multiple_loc(self, amp, delay, dur,
-                                                   section_stim, loc_stim,
+    def inject_current_record_respons_multiple_loc(self, amp, delay,
+                                                   dur, section_stim,
+                                                   loc_stim,
                                                    dend_locations):
-
+        self.initialize()
         if self.cvode_active:
             h.cvode_active(1)
         else:
@@ -211,9 +210,11 @@ class ModelLoader(sciunit.Model,
 
         #print dend_locations
         for key, value in dend_locations.items():
-            for i in range(len(dend_locations[key])):
-                new_sec = self.cell.find_sec(dend_locations[key][i][0])
-                self.dend_loc_rec.append(new_sec(dend_locations[key][i][1]))
+            print(key, value)
+            for x in value:
+                print(x)
+                new_sec = self.cell.find_sec(x[0])
+                self.dend_loc_rec.append(new_sec(x[1]))
                 rec_v.append(h.Vector())
 
         for i, sec in enumerate(self.dend_loc_rec):
@@ -284,7 +285,7 @@ class ModelLoader(sciunit.Model,
         locations = collections.OrderedDict()
         actual_distances = {}
 
-        for sec in self.trunk:
+        for sec in self.cell.trunk:
             #for seg in sec:
             if not trunk_origin:
                 h.distance(sec=self.soma)
@@ -298,17 +299,15 @@ class ModelLoader(sciunit.Model,
                     # if it exists, value not altered
                     locations.setdefault(distances[i], [])
                     # if the seq is between distance +- 20
-                    if (h.distance(seg.x, sec=sec) < (distances[i] + tolerance)
-                        and h.distance(seg.x, sec=sec) > (distances[i]- tolerance)): 
-                        locations[distances[i]].append([[sec.name(), seg.x]])
-                        actual_distances[sec.name(), seg.x] = h.distance(seg.x,
-                                                                         sec=sec)
+                    dist = h.distance(seg.x, sec=sec)
+                    if (dist < (distances[i] + tolerance)
+                        and dist > (distances[i]- tolerance)): 
+                        locations[distances[i]].append([sec.name(),
+                                                         seg.x])
+                        actual_distances[sec.name(), seg.x] = dist
         return locations, actual_distances
 
     def get_random_locations(self, num, seed, dist_range, trunk_origin):
-
-        if self.TrunkSecList_name is None and not self.find_section_lists:
-            raise NotImplementedError("Please give the name of the section list containing the trunk sections. (eg. model.TrunkSecList_name=\"trunk\" or set model.find_section_lists to True)")
 
         locations=[]
         locations_distances = {}
@@ -417,94 +416,12 @@ class ModelLoader(sciunit.Model,
 
     def find_good_obliques(self, trunk_origin):
         """Used in ObliqueIntegrationTest"""
-
-        if (self.ObliqueSecList_name is None or self.TrunkSecList_name is None) and not self.find_section_lists:
-            raise NotImplementedError("Please give the names of the section lists containing the oblique dendrites and the trunk sections. (eg. model.ObliqueSecList_name=\"obliques\", model.TrunkSecList_name=\"trunk\" or set model.find_section_lists to True)")
-
-
-        #self.initialize()
-
-        good_obliques = h.SectionList()
-        dend_loc=[]
-
-        if self.TrunkSecList_name is not None and self.ObliqueSecList_name is not None:
-            self.initialize()
-
-            if self.template_name is not None:
-
-                exec('self.oblique_dendrites=h.testcell.' + self.ObliqueSecList_name)   # so we can have the name of the section list as a string given by the user
-                #exec('oblique_dendrites = h.' + oblique_seclist_name)
-                exec('self.trunk=h.testcell.' + self.TrunkSecList_name)
-            else:
-                exec('self.oblique_dendrites=h.' + self.ObliqueSecList_name)   # so we can have the name of the section list as a string given by the user
-                #exec('oblique_dendrites = h.' + oblique_seclist_name)
-                exec('self.trunk=h.' + self.TrunkSecList_name)
-
-        if self.find_section_lists:
-
-            self.initialize()
-
-            if self.template_name is not None:
-                exec('self.icell=h.testcell')
-
-            apical_trunk_isections, apical_tuft_isections, oblique_isections = self.classify_apical_point_sections(self.icell)
-
-            self.trunk = []
-            for i in range(len(apical_trunk_isections)):
-                exec('self.sec = h.testcell.apic[' + str(apical_trunk_isections[i]) + ']')
-                self.trunk.append(self.sec)
-
-            self.oblique_dendrites = []
-            for i in range(len(oblique_isections)):
-                exec('self.sec = h.testcell.apic[' + str(oblique_isections[i]) + ']')
-                self.oblique_dendrites.append(self.sec)
-
-        good_obliques_added = 0
-
-        while good_obliques_added == 0 and self.max_dist_from_soma <= 190:
-            for sec in self.oblique_dendrites:
-                if not trunk_origin:
-                    h(self.soma + ' ' +'distance(0,1)') # For apical dendrites the default reference point is the end of the soma (point 1)
-                elif len(trunk_origin) == 1:
-                    h(self.soma + ' ' +'distance(0,'+str(trunk_origin[0]) + ')') # Trunk origin point (reference for distance measurement) can be
-                elif len(trunk_origin) == 2:
-                    h(trunk_origin[0] + ' ' +'distance(0,'+str(trunk_origin[1]) + ')') # Trunk origin point (reference for distance measurement) can be added by the user as an argument to the test
-                if self.find_section_lists:
-                    h('access ' + sec.name())
-                parent = h.SectionRef(sec).parent
-                child_num = h.SectionRef(sec).nchild()
-                dist = h.distance(0, sec=sec)
-                #print 'SEC: ', sec.name()
-                #print 'NCHILD: ', child_num
-                #print 'PARENT: ', parent.name()
-                #print 'DIST: ', h.distance(0)
-                """
-                for trunk_sec in trunk:
-                    if self.find_section_lists:
-                        h('access ' + trunk_sec.name())
-                    if h.issection(parent.name()) and dist < self.max_dist_from_soma and child_num == 0:   # true if string (parent.name()) is contained in the name of the currently accessed section.trunk_sec is the accessed section,
-                        #print sec.name(), parent.name()
-                        h('access ' + sec.name())         # only currently accessed section can be added to hoc SectionList
-                        good_obliques.append(sec.name())
-                        good_obliques_added += 1
-                """
-                if dist < self.max_dist_from_soma and child_num == 0:   # now the oblique section can branch from another oblique section, but it has to be a tip (terminal) section
-                    #print(sec.name(), parent.name())
-                    #print(sec.name(), dist)
-                    h('access ' + sec.name())         # only currently accessed section can be added to hoc SectionList
-                    good_obliques.append()
-                    good_obliques_added += 1
-            if good_obliques_added == 0:
-                self.max_dist_from_soma += 15
-                print("Maximum distance from soma was increased by 15 um, new value: " + str(self.max_dist_from_soma))
-
-        for sec in good_obliques:
-
+        for sec in self.cell.oblique:
             dend_loc_prox=[]
             dend_loc_dist=[]
             seg_list_prox=[]
             seg_list_dist=[]
-
+ 
             h(sec.name() + ' ' +'distance()')  #set the 0 point of the section as the origin
             # print(sec.name())
 
