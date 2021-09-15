@@ -137,7 +137,8 @@ class CA1_PC:
                 for seg in sec:
                     from_mech = getattr(seg, key)
                     value = getattr(from_mech, "gbar")
-                    setattr(from_mech, "gbar", self.params["ca_factor"]*value)
+                    setattr(from_mech, "gbar",
+                            self.params["ca_factor"]*value)
         self.comp_factors = {}
         self.reactions = []
         self.where_spines = []
