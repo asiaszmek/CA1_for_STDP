@@ -119,11 +119,11 @@ class ModelLoader(sciunit.Model,
         if os.path.isfile(self.default_NMDA_path + self.libpath) is False:
             os.system("cd " + "\'" + self.default_NMDA_path  + "\'" + "; nrnivmodl")
 
-    def initialize(self):
+    def initialize(self, args):
         save_stdout = sys.stdout
         sys.stdout = open('/dev/stdout', 'w')     
         h.load_file("stdrun.hoc")
-        cell = self.class_name(**self.model_args)
+        cell = self.class_name(**args)
         try:
             self.soma = cell.soma[0]
         except TypeError:
@@ -135,7 +135,7 @@ class ModelLoader(sciunit.Model,
     def inject_current(self, amp, delay, dur, section_stim,
                        loc_stim, section_rec, loc_rec):
 
-        self.initialize()
+        self.initialize(self.model_args)
         if self.cvode_active:
             h.cvode_active(1)
         else:
@@ -177,7 +177,7 @@ class ModelLoader(sciunit.Model,
                                                    dur, section_stim,
                                                    loc_stim,
                                                    dend_locations):
-        self.initialize()
+        self.initialize(self.model_args)
         if self.cvode_active:
             h.cvode_active(1)
         else:
@@ -253,7 +253,7 @@ class ModelLoader(sciunit.Model,
 
 
     def find_trunk_locations(self, distances, tolerance, trunk_origin):
-        self.initialize()
+        self.initialize(self.model_args)
         locations = collections.OrderedDict()
         actual_distances = {}
 
@@ -442,86 +442,7 @@ class ModelLoader(sciunit.Model,
         return dend_loc
 
 
-    def set_ampa_nmda(self, dend_loc):
-        """Currently not used - Used to be used in ObliqueIntegrationTest"""
-
-        ndend, xloc, loc_type = dend_loc
-
-
-        self.ampa = h.Exp2Syn(xloc, sec=self.dendrite)
-        self.ampa.tau1 = self.AMPA_tau1
-        self.ampa.tau2 = self.AMPA_tau2
-
-        exec("self.nmda = h."+self.NMDA_name+"(xloc, sec=self.dendrite)")
-
-        self.ndend = ndend
-        self.xloc = xloc
-
-
-    def set_netstim_netcon(self, interval):
-        """Currently not used - Used to be used in ObliqueIntegrationTest"""
-
-        self.ns = h.NetStim()
-        self.ns.interval = interval
-        self.ns.number = 0
-        self.ns.start = self.start
-
-        self.ampa_nc = h.NetCon(self.ns, self.ampa, 0, 0, 0)
-        self.nmda_nc = h.NetCon(self.ns, self.nmda, 0, 0, 0)
-
-
-    def set_num_weight(self, number, AMPA_weight):
-        """Currently not used - Used to be used in ObliqueIntegrationTest"""
-
-        self.ns.number = number
-        self.ampa_nc.weight[0] = AMPA_weight
-        self.nmda_nc.weight[0] =AMPA_weight/self.AMPA_NMDA_ratio
-
-    def run_syn(self, dend_loc, interval, number, AMPA_weight):
-        """Currently not used - Used to be used in ObliqueIntegrationTest"""
-
-        self.initialize()
-
-        if self.cvode_active:
-            h.cvode_active(1)
-        else:
-            h.cvode_active(0)
-
-        self.set_ampa_nmda(dend_loc)
-        self.set_netstim_netcon(interval)
-        self.set_num_weight(number, AMPA_weight)
-
-        exec("self.sect_loc=h." + str(self.soma)+"("+str(0.5)+")")
-
-        # initiate recording
-        rec_t = h.Vector()
-        rec_t.record(h._ref_t)
-
-        rec_v = h.Vector()
-        rec_v.record(self.sect_loc._ref_v)
-
-        rec_v_dend = h.Vector()
-        rec_v_dend.record(self.dendrite(self.xloc)._ref_v)
-
-        h.stdinit()
-
-        dt = 0.025
-        h.dt = dt
-        h.steps_per_ms = 1/ dt
-        h.v_init = self.v_init #-80
-
-        h.celsius = self.celsius
-        h.init()
-        h.tstop = 500
-        h.run()
-
-        # get recordings
-        t = numpy.array(rec_t)
-        v = numpy.array(rec_v)
-        v_dend = numpy.array(rec_v_dend)
-
-        return t, v, v_dend
-
+    
     def set_multiple_ampa_nmda(self, dend_loc, number):
         """Used in ObliqueIntegrationTest"""
 
