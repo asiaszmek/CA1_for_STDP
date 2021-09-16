@@ -20,9 +20,9 @@ if __name__ == "__main__":
     where_ca = ["soma", "apical"]
     mods_path = os.path.join(CA1.path, "Mods")
     my_model = ModelLoader(CA1.CA1_PC, mods_path, {"add_ER": add_ER,
-                                    "where_ca": where_ca,
-                                    "where_spines": where_spines})
-    #my_model.initialize()
+                                                   "where_ca": where_ca,
+                                                   "where_spines": where_spines})
+
     my_model.v_init = -70
     my_model.celsius = 34
     target_features_file = os.path.join("target_features",
@@ -47,9 +47,9 @@ if __name__ == "__main__":
     test.specify_data_set = 'UCL_data'
 
     # Number of parallel processes
-    test.n = 1
+    test.n = 10
     score = test.judge(my_model)
-    score.summarize()
+    print(score.summary)
 
     with open('target_features/feat_rat_CA1_JMakara_more_features.json') as f:
         observation = json.load(f,

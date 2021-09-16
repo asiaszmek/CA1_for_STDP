@@ -284,25 +284,25 @@ class CA1_PC_basal:
             sec.ena = 50
             sec.ek = -90
         for sec in self.somatic:
-            sec.gkabar_kap = 0.0075 
-            sec.gbar_kmb = 0.001 
-            sec.gkdrbar_kdr = 0.0015 
+            sec.gkabar_kap = 0.02 
+            sec.gbar_kmb = 0.003 
+            sec.gkdrbar_kdr = 0.05 
             sec.gbar_nax = 0.035 
-            sec.gbar_cal12 =  0.00000125*0.35e-6
-            sec.gbar_cal13 =  3*0.00000125 *0.35e-6
+            sec.gbar_cal12 =  1e-6*0.35e-6
+            sec.gbar_cal13 =  3e-6*0.35e-6
             sec.gbar_can = 2.26e-06*0.35e-6
             sec.gbar_cav32 =  1.18e-06*0.35e-6
             sec.gbar_cav33 =  3*1.18e-06*0.35e-6
-            sec.gbar_kca = 0.0015 
+            sec.gbar_kca = 0.005 
             sec.gbar_cagk = 4.482e-05
             sec.Ra = 115.4
             sec.g_pas = 9.03e-05
 
         for sec in self.axonal:
-            sec.gbar_nax = 0.035 #0.21113423945477339
-            sec.gkdrbar_kdr = 0.012
-            sec.gbar_kmb = 0.0265
-            sec.gkabar_kap = 0.164
+            sec.gbar_nax = 0.05 #0.21113423945477339
+            sec.gkdrbar_kdr = 0.1
+            sec.gbar_kmb = 0.05
+            sec.gkabar_kap = 0.3
             sec.Ra = 85.20
             sec.g_pas = 0.00013
             sec.e_pas = -79.92
