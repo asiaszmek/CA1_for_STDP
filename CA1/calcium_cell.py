@@ -77,7 +77,7 @@ class CA1_PC:
                  where_spines=["lm_medium2"],
                  add_ER=False, buffer_list=["CaM", "Calbindin", "Fixed"],
                  pump_list=["ncx", "pmca"], receptor_list=["AMPA", "NMDA"],
-                 spine_pos=[], recompile=True):
+                 spine_pos={}, recompile=True):
 
         if model is None:
             model = CA1_PC_basal(recompile=recompile)
@@ -157,7 +157,12 @@ class CA1_PC:
                                       self.params["Ca_per"],
                                       is_ca=True)
 
-    def add_spines(self, dends, spine_no, spine_pos=[]):
+    def add_spines(self, dends, spine_no, spine_pos={}):
+        """
+        Place either spine_no spines on every dend in dends, or spines provided by spine_no
+        (a dictionary of spine position on chosen dend), if dend not in spine_pos, spine_no
+        dendrites will be placed.
+        """
         if dends:
             new_locs = []
             if not isinstance(dends, list):
@@ -166,13 +171,17 @@ class CA1_PC:
                 new_locs.extend(self.cell_filter(loc, tolist=True))
                 self.where_spines.extend(new_locs)
             for spine_loc in new_locs:
-                for a_spine in range(spine_no):
-                    if not spine_pos or a_spine >= len(spine_pos):
+                if spine_loc in spine_pos:
+                    positions = spine_pos[spine_loc]
+                    for a_spine, pos in enumerate(positions):
+                        head = self.add_head(a_spine, where=spine_loc, position=pos)
+                        self.heads.append(head)
+                else:
+                    for a_spine in range(spine_no):
                         pos = 1/(spine_no+1)*(a_spine+1)
-                    else:
-                        pos = spine_pos[a_spine]
-                    head = self.add_head(a_spine, where=spine_loc, position=pos)
-                    self.heads.append(head)
+                        head = self.add_head(a_spine, where=spine_loc, position=pos)
+                        self.heads.append(head)
+
                 self.compensate_for_spines(spine_loc)
         
     def get_ca_init(self, reg):

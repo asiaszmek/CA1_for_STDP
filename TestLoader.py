@@ -284,36 +284,10 @@ class ModelLoader(sciunit.Model,
         locations=[]
         locations_distances = {}
 
-        if self.TrunkSecList_name is not None:
-            self.initialize()
-
-            if self.template_name is not None:
-                exec('self.trunk=h.testcell.' + self.TrunkSecList_name)
-
-            else:
-                exec('self.trunk=h.' + self.TrunkSecList_name)
-
-        if self.find_section_lists:
-
-            self.initialize()
-
-            if self.template_name is not None:
-                exec('self.icell=h.testcell')
-
-            apical_trunk_isections, apical_tuft_isections, oblique_isections = self.classify_apical_point_sections(self.icell)
-            apical_trunk_isections = sorted(apical_trunk_isections) # important to keep reproducability
-
-            self.trunk = []
-            for i in range(len(apical_trunk_isections)):
-                exec('self.sec = h.testcell.apic[' + str(apical_trunk_isections[i]) + ']')
-                self.trunk.append(self.sec)
-        else:
-            self.trunk = list(self.trunk)
-
+        self.initialize()
         kumm_length_list = []
         kumm_length = 0
         num_of_secs = 0
-
 
         for sec in self.trunk:
             #print sec.L
@@ -326,31 +300,26 @@ class ModelLoader(sciunit.Model,
         if num > num_of_secs:
             for sec in self.trunk:
                 if not trunk_origin:
-                    h(self.soma + ' ' +'distance(0,1)') # For apical dendrites the default reference point is the end of the soma (point 1)
+                    h.distance(sec=self.soma)
                 elif len(trunk_origin) == 1:
-                    h(self.soma + ' ' +'distance(0,'+str(trunk_origin[0]) + ')') # Trunk origin point (reference for distance measurement) can be
-                elif len(trunk_origin) == 2:
-                    h(trunk_origin[0] + ' ' +'distance(0,'+str(trunk_origin[1]) + ')') # Trunk origin point (reference for distance measurement) can be added by the user as an argument to the test
-                h('access ' + sec.name())
+                    h.distance(sec=trunk_origin[0])
+                else:
+                    h.distance(sec=trunk_origin)
                 for seg in sec:
-                    if h.distance(seg.x, sec=sec) > dist_range[0] and h.distance(seg.x, sec=sec) < dist_range[1]:     # if they are out of the distance range they wont be used
+                    dist = h.distance(seg.x, sec=sec)
+                    if dist > dist_range[0] and dist < dist_range[1]:  
                         locations.append([sec.name(), seg.x])
-                        locations_distances[sec.name(), seg.x] = h.distance(seg.x, sec=sec)
-            #print 'Dendritic locations to be tested (with their actual distances):', locations_distances
-
+                        locations_distances[sec.name(), seg.x] = dist
         else:
-
             norm_kumm_length_list = [i/kumm_length_list[-1] for i in kumm_length_list]
-            #print 'norm kumm',  norm_kumm_length_list
-
             import random
 
             _num_ = num  # _num_ will be changed
             num_iterations = 0
+            random.seed(seed)
 
             while len(locations) < num and num_iterations < 50 :
                 #print 'seed ', seed
-                random.seed(seed)
                 rand_list = [random.random() for j in range(_num_)]
                 #print rand_list
 
@@ -368,21 +337,20 @@ class ModelLoader(sciunit.Model,
                             segment = segs[min_d_seg]
                             #print 'segment', segment
                             if not trunk_origin:
-                                h(self.soma + ' ' +'distance(0,1)') # For apical dendrites the default reference point is the end of the soma (point 1)
+                                h.distance(sec=self.soma)
                             elif len(trunk_origin) == 1:
-                                h(self.soma + ' ' +'distance(0,'+str(trunk_origin[0]) + ')') # Trunk origin point (reference for distance measurement) can be
-                            elif len(trunk_origin) == 2:
-                                h(trunk_origin[0] + ' ' +'distance(0,'+str(trunk_origin[1]) + ')') # Trunk origin point (reference for distance measurement) can be added by the user as an argument to the test
-                            h('access ' + self.trunk[i].name())
-                            if [self.trunk[i].name(), segment] not in locations and h.distance(segment) >= dist_range[0] and h.distance(segment) < dist_range[1]:
+                                h.distance(sec=trunk_origin[0]) 
+                            else:
+                                h.distance(sec=trunk_origin)
+                            dist = h.distance(segment, sec=self.trunk[i])
+                            if ([self.trunk[i].name(), segment] not in locations
+                                and dist >= dist_range[0] and dist < dist_range[1]):
                                 locations.append([self.trunk[i].name(), segment])
-                                locations_distances[self.trunk[i].name(), segment] = h.distance(segment)
+                                locations_distances[self.trunk[i].name(), segment] = dist
                 _num_ = num - len(locations)
-                #print '_num_', _num_
+
                 seed += 10
                 num_iterations += 1
-                #print len(locations)
-        #print 'Dendritic locations to be tested (with their actual distances):', locations_distances
 
         return locations, locations_distances
 
