@@ -52,7 +52,8 @@ SPINE_DIMENSIONS = {
 
 class CA1_PC:
     
-    synlist = []
+    ampas = []
+    nmdas = []
     nclist = []
     spine_dict = OrderedDict()
     heads = []
@@ -192,7 +193,7 @@ class CA1_PC:
     def add_synapse_ampa(self, dend, gmax):
         syn = h.AMPADJ(dend)
         syn.gmax = gmax
-        self.synlist.append(syn)
+        self.ampas.append(syn)
         return syn
 
     def add_synapse_nmda(self, dend, gmax, ca_per,
@@ -200,13 +201,13 @@ class CA1_PC:
         if not is_ca:
             syn = h.NR2A(dend)
             syn.gmax = gmax
-            self.synlist.append(syn)
+            self.nmdas.append(syn)
             return syn
 
         syn = h.NR2A_CA(dend)
         syn.fCa = ca_per
         syn.gmax = gmax
-        self.synlist.append(syn)
+        self.nmdas.append(syn)
         return syn
 
     def add_spine_mechs(self, spine, segment, spine_mechanisms,
