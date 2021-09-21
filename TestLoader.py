@@ -43,8 +43,6 @@ class ModelLoader(sciunit.Model,
         self.model_args["recompile"] = False
         self.cvode_active = True
         self.libpath = libpath
-        self.template_name = None
-        self.SomaSecList_name = None
         self.max_dist_from_soma = 150
         self.v_init = -70
         self.celsius = 34
@@ -53,28 +51,16 @@ class ModelLoader(sciunit.Model,
         self.threshold = -20
         self.stim = None
         self.soma = None
+        self.NMDA_name = "NR2A_Ca"
+        self.AMPA_name = "AMPADJ"
         sciunit.Model.__init__(self, name=name)
 
         self.c_step_start = 0.00004
         self.c_step_stop = 0.000004
         self.c_minmax = numpy.array([0.00004, 0.04])
 
-        self.ObliqueSecList_name = None
-        self.TrunkSecList_name = None
         self.dend_loc = []  
         self.dend_locations = collections.OrderedDict()
-        self.NMDA_name = NMDA_name
-        self.default_NMDA_name = 'NMDA_CA1_pyr_SC'
-        nmda_pkg_path = os.path.join("tests", "default_NMDAr")
-        self.default_NMDA_path = pkg_resources.resource_filename("hippounit",
-                                                                 nmda_pkg_path)
-
-        self.AMPA_name = None
-        self.AMPA_NMDA_ratio = 2.0
-
-        self.AMPA_tau1 = 0.1
-        self.AMPA_tau2 = 2.0
-        self.start=150
 
         self.ns = None
         self.ampa = None
@@ -91,11 +77,10 @@ class ModelLoader(sciunit.Model,
         self.ndend = None
         self.xloc = None
 
-        self.base_directory = './validation_results/'   # inside current directory
+        self.base_directory = './validation_results/'   
 
         self.find_section_lists = False
         self.compile_mod_files()
-        self.compile_default_NMDA()
 
     def compile_mod_files(self):
         if self.modelpath is None:
@@ -114,10 +99,6 @@ class ModelLoader(sciunit.Model,
         else:
             return False
 
-    def compile_default_NMDA(self):
-        # Fix paths
-        if os.path.isfile(self.default_NMDA_path + self.libpath) is False:
-            os.system("cd " + "\'" + self.default_NMDA_path  + "\'" + "; nrnivmodl")
 
     def initialize(self, args):
         save_stdout = sys.stdout
@@ -326,13 +307,18 @@ class ModelLoader(sciunit.Model,
                 for rand in rand_list:
                     #print 'RAND', rand
                     for i in range(len(norm_kumm_length_list)):
-                        if rand <= norm_kumm_length_list[i] and (rand > norm_kumm_length_list[i-1] or i==0):
+                        if (rand <= norm_kumm_length_list[i]
+                            and (rand > norm_kumm_length_list[i-1]
+                                 or i==0)):
                             #print norm_kumm_length_list[i-1]
                             #print norm_kumm_length_list[i]
-                            seg_loc = (rand - norm_kumm_length_list[i-1]) / (norm_kumm_length_list[i] - norm_kumm_length_list[i-1])
+                            seg_loc = ((rand - norm_kumm_length_list[i-1]) /
+                                       (norm_kumm_length_list[i] -
+                                        norm_kumm_length_list[i-1]))
                             #print 'seg_loc', seg_loc
                             segs = [seg.x for seg in self.trunk[i]]
-                            d_seg = [abs(seg.x - seg_loc) for seg in self.trunk[i]]
+                            d_seg = [abs(seg.x - seg_loc) for seg in
+                                     self.trunk[i]]
                             min_d_seg = numpy.argmin(d_seg)
                             segment = segs[min_d_seg]
                             #print 'segment', segment
@@ -344,9 +330,12 @@ class ModelLoader(sciunit.Model,
                                 h.distance(sec=trunk_origin)
                             dist = h.distance(segment, sec=self.trunk[i])
                             if ([self.trunk[i].name(), segment] not in locations
-                                and dist >= dist_range[0] and dist < dist_range[1]):
-                                locations.append([self.trunk[i].name(), segment])
-                                locations_distances[self.trunk[i].name(), segment] = dist
+                                and dist >= dist_range[0]
+                                and dist < dist_range[1]):
+                                locations.append([self.trunk[i].name(),
+                                                  segment])
+                                locations_distances[self.trunk[i].name(),
+                                                    segment] = dist
                 _num_ = num - len(locations)
 
                 seed += 10
@@ -356,14 +345,17 @@ class ModelLoader(sciunit.Model,
 
     def find_good_obliques(self, trunk_origin):
         """Used in ObliqueIntegrationTest"""
+        self.initialize(self.model_args)
+        dend_loc = []
         for sec in self.cell.oblique:
             dend_loc_prox=[]
             dend_loc_dist=[]
             seg_list_prox=[]
             seg_list_dist=[]
  
-            h(sec.name() + ' ' +'distance()')  #set the 0 point of the section as the origin
-            # print(sec.name())
+            h.distance(sec=sec)
+            #set the 0 point of the section as the origin
+            print(sec.name())
 
 
             for seg in sec:
@@ -458,7 +450,7 @@ class ModelLoader(sciunit.Model,
 
     def run_multiple_syn(self, dend_loc, interval, number, weight):
         """Used in ObliqueIntegrationTest"""
-
+        print(dend_loc, interval, number, weight)
         self.ampa_list = [None] * number
         self.nmda_list = [None] * number
         self.ns_list = [None] * number
