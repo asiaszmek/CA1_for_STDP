@@ -61,25 +61,7 @@ class ModelLoader(sciunit.Model,
 
         self.dend_loc = []  
         self.dend_locations = collections.OrderedDict()
-
-        self.ns = None
-        self.ampa = None
-        self.nmda = None
-        self.ampa_nc = None
-        self.nmda_nc = None
-
-        self.ampa_list = []
-        self.nmda_list = []
-        self.ns_list = []
-        self.ampa_nc_list = []
-        self.nmda_nc_list = []
-
-        self.ndend = None
-        self.xloc = None
-
         self.base_directory = './validation_results/'   
-
-        self.find_section_lists = False
         self.compile_mod_files()
 
     def compile_mod_files(self):
@@ -401,43 +383,86 @@ class ModelLoader(sciunit.Model,
 
         return dend_loc
 
-
-    
-
-        
-
-
-    def set_multiple_netstim_netcon(self, interval, number, AMPA_weight):
+    def set_netstim_netcon(self, interval, number):
         """Used in ObliqueIntegrationTest"""
+        print(interval, number)
+        self.presynaptic = []
+        self.release = []
+        self.nc_list = []
+        self.ns_list = []
+        print(len(self.cell.ampas))
+        for i in range(number):
+            self.presynaptic.append(h.Section("PRE_%d" % i))
+            self.release.append(h.depletion(self.presynaptic[i](0.5)))
 
         for i in range(number):
-            self.ns_list[i] = h.NetStim()
+            self.ns_list.append(h.NetStim())
             self.ns_list[i].number = 1
             self.ns_list[i].start = self.start + (i*interval)
+            self.nc_list.append(h.NetCon(self.ns_list[i], self.release[i], 0, 0, 1))
+            h.setpointer(self.release[i]._ref_T, 'T', self.cell.ampas[i]) 
+            h.setpointer(self.release[i]._ref_T, 'T', self.cell.nmdas[i]) 
 
-            self.ampa_nc_list[i] = h.NetCon(self.ns_list[i], self.ampa_list[i], 0, 0, 0)
-            self.nmda_nc_list[i] = h.NetCon(self.ns_list[i], self.nmda_list[i], 0, 0, 0)
+    def run_syn(self, dend_loc, interval, number, AMPA_weight):
+        """Currently not used - Used to be used in ObliqueIntegrationTest"""
+        args = self.model_args
+        args["spine_pos"] = {}
+        args["spine_pos"][dend_loc[0]] = [dend_loc[1]]
 
-            self.ampa_nc_list[i].weight[0] = AMPA_weight
-            self.nmda_nc_list[i].weight[0] = AMPA_weight/self.AMPA_NMDA_ratio
+        self.initialise(args)
+        self.dendrite = self.cell.find_sec(dend_loc[0])
+        if self.cvode_active:
+            h.cvode_active(1)
+        else:
+            h.cvode_active(0)
+
+        self.set_netstim_netcon(interval, 1)
+        self.set_num_weight(0, 1, 1)
+
+        self.sect_loc=self.soma(0.5)
+
+        # initiate recording
+        rec_t = h.Vector()
+        rec_t.record(h._ref_t)
+
+        rec_v = h.Vector()
+        rec_v.record(self.sect_loc._ref_v)
+
+        rec_v_dend = h.Vector()
+        rec_v_dend.record(self.dendrite(self.xloc)._ref_v)
+
+        h.stdinit()
+
+        dt = 0.025
+        h.dt = dt
+        h.steps_per_ms = 1/ dt
+        h.v_init = self.v_init #-80
+
+        h.celsius = self.celsius
+        h.init()
+        h.tstop = 500
+        h.run()
+
+        # get recordings
+        t = numpy.array(rec_t)
+        v = numpy.array(rec_v)
+        v_dend = numpy.array(rec_v_dend)
+
+        return t, v, v_dend
 
 
     def run_multiple_syn(self, dend_loc, interval, number, weight):
         """Used in ObliqueIntegrationTest"""
-        print(dend_loc, interval, number, weight)
-        
+        self.start = 300
         args = self.model_args
         args["spine_pos"] = {}
         args["spine_pos"][dend_loc[0]] = []
         dx = 1/150
         for i in range(number):
             args["spine_pos"][dend_loc[0]].append(dend_loc[1]+i*dx)
-        
-        self.ns_list = [None] * number
-        self.ampa_nc_list = [None] * number
-        self.nmda_nc_list = [None] * number
-
+        args["where_spines"] = [dend_loc[0]]
         self.initialize(args)
+        
         if self.cvode_active:
             h.cvode_active(1)
         else:
@@ -447,9 +472,7 @@ class ModelLoader(sciunit.Model,
         self.dendrite = self.cell.find_sec(dend_loc[0])
         self.xloc = dend_loc[1]
 
-        self.set_multiple_netstim_netcon(interval, number, weight)
-
-
+        self.set_netstim_netcon(interval, number)
         self.sect_loc = self.soma(0.5)
 
         # initiate recording
