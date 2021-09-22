@@ -120,6 +120,22 @@ if __name__ == "__main__":
                                         force_run_bin_search=False,
                                         show_plot=True,
                                         base_directory=base_directory)
+    stim_file = pkg_resources.resource_filename("hippounit",
+                                                "tests/stimuli/PSP_attenuation_stim/stim_PSP_attenuation_test.json")
+
+    with open(stim_file, 'r') as f:
+        config = json.load(f, object_pairs_hook=collections.OrderedDict)
+
+    # Instantiate test class 
+    test = tests.PSPAttenuationTest(config=config, observation=observation,
+                                    num_of_dend_locations = 15, force_run=True,
+                                    show_plot=True, save_all=False,
+                                    base_directory=base_directory)
+            
+    # Number of parallel processes
     test.npool = 10
+
     score = test.judge(my_model)
+    #Summarize and print the score achieved by the model on the test using SciUnit's summarize function
     score.summarize()
+
