@@ -54,7 +54,6 @@ class CA1_PC:
     
     ampas = []
     nmdas = []
-    nclist = []
     spine_dict = OrderedDict()
     heads = []
     sections = []
@@ -280,10 +279,9 @@ class CA1_PC:
     
     def add_head(self, number, spine_type="ball and stick",
                  where="apical_dendrite[10]",
-                 position=0.5, head_mechanisms=["pas", "calH", "car", 
-                                                "cat", "kca", "mykca", 'h',
-                                                'kad', 'kap', 'kca', 'kdr',
-                                                'na3notrunk', 'nap', "na3"],
+                 position=0.5, head_mechanisms=["pas", "kdr", "nax", "cal12", "cal13", "can",
+                                                "car", "cav33", "cav32", "kca", "cagk", 'hd',
+                                                'kad', 'kdr'],
                  head_params_dict={"Ra":1200}):
     
         if isinstance(where, str): 
@@ -332,9 +330,9 @@ class CA1_PC:
                         tot_spine_cond = 0
                         for spine in spines:
                             for i, spine_seg in enumerate(spine):
-                                cond = spine.psection()["density_mechs"][mech]['gbar'][i]
-
-                                tot_spine_cond += spine_seg.area() * cond
+                                if mech in spine.psection()["density_mechs"]:
+                                    cond = spine.psection()["density_mechs"][mech]['gbar'][i]
+                                    tot_spine_cond += spine_seg.area() * cond
                         seg_mech = getattr(segment, mech)
                         seg_cond = getattr(seg_mech, "gbar")
                         new_cond = (seg_cond*seg_surf - tot_spine_cond)/seg_surf

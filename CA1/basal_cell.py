@@ -9,11 +9,11 @@ def e_pas_dist(x):
     return -65.726902768520958-5*x/150
 
 
-def ghdbar_dist(x):
+def gbar_dist(x):
     return (1. + 3./100. * x)*1.9042409723832741e-05
 
 
-def gkabar_dist(x):
+def gbar_dist(x):
     return (15./(1. + exp((300-x)/50)))* 0.012921529390557651
 
 
@@ -284,9 +284,9 @@ class CA1_PC_basal:
             sec.ena = 50
             sec.ek = -90
         for sec in self.somatic:
-            sec.gkabar_kap = 0.02 
+            sec.gbar_kap = 0.02 
             sec.gbar_kmb = 0.003 
-            sec.gkdrbar_kdr = 0.05 
+            sec.gbar_kdr = 0.05 
             sec.gbar_nax = 0.035 
             sec.gbar_cal12 =  1e-6*0.35e-6
             sec.gbar_cal13 =  3e-6*0.35e-6
@@ -300,14 +300,14 @@ class CA1_PC_basal:
 
         for sec in self.axonal:
             sec.gbar_nax = 0.05 #0.21113423945477339
-            sec.gkdrbar_kdr = 0.1
+            sec.gbar_kdr = 0.1
             sec.gbar_kmb = 0.05
-            sec.gkabar_kap = 0.3
+            sec.gbar_kap = 0.3
             sec.Ra = 85.20
             sec.g_pas = 0.00013
             sec.e_pas = -79.92
         for sec in self.apical: 
-            sec.gkdrbar_kdr = 0.0043
+            sec.gbar_kdr = 0.0043
             sec.gbar_nax = 0.038
             sec.gbar_cal12 = 0.0000025*0.35e-6
             sec.gbar_cal13 = 0.0000025*0.35e-6
@@ -319,7 +319,7 @@ class CA1_PC_basal:
             sec.Ra = 115.4
             sec.g_pas = 9.03e-05
         for sec in self.trunk:
-            sec.gkdrbar_kdr = 0.02
+            sec.gbar_kdr = 0.02
             sec.gbar_nax = 0.025
             sec.gbar_cal12 = 0.5*0.0000025*0.35e-6
             sec.gbar_cal13 = 0.5*0.00000125*0.35e-6
@@ -331,7 +331,7 @@ class CA1_PC_basal:
             sec.Ra = 115.4
             sec.g_pas = 9.03e-05
         for sec in self.basal:
-            sec.gkdrbar_kdr = 0.0043
+            sec.gbar_kdr = 0.0043
             sec.gbar_nax = 0.038
             sec.gbar_cal12 = 0.00000125*0.35e-6
             sec.gbar_cal13 = 2*0.00000125*0.35e-6
@@ -347,21 +347,21 @@ class CA1_PC_basal:
             for seg in sec:
                 x = neuron.h.distance(self.soma(0.5), seg)
                 value_e_pas = e_pas_dist(x)
-                value_ghdbar = ghdbar_dist(x)
-                value_gkabar = gkabar_dist(x)
+                value_gbar = gbar_dist(x)
+                value_gbar = gbar_dist(x)
                 to_mech = getattr(seg, "pas")
                 setattr(to_mech, "e", value_e_pas)
                 to_mech = getattr(seg, "hd")
-                setattr(to_mech, "ghdbar", value_ghdbar)
+                setattr(to_mech, "gbar", value_gbar)
                 if "soma" not in sec.name():
                     to_mech = getattr(seg, "kad")
-                    setattr(to_mech, "gkabar", value_gkabar)
-        self.radTprox1.gkabar_kad = 0.1
-        self.radTprox2.gkabar_kad = 0.1
-        self.radTmed1.gkabar_kad = 0.15
-        self.radTmed2.gkabar_kad = 0.15
-        self.rad_t2.gkabar_kad = 0.1
+                    setattr(to_mech, "gbar", value_gbar)
+        self.radTprox1.gbar_kad = 0.1
+        self.radTprox2.gbar_kad = 0.1
+        self.radTmed1.gbar_kad = 0.15
+        self.radTmed2.gbar_kad = 0.15
+        self.rad_t2.gbar_kad = 0.1
         self.rad_t2.gbar_nax = 0.038
-        self.rad_t2.gkdrbar_kdr = 0.002
-        self.radTdist1.gkabar_kad = 0.2
-        self.radTdist2.gkabar_kad = 0.2
+        self.rad_t2.gbar_kdr = 0.002
+        self.radTdist1.gbar_kad = 0.2
+        self.radTdist2.gbar_kad = 0.2
