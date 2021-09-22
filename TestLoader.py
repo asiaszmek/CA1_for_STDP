@@ -403,34 +403,8 @@ class ModelLoader(sciunit.Model,
 
 
     
-    def set_multiple_ampa_nmda(self, dend_loc, number):
-        """Used in ObliqueIntegrationTest"""
 
-        ndend, xloc, loc_type = dend_loc
-
-        exec("self.dendrite=h." + ndend)
-
-        for i in range(number):
-
-            if self.AMPA_name: # if this is given, the AMPA model defined in a mod file is used, else the built in Exp2Syn
-                exec("self.ampa_list[i] = h."+self.AMPA_name+"(xloc, sec=self.dendrite)")
-            else:
-                self.ampa_list[i] = h.Exp2Syn(xloc, sec=self.dendrite)
-                self.ampa_list[i].tau1 = self.AMPA_tau1
-                self.ampa_list[i].tau2 = self.AMPA_tau2
-                #print 'The built in Exp2Syn is used as the AMPA component. Tau1 = ', self.AMPA_tau1, ', Tau2 = ', self.AMPA_tau2 , '.'
-
-            if self.NMDA_name: # if this is given, the NMDA model defined in a mod file is used, else the default NMDA model of HippoUnit
-                exec("self.nmda_list[i] = h."+self.NMDA_name+"(xloc, sec=self.dendrite)")
-            else:
-                try:
-                    exec("self.nmda_list[i] = h."+self.default_NMDA_name+"(xloc, sec=self.dendrite)")
-                except:
-                    h.nrn_load_dll(self.default_NMDA_path + self.libpath)
-                    exec("self.nmda_list[i] = h."+self.default_NMDA_name+"(xloc, sec=self.dendrite)")
-
-        self.ndend = ndend
-        self.xloc = xloc
+        
 
 
     def set_multiple_netstim_netcon(self, interval, number, AMPA_weight):
@@ -445,32 +419,38 @@ class ModelLoader(sciunit.Model,
             self.nmda_nc_list[i] = h.NetCon(self.ns_list[i], self.nmda_list[i], 0, 0, 0)
 
             self.ampa_nc_list[i].weight[0] = AMPA_weight
-            self.nmda_nc_list[i].weight[0] =AMPA_weight/self.AMPA_NMDA_ratio
+            self.nmda_nc_list[i].weight[0] = AMPA_weight/self.AMPA_NMDA_ratio
 
 
     def run_multiple_syn(self, dend_loc, interval, number, weight):
         """Used in ObliqueIntegrationTest"""
         print(dend_loc, interval, number, weight)
-        self.ampa_list = [None] * number
-        self.nmda_list = [None] * number
+        
+        args = self.model_args
+        args["spine_pos"] = {}
+        args["spine_pos"][dend_loc[0]] = []
+        dx = 1/150
+        for i in range(number):
+            args["spine_pos"][dend_loc[0]].append(dend_loc[1]+i*dx)
+        
         self.ns_list = [None] * number
         self.ampa_nc_list = [None] * number
         self.nmda_nc_list = [None] * number
 
-
-        self.initialize()
-
+        self.initialize(args)
         if self.cvode_active:
             h.cvode_active(1)
         else:
             h.cvode_active(0)
-
-        self.set_multiple_ampa_nmda(dend_loc, number)
+        self.ampa_list = self.cell.ampas
+        self.nmda_list = self.cell.nmdas
+        self.dendrite = self.cell.find_sec(dend_loc[0])
+        self.xloc = dend_loc[1]
 
         self.set_multiple_netstim_netcon(interval, number, weight)
 
 
-        exec("self.sect_loc=h." + str(self.soma)+"("+str(0.5)+")")
+        self.sect_loc = self.soma(0.5)
 
         # initiate recording
         rec_t = h.Vector()
@@ -500,22 +480,6 @@ class ModelLoader(sciunit.Model,
         v_dend = numpy.array(rec_v_dend)
 
         return t, v, v_dend
-
-
-
-    def set_Exp2Syn(self, dend_loc, tau1, tau2):
-        """Used in PSPAttenuationTest"""
-
-        ndend, xloc = dend_loc
-
-        exec("self.dendrite=h." + ndend)
-
-        self.ampa = h.Exp2Syn(xloc, sec=self.dendrite)
-        self.ampa.tau1 = tau1
-        self.ampa.tau2 = tau2
-
-        self.ndend = ndend
-        self.xloc = xloc
 
 
     def set_netstim_netcon_Exp2Syn(self):
