@@ -9,11 +9,11 @@ def e_pas_dist(x):
     return -65.726902768520958-5*x/150
 
 
-def gbar_dist(x):
+def ghdbar_dist(x):
     return (1. + 3./100. * x)*1.9042409723832741e-05
 
 
-def gbar_dist(x):
+def gkabar_dist(x):
     return (15./(1. + exp((300-x)/50)))* 0.012921529390557651
 
 
@@ -347,15 +347,15 @@ class CA1_PC_basal:
             for seg in sec:
                 x = neuron.h.distance(self.soma(0.5), seg)
                 value_e_pas = e_pas_dist(x)
-                value_gbar = gbar_dist(x)
-                value_gbar = gbar_dist(x)
+                value_ghdbar = ghdbar_dist(x)
+                value_gkabar = gkabar_dist(x)
                 to_mech = getattr(seg, "pas")
                 setattr(to_mech, "e", value_e_pas)
                 to_mech = getattr(seg, "hd")
-                setattr(to_mech, "gbar", value_gbar)
+                setattr(to_mech, "gbar", value_ghdbar)
                 if "soma" not in sec.name():
                     to_mech = getattr(seg, "kad")
-                    setattr(to_mech, "gbar", value_gbar)
+                    setattr(to_mech, "gbar", value_gkabar)
         self.radTprox1.gbar_kad = 0.1
         self.radTprox2.gbar_kad = 0.1
         self.radTmed1.gbar_kad = 0.15
