@@ -33,85 +33,85 @@ if __name__ == "__main__":
     # Load stimuli file
     ttype = "CA1_pyr_cACpyr"
 
-    # stim_file = pkg_resources.resource_filename("hippounit",
-    #                                             "tests/stimuli/somafeat_stim/stim_" + ttype + ".json")
-    # with open(stim_file, 'r') as f:
-    #     config = json.load(f, object_pairs_hook=collections.OrderedDict)
+    stim_file = pkg_resources.resource_filename("hippounit",
+                                                "tests/stimuli/somafeat_stim/stim_" + ttype + ".json")
+    with open(stim_file, 'r') as f:
+        config = json.load(f, object_pairs_hook=collections.OrderedDict)
     
-    # # Instantiate test class   
-    # test = tests.SomaticFeaturesTest(observation=observation, config=config,
-    #                                  force_run=True, show_plot=True,
-    #                                  save_all=False,
-    #                                  base_directory=base_directory)
-    # test.specify_data_set = 'UCL_data'
+    # Instantiate test class   
+    test = tests.SomaticFeaturesTest(observation=observation, config=config,
+                                     force_run=True, show_plot=True,
+                                     save_all=False,
+                                     base_directory=base_directory)
+    test.specify_data_set = 'UCL_data'
 
-    # # Number of parallel processes
-    # test.n = 10
-    # score = test.judge(my_model)
-    # print(score.summary)
+    # Number of parallel processes
+    test.n = 10
+    score = test.judge(my_model)
+    print(score.summary)
 
-    # with open('target_features/feat_rat_CA1_JMakara_more_features.json') as f:
-    #     observation = json.load(f,
-    #                             object_pairs_hook=collections.OrderedDict)
-    # stim_file = pkg_resources.resource_filename("hippounit",
-    #                                             "tests/stimuli/somafeat_stim/stim_rat_CA1_PC_JMakara.json")
-    # with open(stim_file, 'r') as f:
-    #     config = json.load(f, object_pairs_hook=collections.OrderedDict)
+    with open('target_features/feat_rat_CA1_JMakara_more_features.json') as f:
+        observation = json.load(f,
+                                object_pairs_hook=collections.OrderedDict)
+    stim_file = pkg_resources.resource_filename("hippounit",
+                                                "tests/stimuli/somafeat_stim/stim_rat_CA1_PC_JMakara.json")
+    with open(stim_file, 'r') as f:
+        config = json.load(f, object_pairs_hook=collections.OrderedDict)
     
-    # # Instantiate test class   
-    # test = tests.SomaticFeaturesTest(observation=observation,
-    #                                  config=config, force_run=False,
-    #                                  show_plot=True,
-    #                                  save_all = True,
-    #                                  base_directory=base_directory)
+    # Instantiate test class   
+    test = tests.SomaticFeaturesTest(observation=observation,
+                                     config=config, force_run=False,
+                                     show_plot=True,
+                                     save_all = True,
+                                     base_directory=base_directory)
 
-    # test.specify_data_set = 'JMakara_data'
-    # test.npool = 10
+    test.specify_data_set = 'JMakara_data'
+    test.npool = 10
 
-    # score = test.judge(my_model)
-    # #Summarize and print the score achieved by the model on the test using SciUnit's summarize function
-    # score.summarize()
+    score = test.judge(my_model)
+    #Summarize and print the score achieved by the model on the test using SciUnit's summarize function
+    score.summarize()
 
-    # target_features_file = os.path.join("target_features",
-    #                                     "feat_backpropagating_AP_target_data.json")
+    target_features_file = os.path.join("target_features",
+                                        "feat_backpropagating_AP_target_data.json")
 
-    # with open(target_features_file) as f:
-    #     observation = json.load(f, object_pairs_hook=collections.OrderedDict)
-    # stim_file = pkg_resources.resource_filename("hippounit",
-    #                                             "tests/stimuli/bAP_stim/stim_bAP_test.json")
+    with open(target_features_file) as f:
+        observation = json.load(f, object_pairs_hook=collections.OrderedDict)
+    stim_file = pkg_resources.resource_filename("hippounit",
+                                                "tests/stimuli/bAP_stim/stim_bAP_test.json")
 
-    # with open(stim_file, 'r') as f:
-    #     config = json.load(f, object_pairs_hook=collections.OrderedDict)
+    with open(stim_file, 'r') as f:
+        config = json.load(f, object_pairs_hook=collections.OrderedDict)
 
-    # # Instantiate the test class
-    # test = tests.BackpropagatingAPTest(config=config,
-    #                                    observation=observation,
-    #                                    force_run=True,
-    #                                    force_run_FindCurrentStim=False,
-    #                                    show_plot=True,
-    #                                    save_all=False,
-    #                                    base_directory=base_directory)
+    # Instantiate the test class
+    test = tests.BackpropagatingAPTest(config=config,
+                                       observation=observation,
+                                       force_run=True,
+                                       force_run_FindCurrentStim=False,
+                                       show_plot=True,
+                                       save_all=False,
+                                       base_directory=base_directory)
 
-    # # Number of parallel processes
-    # test.npool = 10
+    # Number of parallel processes
+    test.npool = 10
     
 
-    # score = test.judge(my_model)
-    # #Summarize and print the score achieved by the model on the test using SciUnit's summarize function
-    # print(score.summary)
+    score = test.judge(my_model)
+    #Summarize and print the score achieved by the model on the test using SciUnit's summarize function
+    print(score.summary)
     
-    # with open('target_features/depol_block_target_data.json') as f:
-    #     observation = json.load(f,
-    #                             object_pairs_hook=collections.OrderedDict)
+    with open('target_features/depol_block_target_data.json') as f:
+        observation = json.load(f,
+                                object_pairs_hook=collections.OrderedDict)
     
-    # test = tests.DepolarizationBlockTest(observation=observation,
-    #                                      force_run=True,
-    #                                      show_plot=True,
-    #                                      save_all=False,
-    #                                      base_directory=base_directory)
-    # score = test.judge(my_model)
+    test = tests.DepolarizationBlockTest(observation=observation,
+                                         force_run=True,
+                                         show_plot=True,
+                                         save_all=False,
+                                         base_directory=base_directory)
+    score = test.judge(my_model)
 
-    # print(score.summary)
+    print(score.summary)
 
     with open('target_features/oblique_target_data.json') as f:
         observation = json.load(f, object_pairs_hook=collections.OrderedDict)
@@ -137,5 +137,5 @@ if __name__ == "__main__":
 
     score = test.judge(my_model)
     #Summarize and print the score achieved by the model on the test using SciUnit's summarize function
-    score.summarize()
+    print(score.summary)
 
