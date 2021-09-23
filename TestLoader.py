@@ -29,7 +29,7 @@ class ModelLoader(sciunit.Model,
                  cap.ProvidesRandomDendriticLocations,
                  cap.ReceivesEPSCstim):
 
-    def __init__(self, model_class, mods_dir, model_params):
+    def __init__(self, model_class, mods_dir, model_params, name="CA1"):
         """ Constructor. """
 
         """ This class should be used with Jupyter notebooks"""
@@ -37,7 +37,8 @@ class ModelLoader(sciunit.Model,
         self.model_args = model_params
         self.modelpath = mods_dir
         self.model_args["recompile"] = False
-        self.name = "CA1"
+        self.name = name
+        self.start = 150
         self.max_dist_from_soma = 150
         self.v_init = -70
         self.celsius = 34
@@ -72,7 +73,6 @@ class ModelLoader(sciunit.Model,
         else:
             return False
 
-
     def initialize(self, args):
         save_stdout = sys.stdout
         sys.stdout = open('/dev/stdout', 'w')     
@@ -86,9 +86,9 @@ class ModelLoader(sciunit.Model,
         except TypeError:
             self.soma = cell.soma
         self.cell = cell
+
         sys.stdout = save_stdout    #setting output back to normal
         h.celsius = self.celsius
-        h.finitialize(self.v_init)
         h.fcurrent()
         return cell
 
@@ -96,8 +96,6 @@ class ModelLoader(sciunit.Model,
                        loc_stim, section_rec, loc_rec):
 
         self.initialize(self.model_args)
-       
-
         stim_s_name = self.translate(section_stim, distance=0)
         rec_sec_name = self.translate(section_rec, distance=0)
         new_sec = self.cell.find_sec(stim_s_name)
@@ -173,10 +171,6 @@ class ModelLoader(sciunit.Model,
         t = numpy.array(rec_t)
         v_stim = numpy.array(rec_v_stim)
 
-        '''
-        for i in range(0,len(dend_loc)):
-            v.append(numpy.array(rec_v[i]))
-        '''
 
         i = 0
         for key, value in dend_locations.items():
@@ -312,9 +306,6 @@ class ModelLoader(sciunit.Model,
  
             h.distance(sec=sec)
             #set the 0 point of the section as the origin
-            print(sec.name())
-
-
             for seg in sec:
                 # print(seg.x, h.distance(seg.x))
                 if h.distance(seg.x, sec=sec) > 5 and h.distance(seg.x, sec=sec) < 50:
@@ -359,17 +350,14 @@ class ModelLoader(sciunit.Model,
         return dend_loc
 
     def set_netstim_netcon(self, interval, number):
-        """Used in ObliqueIntegrationTest"""
-        print(interval, number)
+
         self.presynaptic = []
         self.release = []
         self.nc_list = []
         self.ns_list = []
-        print(len(self.cell.ampas))
         for i in range(number):
             self.presynaptic.append(h.Section("PRE_%d" % i))
             self.release.append(h.depletion(self.presynaptic[i](0.5)))
-
         for i in range(number):
             self.ns_list.append(h.NetStim())
             self.ns_list[i].number = 1
@@ -387,8 +375,6 @@ class ModelLoader(sciunit.Model,
         args["where_spines"] = [dend_loc[0]]
         self.initialise(args)
         self.dendrite = self.cell.find_sec(dend_loc[0])
-
-
         self.set_netstim_netcon(interval, 1)
         self.set_num_weight(0, 1, 1)
 
@@ -456,6 +442,7 @@ class ModelLoader(sciunit.Model,
 
     def run_EPSCstim(self, dend_loc, weight, tau1, tau2):
         """Used in PSPAttenuationTest"""
+        self.start = 300
         args = self.model_args
         args["spine_pos"] = {}
         args["spine_pos"][dend_loc[0]] = [dend_loc[1]]
@@ -467,6 +454,7 @@ class ModelLoader(sciunit.Model,
  
         self.sect_loc = self.soma(0.5)
         self.dendrite = self.cell.find_sec(dend_loc[0])
+        self.xloc = dend_loc[1]
         # initiate recording
         rec_t = h.Vector()
         rec_t.record(h._ref_t)

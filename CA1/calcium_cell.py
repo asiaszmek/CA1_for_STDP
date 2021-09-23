@@ -163,6 +163,7 @@ class CA1_PC:
         (a dictionary of spine position on chosen dend), if dend not in spine_pos, spine_no
         dendrites will be placed.
         """
+
         if dends:
             new_locs = []
             if not isinstance(dends, list):
@@ -171,8 +172,8 @@ class CA1_PC:
                 new_locs.extend(self.cell_filter(loc, tolist=True))
                 self.where_spines.extend(new_locs)
             for spine_loc in new_locs:
-                if spine_loc in spine_pos:
-                    positions = spine_pos[spine_loc]
+                if spine_loc.name() in spine_pos:
+                    positions = spine_pos[spine_loc.name()]
                     for a_spine, pos in enumerate(positions):
                         head = self.add_head(a_spine, where=spine_loc, position=pos)
                         self.heads.append(head)

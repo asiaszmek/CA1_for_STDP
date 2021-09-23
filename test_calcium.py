@@ -1,6 +1,5 @@
 import time
 import os
-from json2html import *
 import pkg_resources
 import json
 import collections
@@ -16,12 +15,12 @@ base_directory = 'validation_results/'
 
 if __name__ == "__main__":
     add_ER = False
-    where_spines = []#["radTprox1"]
+    where_spines = []
     where_ca = ["soma", "apical"]
     mods_path = os.path.join(CA1.path, "Mods")
-    my_model = ModelLoader(CA1.CA1_PC, mods_path, {"add_ER": add_ER,
-                                                   "where_ca": where_ca,
-                                                   "where_spines": where_spines})
+    my_model = ModelLoader(CA1.CA1_PC, mods_path,
+                           {"add_ER": add_ER, "where_ca": where_ca,
+                            "where_spines": where_spines}, "CA1_Ca_no_ER")
 
     my_model.v_init = -70
     my_model.celsius = 34
@@ -113,29 +112,39 @@ if __name__ == "__main__":
 
     print(score.summary)
 
-    with open('target_features/oblique_target_data.json') as f:
-        observation = json.load(f, object_pairs_hook=collections.OrderedDict)
-    test = tests.ObliqueIntegrationTest(observation=observation,
-                                        save_all=False, force_run_synapse=True,
-                                        force_run_bin_search=False,
-                                        show_plot=True,
-                                        base_directory=base_directory)
-    stim_file = pkg_resources.resource_filename("hippounit",
-                                                "tests/stimuli/PSP_attenuation_stim/stim_PSP_attenuation_test.json")
 
-    with open(stim_file, 'r') as f:
-        config = json.load(f, object_pairs_hook=collections.OrderedDict)
+    ## Synaptic/spine part is not ready yet
+    # with open('target_features/oblique_target_data.json') as f:
+    #     observation = json.load(f, object_pairs_hook=collections.OrderedDict)
+    # test = tests.ObliqueIntegrationTest(observation=observation,
+    #                                     save_all=False, force_run_synapse=True,
+    #                                     force_run_bin_search=False,
+    #                                     show_plot=True,
+    #                                     base_directory=base_directory)
 
-    # Instantiate test class 
-    test = tests.PSPAttenuationTest(config=config, observation=observation,
-                                    num_of_dend_locations = 15, force_run=True,
-                                    show_plot=True, save_all=False,
-                                    base_directory=base_directory)
+    # test.npool = 10
+    # score = test.judge(my_model)
+    # print(score.summary)
+
+    # with open("target_features/feat_PSP_attenuation_target_data.json", 'r') as f:
+    #     observation = json.load(f, object_pairs_hook=collections.OrderedDict)
+    
+    # stim_file = pkg_resources.resource_filename("hippounit",
+    #                                             "tests/stimuli/PSP_attenuation_stim/stim_PSP_attenuation_test.json")
+
+    # with open(stim_file, 'r') as f:
+    #     config = json.load(f, object_pairs_hook=collections.OrderedDict)
+
+    # # Instantiate test class 
+    # test = tests.PSPAttenuationTest(config=config, observation=observation,
+    #                                 num_of_dend_locations = 15, force_run=True,
+    #                                 show_plot=True, save_all=False,
+    #                                 base_directory=base_directory)
             
-    # Number of parallel processes
-    test.npool = 10
+    # # Number of parallel processes
+    # test.npool = 10
 
-    score = test.judge(my_model)
-    #Summarize and print the score achieved by the model on the test using SciUnit's summarize function
-    print(score.summary)
+    # score = test.judge(my_model)
+    # #Summarize and print the score achieved by the model on the test using SciUnit's summarize function
+    # print(score.summary)
 
