@@ -77,6 +77,9 @@ class ModelLoader(sciunit.Model,
         save_stdout = sys.stdout
         sys.stdout = open('/dev/stdout', 'w')     
         h.load_file("stdrun.hoc")
+        h.CVode().active(True)
+        h.finitialize(self.v_init)
+        h.fcurrent()
         cell = self.class_name(**args)
         try:
             self.soma = cell.soma[0]
@@ -84,13 +87,16 @@ class ModelLoader(sciunit.Model,
             self.soma = cell.soma
         self.cell = cell
         sys.stdout = save_stdout    #setting output back to normal
+        h.celsius = self.celsius
+        h.finitialize(self.v_init)
+        h.fcurrent()
         return cell
 
     def inject_current(self, amp, delay, dur, section_stim,
                        loc_stim, section_rec, loc_rec):
 
         self.initialize(self.model_args)
-        h.cvode_active(1)
+       
 
         stim_s_name = self.translate(section_stim, distance=0)
         rec_sec_name = self.translate(section_rec, distance=0)
@@ -111,13 +117,6 @@ class ModelLoader(sciunit.Model,
         rec_t.record(h._ref_t)
         rec_v = h.Vector()
         rec_v.record(self.sect_loc_rec._ref_v)
-        h.stdinit()
-        dt = 0.025
-        h.dt = dt
-        h.steps_per_ms = 1/dt
-        h.v_init = self.v_init
-        h.celsius = self.celsius
-        h.init()
         h.tstop = delay + dur + 200
         h.run()
         t = numpy.array(rec_t)
@@ -129,7 +128,7 @@ class ModelLoader(sciunit.Model,
                                                    loc_stim,
                                                    dend_locations):
         self.initialize(self.model_args)
-        h.cvode_active(1)
+
 
         stim_s_name = self.translate(section_stim, distance=0)
         new_sec = self.cell.find_sec(stim_s_name)
@@ -168,15 +167,6 @@ class ModelLoader(sciunit.Model,
         for i, sec in enumerate(self.dend_loc_rec):
             rec_v[i].record(sec._ref_v)
 
-        h.stdinit()
-
-        dt = 0.025
-        h.dt = dt
-        h.steps_per_ms = 1/dt
-        h.v_init = self.v_init#-65
-
-        h.celsius = self.celsius
-        h.init()
         h.tstop = delay + dur + 200
         h.run()
 
@@ -397,7 +387,7 @@ class ModelLoader(sciunit.Model,
         args["where_spines"] = [dend_loc[0]]
         self.initialise(args)
         self.dendrite = self.cell.find_sec(dend_loc[0])
-        h.cvode_active(1)
+
 
         self.set_netstim_netcon(interval, 1)
         self.set_num_weight(0, 1, 1)
@@ -414,15 +404,6 @@ class ModelLoader(sciunit.Model,
         rec_v_dend = h.Vector()
         rec_v_dend.record(self.dendrite(self.xloc)._ref_v)
 
-        h.stdinit()
-
-        dt = 0.025
-        h.dt = dt
-        h.steps_per_ms = 1/ dt
-        h.v_init = self.v_init #-80
-
-        h.celsius = self.celsius
-        h.init()
         h.tstop = 500
         h.run()
 
@@ -446,7 +427,7 @@ class ModelLoader(sciunit.Model,
         args["where_spines"] = [dend_loc[0]]
         self.initialize(args)
         
-        h.cvode_active(1)
+
         self.dendrite = self.cell.find_sec(dend_loc[0])
         self.xloc = dend_loc[1]
 
@@ -463,16 +444,7 @@ class ModelLoader(sciunit.Model,
         rec_v_dend = h.Vector()
         rec_v_dend.record(self.dendrite(self.xloc)._ref_v)
 
-        h.stdinit()
-
-        dt = 0.025
-        h.dt = dt
-        h.steps_per_ms = 1/dt
-        h.v_init = self.v_init #-80
-
-        h.celsius = self.celsius
-        h.init()
-        h.tstop =500
+        h.tstop = 500
         h.run()
 
         # get recordings
@@ -491,9 +463,6 @@ class ModelLoader(sciunit.Model,
         args["receptor_list"] = ["AMPA"]
         self.initialize(args)
         self.start = 300
-        
-        h.cvode_active(1)
-        
         self.set_netstim_netcon(0, 1)
  
         self.sect_loc = self.soma(0.5)
@@ -508,15 +477,6 @@ class ModelLoader(sciunit.Model,
         rec_v_dend = h.Vector()
         rec_v_dend.record(self.dendrite(self.xloc)._ref_v)
 
-        h.stdinit()
-
-        dt = 0.025
-        h.dt = dt
-        h.steps_per_ms = 1/dt
-        h.v_init = self.v_init #-80
-
-        h.celsius = self.celsius
-        h.init()
         h.tstop = 450
         h.run()
 
