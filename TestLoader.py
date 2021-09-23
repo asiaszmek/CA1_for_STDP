@@ -90,10 +90,7 @@ class ModelLoader(sciunit.Model,
                        loc_stim, section_rec, loc_rec):
 
         self.initialize(self.model_args)
-        if self.cvode_active:
-            h.cvode_active(1)
-        else:
-            h.cvode_active(0)
+        h.cvode_active(1)
 
         stim_s_name = self.translate(section_stim, distance=0)
         rec_sec_name = self.translate(section_rec, distance=0)
@@ -132,10 +129,7 @@ class ModelLoader(sciunit.Model,
                                                    loc_stim,
                                                    dend_locations):
         self.initialize(self.model_args)
-        if self.cvode_active:
-            h.cvode_active(1)
-        else:
-            h.cvode_active(0)
+        h.cvode_active(1)
 
         stim_s_name = self.translate(section_stim, distance=0)
         new_sec = self.cell.find_sec(stim_s_name)
@@ -403,10 +397,7 @@ class ModelLoader(sciunit.Model,
         args["where_spines"] = [dend_loc[0]]
         self.initialise(args)
         self.dendrite = self.cell.find_sec(dend_loc[0])
-        if self.cvode_active:
-            h.cvode_active(1)
-        else:
-            h.cvode_active(0)
+        h.cvode_active(1)
 
         self.set_netstim_netcon(interval, 1)
         self.set_num_weight(0, 1, 1)
@@ -455,10 +446,7 @@ class ModelLoader(sciunit.Model,
         args["where_spines"] = [dend_loc[0]]
         self.initialize(args)
         
-        if self.cvode_active:
-            h.cvode_active(1)
-        else:
-            h.cvode_active(0)
+        h.cvode_active(1)
         self.dendrite = self.cell.find_sec(dend_loc[0])
         self.xloc = dend_loc[1]
 
@@ -504,11 +492,8 @@ class ModelLoader(sciunit.Model,
         self.initialize(args)
         self.start = 300
         
-        if self.cvode_active:
-            h.cvode_active(1)
-        else:
-            h.cvode_active(0)
-
+        h.cvode_active(1)
+        
         self.set_netstim_netcon(0, 1)
  
         self.sect_loc = self.soma(0.5)
