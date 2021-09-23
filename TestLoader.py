@@ -29,36 +29,27 @@ class ModelLoader(sciunit.Model,
                  cap.ProvidesRandomDendriticLocations,
                  cap.ReceivesEPSCstim):
 
-    def __init__(self, model_class, mods_dir, model_params,
-                 name="model",
-                 libpath='x86_64/.libs/libnrnmech.so',
-                 NMDA_name=""):
+    def __init__(self, model_class, mods_dir, model_params):
         """ Constructor. """
 
         """ This class should be used with Jupyter notebooks"""
         self.class_name = model_class
         self.model_args = model_params
         self.modelpath = mods_dir
-        
         self.model_args["recompile"] = False
-        self.cvode_active = True
-        self.libpath = libpath
+        self.name = "CA1"
         self.max_dist_from_soma = 150
         self.v_init = -70
         self.celsius = 34
-
-        self.name = name
+        self.c_step_start = 0.00004
+        self.c_step_stop = 0.000004
+        self.c_minmax = numpy.array([0.00004, 0.04])
         self.threshold = -20
         self.stim = None
         self.soma = None
         self.NMDA_name = "NR2A_Ca"
         self.AMPA_name = "AMPADJ"
-        sciunit.Model.__init__(self, name=name)
-
-        self.c_step_start = 0.00004
-        self.c_step_stop = 0.000004
-        self.c_minmax = numpy.array([0.00004, 0.04])
-
+        sciunit.Model.__init__(self, name=self.name)
         self.dend_loc = []  
         self.dend_locations = collections.OrderedDict()
         self.base_directory = './validation_results/'   
