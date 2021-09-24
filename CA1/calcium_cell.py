@@ -77,10 +77,15 @@ class CA1_PC:
                  where_spines=["lm_medium2"],
                  add_ER=False, buffer_list=["Calmodulin", "Calbindin", "Fixed"],
                  pump_list=["ncx", "pmca"], receptor_list=["AMPA", "NMDA"],
-                 spine_pos={}, recompile=True):
+                 spine_pos={}, recompile=True, add_to_h=True, v_init=-65, celsius=34):
+
+        h.load_file("stdrun.hoc")
+        h.CVode()
+        h.CVode().active(True)
 
         if model is None:
-            model = CA1_PC_basal(recompile=recompile)
+            model = CA1_PC_basal(recompile=recompile,
+                                 add_to_h=add_to_h)
         try:
             self.soma = model.soma[0]
         except TypeError:
@@ -156,6 +161,8 @@ class CA1_PC:
                                       self.params["gNMDA"],
                                       self.params["Ca_per"],
                                       is_ca=True)
+        h.celsius = celsius
+        h.v_init = v_init
 
     def add_spines(self, dends, spine_no, spine_pos={}):
         """
@@ -1033,3 +1040,10 @@ class CA1_PC:
             #self.add_surface_pump_reactions(pump_list)
             for pump in self.pump_list:
                 self.add_pump(pump)
+
+
+    def make_a_run(self, tstop):
+      h.CVode().re_init()
+      h.fcurrent()
+      h.tstop = tstop
+      h.run(tstop)

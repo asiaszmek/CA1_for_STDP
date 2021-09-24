@@ -115,8 +115,8 @@ class ModelLoader(sciunit.Model,
         rec_t.record(h._ref_t)
         rec_v = h.Vector()
         rec_v.record(self.sect_loc_rec._ref_v)
-        h.tstop = delay + dur + 200
-        h.run()
+        tstop = delay + dur + 200
+        self.cell.make_a_run(tstop)
         t = numpy.array(rec_t)
         v = numpy.array(rec_v)
         return t, v
@@ -165,8 +165,8 @@ class ModelLoader(sciunit.Model,
         for i, sec in enumerate(self.dend_loc_rec):
             rec_v[i].record(sec._ref_v)
 
-        h.tstop = delay + dur + 200
-        h.run()
+        tstop = delay + dur + 200
+        self.cell.make_a_run(tstop)
 
         t = numpy.array(rec_t)
         v_stim = numpy.array(rec_v_stim)
@@ -390,8 +390,8 @@ class ModelLoader(sciunit.Model,
         rec_v_dend = h.Vector()
         rec_v_dend.record(self.dendrite(self.xloc)._ref_v)
 
-        h.tstop = 500
-        h.run()
+        tstop = 500
+        self.cell.make_a_run(tstop)
 
         # get recordings
         t = numpy.array(rec_t)
@@ -430,8 +430,8 @@ class ModelLoader(sciunit.Model,
         rec_v_dend = h.Vector()
         rec_v_dend.record(self.dendrite(self.xloc)._ref_v)
 
-        h.tstop = 500
-        h.run()
+        tstop = 500
+        self.cell.make_a_run(tstop)
 
         # get recordings
         t = numpy.array(rec_t)
@@ -465,8 +465,8 @@ class ModelLoader(sciunit.Model,
         rec_v_dend = h.Vector()
         rec_v_dend.record(self.dendrite(self.xloc)._ref_v)
 
-        h.tstop = 450
-        h.run()
+        tstop = 450
+        self.cell.make_a_run(tstop)
 
         # get recordings
         t = numpy.array(rec_t)
