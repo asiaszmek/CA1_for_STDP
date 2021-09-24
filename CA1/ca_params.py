@@ -106,12 +106,14 @@ tot_OGB1 = 0.2 # Oregon Green 488 BAPTA-1
 kf_OGB1 = 6e2
 kb_OGB1 = 0.126
 OGB1Diff = 10e-3
-diffusions = {"CaM": camDiff,
-              "Calb": calbDiff,
+
+diffusions = {"Calmodulin": camDiff,
+              "Calbindin": calbDiff,
               "Mg Green": mggreenDiff,
               "Fluo3": fluo3Diff,
               "BF2": BF2Diff,
               "OGB1": OGB1Diff,
+              "Fixed": 0,
               }
               
 membrane_shell_width = .1

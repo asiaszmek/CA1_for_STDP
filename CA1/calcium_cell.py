@@ -75,12 +75,17 @@ class CA1_PC:
                  where_ca=["lm_medium2"],
                  spine_number=1,
                  where_spines=["lm_medium2"],
-                 add_ER=False, buffer_list=["CaM", "Calbindin", "Fixed"],
+                 add_ER=False, buffer_list=["Calmodulin", "Calbindin", "Fixed"],
                  pump_list=["ncx", "pmca"], receptor_list=["AMPA", "NMDA"],
-                 spine_pos={}, recompile=True):
+                 spine_pos={}, recompile=True, add_to_h=True, v_init=-65, celsius=34):
+
+        h.load_file("stdrun.hoc")
+        h.CVode()
+        h.CVode().active(True)
 
         if model is None:
-            model = CA1_PC_basal(recompile=recompile)
+            model = CA1_PC_basal(recompile=recompile,
+                                 add_to_h=add_to_h)
         try:
             self.soma = model.soma[0]
         except TypeError:
@@ -156,6 +161,8 @@ class CA1_PC:
                                       self.params["gNMDA"],
                                       self.params["Ca_per"],
                                       is_ca=True)
+        h.celsius = celsius
+        h.v_init = v_init
 
     def add_spines(self, dends, spine_no, spine_pos={}):
         """
@@ -354,7 +361,7 @@ class CA1_PC:
                 new_cm = (segment.cm*seg_surf - spine_cm)/seg_surf
                 segment.cm = new_cm
 
-    def add_calcium(self, where_rxd=[], buffer_list=["CaM", "Calbindin"],
+    def add_calcium(self, where_rxd=[], buffer_list=["Calmodulin", "Calbindin"],
                     pump_list=["pmca", "ncx"]):
 
         for name in where_rxd:
@@ -828,18 +835,20 @@ class CA1_PC:
         camc = self.params["camc"]
         self.cam = rxd.Species(self.shell_list, d=camDiff,
                                initial=calmodulin_tot-camn-camc,
-                               name='CaM', charge=0, atolscale=1e-9)
-        self.camn = rxd.Species(self.shell_list, d=camDiff, initial=camn, name='CaMN',
+                               name='Calmodulin', charge=0, atolscale=1e-9)
+        self.camn = rxd.Species(self.shell_list, d=camDiff, initial=camn,
+                                name='CaMN',
                                 charge=0, atolscale=1e-9)
-        self.camc = rxd.Species(self.shell_list, d=camDiff, initial=camc, name='CaMC',
+        self.camc = rxd.Species(self.shell_list, d=camDiff, initial=camc,
+                                name='CaMC',
                                 charge=0, atolscale=1e-9)
-        self.buffers["CaM"] = [self.cam, self.camn, self.camc]
+        self.buffers["Calmodulin"] = [self.cam, self.camn, self.camc]
 
     def add_buffers(self, buffer_names):
         self.buffers = OrderedDict()
         self.indicator = None
         for name in buffer_names:
-            if name == "CaM":
+            if name == "Calmodulin":
                 self.add_calmodulin()
             elif name == "Calbindin":
                 calbDiff = self.params["calbDiff"]
@@ -849,11 +858,11 @@ class CA1_PC:
                                         initial=calbindin_tot-calbca,
                                         name='Calbindin',
                                         charge=0, atolscale=1e-9)
-                self.calbca = rxd.Species(self.shell_list, d=calbDiff,
+                self.calb_ca = rxd.Species(self.shell_list, d=calbDiff,
                                           initial=calbca,
                                           name='CalbindinCa',
                                           charge=0, atolscale=1e-9)
-                self.buffers["Calb"] = [self.calb, self.calbca]
+                self.buffers["Calbindin"] = [self.calb, self.calb_ca]
 
             elif name == "Mg Green":
                 tot_magnesium_green_BS = self.params["tot_magnesium_green_BS"]
@@ -912,7 +921,7 @@ class CA1_PC:
                                             charge=0, atolscale=1e-9)
                 self.buffers["OGB1"] = [self.indicator, self.indicator_ca]
             
-           elif name == "Fixed":
+            elif name == "Fixed":
                 fixed_buffer_tot = self.params["fixed_buffer_tot"]
                 fixed_buffer_ca = self.params["fixed_buffer_ca"]
                 self.fixed = rxd.Species(self.shell_list,
@@ -920,11 +929,11 @@ class CA1_PC:
                                          -fixed_buffer_ca,
                                          name='FixedBuffer',
                                          charge=0, atolscale=1e-9)
-                self.fixedca = rxd.Species(self.shell_list,
+                self.fixed_ca = rxd.Species(self.shell_list,
                                            initial=fixed_buffer_ca,
                                            name='FixedBufferCa',
                                            charge=0, atolscale=1e-9)
-
+                self.buffers["Fixed"] = [self.fixed, self.fixed_ca]
 
         
     def add_buffer_reactions(self, buffer_list):
@@ -939,18 +948,18 @@ class CA1_PC:
         kf_magnesium_green = self.params["kf_magnesium_green"]
         kb_magnesium_green = self.params["kb_magnesium_green"]
         if "Fixed" in buffer_list:
-            fixed_rxn = rxd.Reaction(self.fixed + self.ca, self.fixedca,
+            fixed_rxn = rxd.Reaction(self.fixed + self.ca, self.fixed_ca,
                                      kf_fixed_b,
                                      kb_fixed_b)
             self.reactions.append(fixed_rxn)
-        if "CaM" in buffer_list:
+        if "Calmodulin" in buffer_list:
             rn = rxd.Reaction(self.cam + self.ca, self.camn, kf_camn,
                               kb_camn)
             rc = rxd.Reaction(self.cam + self.ca, self.camc, kf_camc, kb_camc)
             self.reactions.extend([rn, rc])
             
         if "Calbindin" in buffer_list:
-            calb_rxn = rxd.Reaction(self.calb + self.ca, self.calbca,
+            calb_rxn = rxd.Reaction(self.calb + self.ca, self.calb_ca,
                                     kf_calbindin,
                                     kb_calbindin)
             self.reactions.append(calb_rxn)
@@ -1031,3 +1040,10 @@ class CA1_PC:
             #self.add_surface_pump_reactions(pump_list)
             for pump in self.pump_list:
                 self.add_pump(pump)
+
+
+    def make_a_run(self, tstop):
+      h.CVode().re_init()
+      h.fcurrent()
+      h.tstop = tstop
+      h.run(tstop)
