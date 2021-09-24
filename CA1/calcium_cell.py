@@ -75,7 +75,7 @@ class CA1_PC:
                  where_ca=["lm_medium2"],
                  spine_number=1,
                  where_spines=["lm_medium2"],
-                 add_ER=False, buffer_list=["CaM", "Calbindin", "Fixed"],
+                 add_ER=False, buffer_list=["Calmodulin", "Calbindin", "Fixed"],
                  pump_list=["ncx", "pmca"], receptor_list=["AMPA", "NMDA"],
                  spine_pos={}, recompile=True):
 
@@ -354,7 +354,7 @@ class CA1_PC:
                 new_cm = (segment.cm*seg_surf - spine_cm)/seg_surf
                 segment.cm = new_cm
 
-    def add_calcium(self, where_rxd=[], buffer_list=["CaM", "Calbindin"],
+    def add_calcium(self, where_rxd=[], buffer_list=["Calmodulin", "Calbindin"],
                     pump_list=["pmca", "ncx"]):
 
         for name in where_rxd:
@@ -828,20 +828,22 @@ class CA1_PC:
         camc = self.params["camc"]
         self.cam = rxd.Species(self.shell_list, d=camDiff,
                                initial=calmodulin_tot-camn-camc,
-                               name='CaM', charge=0, atolscale=1e-9)
-        self.camn = rxd.Species(self.shell_list, d=camDiff, initial=camn, name='CaMN',
+                               name='Calmodulin', charge=0, atolscale=1e-9)
+        self.camn = rxd.Species(self.shell_list, d=camDiff, initial=camn,
+                                name='CaMN',
                                 charge=0, atolscale=1e-9)
-        self.camc = rxd.Species(self.shell_list, d=camDiff, initial=camc, name='CaMC',
+        self.camc = rxd.Species(self.shell_list, d=camDiff, initial=camc,
+                                name='CaMC',
                                 charge=0, atolscale=1e-9)
-        self.buffers["CaM"] = [self.cam, self.camn, self.camc]
+        self.buffers["Calmodulin"] = [self.cam, self.camn, self.camc]
 
     def add_buffers(self, buffer_names):
         self.buffers = OrderedDict()
         self.indicator = None
         for name in buffer_names:
-            if name == "CaM":
+            if name == "Calmodulin":
                 self.add_calmodulin()
-            if name == "Calbindin":
+            elif name == "Calbindin":
                 calbDiff = self.params["calbDiff"]
                 calbindin_tot = self.params["calbindin_tot"]
                 calbca = self.params["calbca"]
@@ -849,13 +851,13 @@ class CA1_PC:
                                         initial=calbindin_tot-calbca,
                                         name='Calbindin',
                                         charge=0, atolscale=1e-9)
-                self.calbca = rxd.Species(self.shell_list, d=calbDiff,
+                self.calb_ca = rxd.Species(self.shell_list, d=calbDiff,
                                           initial=calbca,
                                           name='CalbindinCa',
                                           charge=0, atolscale=1e-9)
-                self.buffers["Calb"] = [self.calb, self.calbca]
+                self.buffers["Calbindin"] = [self.calb, self.calb_ca]
 
-            if name == "Mg Green":
+            elif name == "Mg Green":
                 tot_magnesium_green_BS = self.params["tot_magnesium_green_BS"]
                 magnesium_green_bound = self.params["magnesium_green_bound"]
                 mggreenDiff = self.params["mggreenDiff"]
@@ -869,7 +871,7 @@ class CA1_PC:
                                              name='MgGreenCa', d=mggreenDiff,
                                                 charge=0, atolscale=1e-9)
                 self.buffers["Mg Green"] = [self.indicator, self.indicator_ca]
-            if name == "Fluo3":
+            elif name == "Fluo3":
                 tot_indicator = self.params["tot_fluo3"]
                 indicator_bound = ca_init*tot_indicator*kf_fluo3/kb_fluo3
                 indicatorDiff = self.params["fluo3Diff"]
@@ -883,7 +885,36 @@ class CA1_PC:
                                              name='Fluo3Ca', d=indicatorDiff,
                                             charge=0, atolscale=1e-9)
                 self.buffers["Fluo3"] = [self.indicator, self.indicator_ca]
-            if name == "Fixed":
+            elif name == "BF2":
+                tot_indicator = self.params["tot_BF2"]
+                indicator_bound = ca_init*tot_indicator*kf_BF2/kb_BF2
+                indicatorDiff = self.params["BF2Diff"]
+                self.indicator = rxd.Species(self.shell_list,
+                                             initial=tot_indicator -
+                                             indicator_bound, d=indicatorDiff,
+                                             name='BF2',
+                                             charge=0, atolscale=1e-9)
+                self.indicator_ca = rxd.Species(self.shell_list,
+                                             initial=indicator_bound,
+                                             name='BF2Ca', d=indicatorDiff,
+                                            charge=0, atolscale=1e-9)
+                self.buffers["BF2"] = [self.indicator, self.indicator_ca]
+            elif name == "OGB1":
+                tot_indicator = self.params["tot_OGB1"]
+                indicator_bound = ca_init*tot_indicator*kf_OGB1/kb_OGB1
+                indicatorDiff = self.params["OGB1Diff"]
+                self.indicator = rxd.Species(self.shell_list,
+                                             initial=tot_indicator -
+                                             indicator_bound, d=indicatorDiff,
+                                             name='OGB1',
+                                             charge=0, atolscale=1e-9)
+                self.indicator_ca = rxd.Species(self.shell_list,
+                                             initial=indicator_bound,
+                                             name='OGB1Ca', d=indicatorDiff,
+                                            charge=0, atolscale=1e-9)
+                self.buffers["OGB1"] = [self.indicator, self.indicator_ca]
+            
+            elif name == "Fixed":
                 fixed_buffer_tot = self.params["fixed_buffer_tot"]
                 fixed_buffer_ca = self.params["fixed_buffer_ca"]
                 self.fixed = rxd.Species(self.shell_list,
@@ -891,11 +922,11 @@ class CA1_PC:
                                          -fixed_buffer_ca,
                                          name='FixedBuffer',
                                          charge=0, atolscale=1e-9)
-                self.fixedca = rxd.Species(self.shell_list,
+                self.fixed_ca = rxd.Species(self.shell_list,
                                            initial=fixed_buffer_ca,
                                            name='FixedBufferCa',
                                            charge=0, atolscale=1e-9)
-
+                self.buffers["Fixed"] = [self.fixed, self.fixed_ca]
 
         
     def add_buffer_reactions(self, buffer_list):
@@ -910,18 +941,18 @@ class CA1_PC:
         kf_magnesium_green = self.params["kf_magnesium_green"]
         kb_magnesium_green = self.params["kb_magnesium_green"]
         if "Fixed" in buffer_list:
-            fixed_rxn = rxd.Reaction(self.fixed + self.ca, self.fixedca,
+            fixed_rxn = rxd.Reaction(self.fixed + self.ca, self.fixed_ca,
                                      kf_fixed_b,
                                      kb_fixed_b)
             self.reactions.append(fixed_rxn)
-        if "CaM" in buffer_list:
+        if "Calmodulin" in buffer_list:
             rn = rxd.Reaction(self.cam + self.ca, self.camn, kf_camn,
                               kb_camn)
             rc = rxd.Reaction(self.cam + self.ca, self.camc, kf_camc, kb_camc)
             self.reactions.extend([rn, rc])
             
         if "Calbindin" in buffer_list:
-            calb_rxn = rxd.Reaction(self.calb + self.ca, self.calbca,
+            calb_rxn = rxd.Reaction(self.calb + self.ca, self.calb_ca,
                                     kf_calbindin,
                                     kb_calbindin)
             self.reactions.append(calb_rxn)
