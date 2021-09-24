@@ -93,14 +93,26 @@ mggreenDiff = 15e-3   #15 um^2/s doi:10.1016/S0006-3495(96)79633-9
 #For Marsden et al. 10.1073/pnas.1010346107
 #Fluo-3, constants Pflügers Arch – Eur J Physiol (1997) 434:615–631
 tot_fluo3 = 1e-3 #  1 uM
-kf_fluo3 = 0.0236e3 # 0.236 1/uM/ms
-kb_fluo3 = 0.0236   # 1/ms
-fluo3Diff = 0.0 # um^2/ms take Fluo5's
+kf_fluo3 = 6e2 # In agreement with Roger Tsien
+kb_fluo3 = 0.6   # 1/ms
+fluo3Diff = 15e-3 # um^2/ms take Fluo5's
 
+tot_BF2 = 0.1 # bis-Fura-2, 100 uM, Frick, Migliore, Johnston
+kf_BF2 = 6e2 # 0.53uM DOI: 10.1117/1.NPh.2.2.021010 
+kb_BF2 = 0.318
+BF2Diff = 10e-3
+
+tot_OGB1 = 0.2 # Oregon Green 488 BAPTA-1
+kf_OGB1 = 6e2
+kb_OGB1 = 0.126
+OGB1Diff = 10e-3
 diffusions = {"CaM": camDiff,
               "Calb": calbDiff,
               "Mg Green": mggreenDiff,
-              "Fluo3":fluo3Diff}
+              "Fluo3": fluo3Diff,
+              "BF2": BF2Diff,
+              "OGB1": OGB1Diff,
+              }
               
 membrane_shell_width = .1
 
