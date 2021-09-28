@@ -50,27 +50,27 @@ if __name__ == "__main__":
     score = test.judge(my_model)
     print(score.summary)
 
-    with open('target_features/feat_rat_CA1_JMakara_more_features.json') as f:
-        observation = json.load(f,
-                                object_pairs_hook=collections.OrderedDict)
-    stim_file = pkg_resources.resource_filename("hippounit",
-                                                "tests/stimuli/somafeat_stim/stim_rat_CA1_PC_JMakara.json")
-    with open(stim_file, 'r') as f:
-        config = json.load(f, object_pairs_hook=collections.OrderedDict)
+    # with open('target_features/feat_rat_CA1_JMakara_more_features.json') as f:
+    #     observation = json.load(f,
+    #                             object_pairs_hook=collections.OrderedDict)
+    # stim_file = pkg_resources.resource_filename("hippounit",
+    #                                             "tests/stimuli/somafeat_stim/stim_rat_CA1_PC_JMakara.json")
+    # with open(stim_file, 'r') as f:
+    #     config = json.load(f, object_pairs_hook=collections.OrderedDict)
     
-    # Instantiate test class   
-    test = tests.SomaticFeaturesTest(observation=observation,
-                                     config=config, force_run=False,
-                                     show_plot=True,
-                                     save_all = True,
-                                     base_directory=base_directory)
+    # # Instantiate test class   
+    # test = tests.SomaticFeaturesTest(observation=observation,
+    #                                  config=config, force_run=False,
+    #                                  show_plot=True,
+    #                                  save_all = True,
+    #                                  base_directory=base_directory)
 
-    test.specify_data_set = 'JMakara_data'
-    test.npool = 10
+    # test.specify_data_set = 'JMakara_data'
+    # test.npool = 10
 
-    score = test.judge(my_model)
-    #Summarize and print the score achieved by the model on the test using SciUnit's summarize function
-    score.summarize()
+    # score = test.judge(my_model)
+    # #Summarize and print the score achieved by the model on the test using SciUnit's summarize function
+    # score.summarize()
 
     target_features_file = os.path.join("target_features",
                                         "feat_backpropagating_AP_target_data.json")
