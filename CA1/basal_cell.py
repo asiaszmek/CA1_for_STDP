@@ -6,15 +6,15 @@ import neuron
 
 
 def e_pas_dist(x):
-    return -65.726902768520958-5*x/150
+    return -65.73-5*x/150
 
 
 def ghdbar_dist(x):
-    return (1. + 3./100. * x)*1.9042409723832741e-05
+    return (1. + 3./100. * x)*1.90e-05
 
 
 def gkabar_dist(x):
-    return (15./(1. + exp((300-x)/50)))* 0.012921529390557651
+    return (15./(1. + exp((300-x)/50)))* 0.013
 
 
 my_loc = os.path.dirname(os.path.abspath(__file__))
@@ -212,7 +212,7 @@ class CA1_PC_basal:
         
     def geom_nseg(self):
         for sec in self.sections:
-            sec.nseg = 1+2*int(sec.L/40)
+            sec.nseg = 1 + 2*int(sec.L/40)
         
     def load_neuron(self):
         working_dir = os.getcwd()
@@ -307,7 +307,7 @@ class CA1_PC_basal:
             sec.g_pas = 0.00013
             sec.e_pas = -79.92
         for sec in self.apical: 
-            sec.gbar_kdr = 0.0043
+            sec.gbar_kdr = 0.0048
             sec.gbar_nax = 0.038
             sec.gbar_cal12 = 0.0000025*0.35e-6
             sec.gbar_cal13 = 0.0000025*0.35e-6
