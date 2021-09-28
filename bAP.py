@@ -1,3 +1,4 @@
+# A modified script from Tomko et al 2021
 """produces a simulation of the backpropagation of the action potential into the apical trunk"""
 
 # _title_   : bAP.py
@@ -11,77 +12,12 @@ from quantities import mV
 import efel
 import matplotlib.pyplot as plt
 import numpy
-from neuron import h, gui
+from neuron import h
+from CA1 import CA1_PC
 
 savepath = './figs/'
 if not os.path.exists(savepath):
     os.mkdir(savepath)
-
-
-def main():
-    h.nrn_load_dll('./Mods/nrnmech.dll')
-    h.xopen('pyramidal_cell_weak_bAP_original.hoc')
-    cell = h.CA1_PC_Tomko()
-
-    stim = h.IClamp(cell.soma[0](0.5))
-    stim.delay = 500
-    stim.amp = 0.8
-    stim.dur = 1000
-
-    v_vec_soma = h.Vector().record(cell.soma[0](0.5)._ref_v)
-    v_vecs_apical_trunk = OrderedDict()
-    v_vecs_apical_trunk['50'] = h.Vector().record(cell.radTprox(0.5)._ref_v)
-    v_vecs_apical_trunk['150'] = h.Vector().record(cell.radTmed(0.5)._ref_v)
-    v_vecs_apical_trunk['245.45'] = h.Vector().record(cell.radTdist(0.22727272727272727)._ref_v)
-    v_vecs_apical_trunk['263.63'] = h.Vector().record(cell.radTdist(0.3181818181818182)._ref_v)
-    v_vecs_apical_trunk['336.36'] = h.Vector().record(cell.radTdist(0.6818181818181819)._ref_v)
-    v_vecs_apical_trunk['354.54'] = h.Vector().record(cell.radTdist(0.7727272727272728)._ref_v)
-
-    t_vec = h.Vector()
-    t_vec.record(h._ref_t)
-
-    h.dt = 0.025
-    h.tstop = 1700
-    h.v_init = -65
-    h.celsius = 35
-    h.init()
-    h.finitialize(-65)
-    h.cvode_active(1)
-    h.run()
-
-
-    fig = plt.figure(figsize=(5, 5))
-    plt.plot(t_vec, v_vec_soma, label='soma')
-    for vec in v_vecs_apical_trunk:
-        plt.plot(t_vec, v_vecs_apical_trunk[vec], label=vec + ' um')
-    plt.xlabel('Time (ms)')
-    plt.ylabel('Membrane potential (mV)')
-    lgd = plt.legend(bbox_to_anchor=(1.0, 1.0), loc='upper left')
-    plt.savefig(savepath + 'traces.png', format='png', bbox_extra_artists=(lgd,), bbox_inches='tight')
-    plt.close()
-
-    fig = plt.figure(figsize=(5, 5))
-    plt.plot(t_vec, v_vec_soma, label='soma')
-    for vec in v_vecs_apical_trunk:
-        plt.plot(t_vec, v_vecs_apical_trunk[vec], label=vec + ' um')
-    plt.xlim((503, 513))
-    plt.xlabel('Time (ms)')
-    plt.ylabel('Membrane potential (mV)')
-    plt.title('First AP')
-    lgd = plt.legend(bbox_to_anchor=(1.0, 1.0), loc='upper left')
-    plt.savefig(savepath + 'AP1_traces.png', format='png', bbox_extra_artists=(lgd,), bbox_inches='tight')
-    plt.close()
-
-    amps = extract_AP1_amps(v_vec_soma, v_vecs_apical_trunk, t_vec)
-    fig = plt.figure(figsize=(5, 5))
-    for d in amps:
-        plt.plot(d, amps[d], marker='o', linestyle='none', label=d)
-    plt.xlabel('Distance from the soma (um)')
-    plt.ylabel('AP1_amp (mV)')
-    plt.ylim(0, 70)
-    lgd = plt.legend(bbox_to_anchor=(1.0, 1.0), loc='upper left')
-    plt.savefig(savepath + 'AP1_amps.png', format='png', bbox_extra_artists=(lgd,), bbox_inches='tight')
-    plt.close()
 
 
 def extract_AP1_amps(v_vec_soma, v_vecs_apical_trunk, t_vec):
@@ -119,5 +55,74 @@ def extract_AP1_amps(v_vec_soma, v_vecs_apical_trunk, t_vec):
 
     return AP1_amps
 
-if __name__ == '__main__':
-    main()
+
+if __name__ == "__main__":
+    where_spines = []
+    add_ER = False
+    where_ca = ["soma", "apical"]
+    t_stop = 5000
+    cell = CA1_PC(add_ER=add_ER, where_ca=where_ca, where_spines=where_spines)
+    
+    stim = h.IClamp(cell.soma(0.5))
+    stim.delay = 500
+    stim.amp = 0.8
+    stim.dur = 1000
+    sec_for_Vm = {'50': cell.find_sec("radTprox2")(0.166667),
+                  '150': cell.find_sec("radTmed2")(0.166667),
+                  '245.45': cell.find_sec("radTdist1")(0.5),
+                  '263.63': cell.find_sec("radTdist1")(0.7),
+                  '336.36': cell.find_sec("radTdist2")(0.3),
+                  '354.54': cell.find_sec("radTdist2")(0.5)}
+    v_vec_soma = h.Vector().record(cell.soma(0.5)._ref_v)
+    v_vecs_apical_trunk = OrderedDict()
+    v_vecs_apical_trunk['50'] = h.Vector().record(sec_for_Vm['50']._ref_v)
+    v_vecs_apical_trunk['150'] = h.Vector().record(sec_for_Vm['150']._ref_v)
+    v_vecs_apical_trunk['245.45'] = h.Vector().record(sec_for_Vm['245.45']._ref_v)
+    v_vecs_apical_trunk['263.63'] = h.Vector().record(sec_for_Vm['263.63']._ref_v)
+    v_vecs_apical_trunk['336.36'] = h.Vector().record(sec_for_Vm['336.36']._ref_v)
+    v_vecs_apical_trunk['354.54'] = h.Vector().record(sec_for_Vm['354.54']._ref_v)
+    h.distance(sec=cell.soma)
+    for sec in cell.sections:
+        for seg in sec:
+            print(seg, sec, h.distance(seg, sec=sec))
+
+
+    t_vec = h.Vector()
+    t_vec.record(h._ref_t)
+    cell.make_a_run(2000)
+
+
+    fig = plt.figure(figsize=(5, 5))
+    plt.plot(t_vec, v_vec_soma, label='soma')
+    for vec in v_vecs_apical_trunk:
+        plt.plot(t_vec, v_vecs_apical_trunk[vec], label=vec + ' um')
+    plt.xlabel('Time (ms)')
+    plt.ylabel('Membrane potential (mV)')
+    lgd = plt.legend(bbox_to_anchor=(1.0, 1.0), loc='upper left')
+    plt.savefig(savepath + 'traces.png', format='png', bbox_extra_artists=(lgd,), bbox_inches='tight')
+
+
+    fig = plt.figure(figsize=(5, 5))
+    plt.plot(t_vec, v_vec_soma, label='soma')
+    for vec in v_vecs_apical_trunk:
+        plt.plot(t_vec, v_vecs_apical_trunk[vec], label=vec + ' um')
+    plt.xlim((503, 513))
+    plt.xlabel('Time (ms)')
+    plt.ylabel('Membrane potential (mV)')
+    plt.title('First AP')
+    lgd = plt.legend(bbox_to_anchor=(1.0, 1.0), loc='upper left')
+    plt.savefig(savepath + 'AP1_traces.png', format='png', bbox_extra_artists=(lgd,), bbox_inches='tight')
+
+
+    amps = extract_AP1_amps(v_vec_soma, v_vecs_apical_trunk, t_vec)
+    fig = plt.figure(figsize=(5, 5))
+    for d in amps:
+        plt.plot(d, amps[d], marker='o', linestyle='none', label=d)
+    plt.xlabel('Distance from the soma (um)')
+    plt.ylabel('AP1_amp (mV)')
+
+    lgd = plt.legend(bbox_to_anchor=(1.0, 1.0), loc='upper left')
+    plt.savefig(savepath + 'AP1_amps.png', format='png', bbox_extra_artists=(lgd,), bbox_inches='tight')
+   
+
+

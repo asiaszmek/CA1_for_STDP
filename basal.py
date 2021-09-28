@@ -8,7 +8,7 @@ from neuron import h
 
 if __name__ == "__main__":
     add_ER = False
-    where_spines = []#["radTprox1"]
+    where_spines = []
     where_ca = ["soma", "apical"]
     t_stop = 5000
     cell = CA1_PC(add_ER=add_ER, where_ca=where_ca, where_spines=where_spines)
