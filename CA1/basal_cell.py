@@ -60,7 +60,7 @@ class CA1_PC_basal:
         self.radTmed2.connect(self.radTmed1(1))
         self.radTdist1.connect(self.radTmed2(1))
         self.radTdist2.connect(self.radTdist1(1))
-        self.rad_t1.connect(self.radTprox1(1))
+        self.rad_t1.connect(self.radTprox1(0.5))
         self.rad_t2.connect(self.radTmed1(1))
         self.rad_t3.connect(self.radTdist1(1))
         
@@ -212,7 +212,7 @@ class CA1_PC_basal:
         
     def geom_nseg(self):
         for sec in self.sections:
-            sec.nseg = 1 + 2*int(sec.L/40)
+            sec.nseg = 1 + 2*int(sec.L/20)
         
     def load_neuron(self):
         working_dir = os.getcwd()
