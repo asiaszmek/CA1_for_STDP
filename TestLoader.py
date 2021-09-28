@@ -155,9 +155,7 @@ class ModelLoader(sciunit.Model,
 
         #print dend_locations
         for key, value in dend_locations.items():
-            print(key, value)
             for x in value:
-                print(x)
                 new_sec = self.cell.find_sec(x[0])
                 self.dend_loc_rec.append(new_sec(x[1]))
                 rec_v.append(h.Vector())
@@ -192,11 +190,11 @@ class ModelLoader(sciunit.Model,
         for sec in self.cell.trunk:
             #for seg in sec:
             if not trunk_origin:
-                h.distance(sec=self.soma)
+                h.distance(0, 1, sec=self.soma)
             elif len(trunk_origin) == 1:
-                h.distance(sec=trunk_origin[0])
+                h.distance(0, trunk_origin[0], sec=self.soma)
             else:
-                h.distance(sec=trunk_origin)
+                h.distance(0, trunk_origin[1], sec=trunk_origin[0])
             for seg in sec:
                 for i in range(0, len(distances)):
                     # if this key doesn't exist it is added with the value: [],
@@ -232,11 +230,11 @@ class ModelLoader(sciunit.Model,
         if num > num_of_secs:
             for sec in self.cell.trunk:
                 if not trunk_origin:
-                    h.distance(sec=self.soma)
+                    h.distance(0, 1, sec=self.soma)
                 elif len(trunk_origin) == 1:
-                    h.distance(sec=trunk_origin[0])
+                    h.distance(0, trunk_origin[0], sec=self.soma)
                 else:
-                    h.distance(sec=trunk_origin)
+                    h.distance(0, trunk_origin[1], sec=trunk_origin)
                 for seg in sec:
                     dist = h.distance(seg.x, sec=sec)
                     if dist > dist_range[0] and dist < dist_range[1]:  
@@ -303,8 +301,12 @@ class ModelLoader(sciunit.Model,
             dend_loc_dist=[]
             seg_list_prox=[]
             seg_list_dist=[]
- 
-            h.distance(sec=sec)
+            if not trunk_origin:
+                h.distance(0, 1, sec=self.soma)
+            elif len(trunk_origin) == 1:
+                h.distance(0, trunk_origin[0], sec=self.soma)
+            elif len(trunk_origin) == 2:
+                h.distance(0, trunk_origin[1], sec=trunk_origin[0])
             #set the 0 point of the section as the origin
             for seg in sec:
                 # print(seg.x, h.distance(seg.x))
