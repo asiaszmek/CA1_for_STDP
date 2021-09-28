@@ -290,7 +290,7 @@ class CA1_PC:
                  position=0.5, head_mechanisms=["pas", "kdr", "nax", "cal12", "cal13", "can",
                                                 "car", "cav33", "cav32", "kca", "cagk", 'hd',
                                                 'kad', 'kdr'],
-                 head_params_dict={"Ra":1200}):
+                 head_params_dict={"Ra":120000}):
     
         if isinstance(where, str): 
             dend = self.cell_filter(where)
