@@ -848,6 +848,7 @@ class CA1_PC:
     def add_buffers(self, buffer_names):
         self.buffers = OrderedDict()
         self.indicator = None
+        self.indicator_ca = None
         for name in buffer_names:
             if name == "Calmodulin":
                 self.add_calmodulin()
@@ -976,6 +977,19 @@ class CA1_PC:
                                          kf_fluo3,
                                          kb_fluo3)
             self.reactions.append(fluo3_binding)
+        if "OGB1" in buffer_list:
+            ogb1_binding = rxd.Reaction(self.indicator + self.ca,
+                                         self.indicator_ca,
+                                         kf_OGB1,
+                                         kb_OGB1)
+            self.reactions.append(ogb1_binding)
+        if "BF2" in buffer_list:
+            bf2_binding = rxd.Reaction(self.indicator + self.ca,
+                                         self.indicator_ca,
+                                         kf_BF2,
+                                         kb_BF2)
+            self.reactions.append(bf2_binding)
+
         if self.add_ER:
             kf_calr = self.params["kf_calr"]
             kb_calr = self.params["kb_calr"]
