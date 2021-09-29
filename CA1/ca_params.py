@@ -59,17 +59,17 @@ calbca = kf_calbindin*ca_init*calbindin_tot/kb_calbindin
 g_leak_ECS = 1
 g_leak_spine = 1
 
-kf_pmca = 5000
-kb_pmca = 0.7
-kcat_pmca = 1
+kf_pmca = 50
+kb_pmca = 0.007
+kcat_pmca = 0.0035
 Km_pmca = kb_pmca/kf_pmca
 gpmca = 100e-5*ca_factor # {"apical_dendrite[10]":0.1e-5*ca_factor}
 gpmca_spine = 50e-5*ca_factor # {"apical_dendrite[10]": 0.1e-5*ca_factor}
 
 ncx_pow = 1
-kf_ncx = 168
-kb_ncx = 0.112
-kcat_ncx = 5
+kf_ncx = 16.8
+kb_ncx = 0.0112
+kcat_ncx = 0.0056
 Km_ncx = kb_ncx/kf_ncx
 #  this dynamics is more similar to quasi-steady state approx
 gncx = 1e-6*ca_factor#0.6e-8*ca_factor#1.035e-5*ca_factor#{"apical_dendrite[10]": 1.035e-5*ca_factor}#4.6875e-3}
