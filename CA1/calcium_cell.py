@@ -4,6 +4,7 @@ import numpy as np
 from neuron import rxd, h
 from .ca_params import *
 from .basal_cell import CA1_PC_basal
+inc_fac = 2
 
 
 # Nomenclature and values adapted from Harris KM, Jensen FE, Tsao BE.
@@ -77,7 +78,7 @@ class CA1_PC:
                  where_spines=["lm_medium2"],
                  add_ER=False, buffer_list=["Calmodulin", "Calbindin", "Fixed"],
                  pump_list=["ncx", "pmca"], receptor_list=["AMPA", "NMDA"],
-                 spine_pos={}, recompile=True, add_to_h=True, v_init=-70, celsius=34):
+                 spine_pos={}, recompile=True, add_to_h=True, v_init=-65, celsius=34):
 
         h.load_file("stdrun.hoc")
         h.CVode()
@@ -195,7 +196,7 @@ class CA1_PC:
     def get_ca_init(self, reg):
         if "ECS" in reg:
             return self.params["ca_ECS"]
-        return ca_init
+        return self.params["ca_init"]
 
     def add_synapse_ampa(self, dend, gmax):
         syn = h.AMPADJ(dend)
@@ -390,7 +391,7 @@ class CA1_PC:
                     sec.insert("cad")
                     if len(buffer_list) > 2:
                         sec.Buffer_cad = 25
-                        sec.cainf_cad = ca_init
+                        sec.cainf_cad = self.params["ca_init"]
                         #an additional buffer will change Ca dynamics
 
         h.cao0_ca_ion = self.params["Ca_Ext"]
@@ -441,11 +442,11 @@ class CA1_PC:
                 break
             if not inner:
                 break
-            if sum(self.factors[name]) + 2*new_factor >= self.fc:
+            if sum(self.factors[name]) + inc_fac*new_factor >= self.fc:
                 last_shell = True
                 new_factor = (self.fc - sum(self.factors[name]))
             else:
-                new_factor = 2*new_factor 
+                new_factor = inc_fac*new_factor 
             i = i+1               
 
     def _add_rxd_regions(self):
@@ -750,12 +751,11 @@ class CA1_PC:
                                                     membrane_flux=memb_flux)
                 self.pumps.append(pump)
             else:
-                kf_pump = self.params["kf_%s" % name]
-                kb_pump = self.params["kb_%s" % name]
+                
                 # Keener and Sneyd, mathematical physiology, page 32
                 basal = self.params["ca_init"]
-                extrusion =-kcat_pump*self.g[name]*inside /(Km_pump + inside)#/(1 + self.g[name]*Km_pump/(Km_pump+inside)**2)
-                leak = kcat_pump*self.g[name]*basal/(Km_pump + basal)#/(1 + self.g[name]*Km_pump/(Km_pump+basal)**2)
+                extrusion =-self.g[name]*inside /(Km_pump + inside)/(1 + self.g[name]*Km_pump/(Km_pump+inside)**2)
+                leak = self.g[name]*basal/(Km_pump + basal)/(1 + self.g[name]*Km_pump/(Km_pump+basal)**2)
                                 
                 pump = rxd.Rate(inside, extrusion + leak,
                                 regions=[self.shells[key][0]])
@@ -875,7 +875,7 @@ class CA1_PC:
                 self.buffers["Mg Green"] = [self.indicator, self.indicator_ca]
             elif name == "Fluo3":
                 tot_indicator = self.params["tot_fluo3"]
-                indicator_bound = ca_init*tot_indicator*kf_fluo3/kb_fluo3
+                indicator_bound = self.params["ca_init"]*tot_indicator*kf_fluo3/kb_fluo3
                 indicatorDiff = self.params["fluo3Diff"]
                 self.indicator = rxd.Species(self.shell_list,
                                              initial=tot_indicator -
@@ -889,7 +889,7 @@ class CA1_PC:
                 self.buffers["Fluo3"] = [self.indicator, self.indicator_ca]
             elif name == "BF2":
                 tot_indicator = self.params["tot_BF2"]
-                indicator_bound = ca_init*tot_indicator*kf_BF2/kb_BF2
+                indicator_bound = self.params["ca_init"]*tot_indicator*kf_BF2/kb_BF2
                 indicatorDiff = self.params["BF2Diff"]
                 self.indicator = rxd.Species(self.shell_list,
                                              initial=tot_indicator -
@@ -903,7 +903,7 @@ class CA1_PC:
                 self.buffers["BF2"] = [self.indicator, self.indicator_ca]
             elif name == "OGB1":
                 tot_indicator = self.params["tot_OGB1"]
-                indicator_bound = ca_init*tot_indicator*kf_OGB1/kb_OGB1
+                indicator_bound = self.params["ca_init"]*tot_indicator*kf_OGB1/kb_OGB1
                 indicatorDiff = self.params["OGB1Diff"]
                 self.indicator = rxd.Species(self.shell_list,
                                              initial=tot_indicator -
