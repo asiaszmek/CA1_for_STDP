@@ -60,17 +60,17 @@ calbca = kf_calbindin*ca_init*calbindin_tot/kb_calbindin
 kf_pmca = 50
 kb_pmca = 0.007
 kcat_pmca = 0.0035
-Km_pmca = kb_pmca/kf_pmca
-gpmca = 30
+Km_pmca = (kb_pmca+kcat_pmca)/kf_pmca
+gpmca = 3000
 gpmca_spine = 50e-3*ca_factor # {"apical_dendrite[10]": 0.1e-5*ca_factor}
 
 ncx_pow = 1
 kf_ncx = 16.8
 kb_ncx = 0.0112
 kcat_ncx = 0.0056
-Km_ncx = kb_ncx/kf_ncx
+Km_ncx = (kb_ncx+kcat_ncx)/kf_ncx
 #  this dynamics is more similar to quasi-steady state approx
-gncx = 30
+gncx = 300
 gncx_spine = gncx/7 #{}
 # for key in gncx:
 #     gncx_spine[key] = gncx[key]/7
@@ -98,12 +98,12 @@ fluo3Diff = 15e-3 # um^2/ms take Fluo5's
 tot_BF2 = 0.1 # bis-Fura-2, 100 uM, Frick, Migliore, Johnston
 kf_BF2 = 6e2 # 0.53uM DOI: 10.1117/1.NPh.2.2.021010 
 kb_BF2 = 0.318
-BF2Diff = 10e-3
+BF2Diff = .66
 
 tot_OGB1 = 0.2 # Oregon Green 488 BAPTA-1
 kf_OGB1 = 6e2
 kb_OGB1 = 0.126
-OGB1Diff = 10e-3
+OGB1Diff = .66
 
 diffusions = {"Calmodulin": camDiff,
               "Calbindin": calbDiff,
