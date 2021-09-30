@@ -56,8 +56,6 @@ camn = kf_camn*ca_init*calmodulin_tot/kb_camn
 camc = kf_camc*ca_init*calmodulin_tot/kb_camc
 calbca = kf_calbindin*ca_init*calbindin_tot/kb_calbindin
 
-g_leak_ECS = 1
-g_leak_spine = 1
 
 kf_pmca = 50
 kb_pmca = 0.007

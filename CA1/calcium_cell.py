@@ -716,8 +716,6 @@ class CA1_PC:
             #[membranes[key] for key in membranes.keys()]
             self.g[name] = rxd.Parameter(membrane_list,
                                          value=lambda nd: self.pmca_val(nd))
-            g_leak = rxd.Parameter(membrane_list,
-                                         value=lambda nd: self.get_leak_val(nd))
         elif name == "ncx":
             membranes = self.membrane
             memb_flux = True
@@ -726,15 +724,10 @@ class CA1_PC:
             # [membranes[key] for key in membranes.keys()]
             self.g[name] = rxd.Parameter(membrane_list,
                                          value=lambda nd: self.ncx_val(nd))
-            g_leak = rxd.Parameter(membrane_list,
-                                   value=lambda nd: self.get_leak_val(nd))
-
         else:
             membranes = self.membrane
             membrane_list = [membranes[key] for key in membranes.keys()]
             n = 1
-            g_leak = rxd.Parameter(membrane_list,
-                                   value=lambda nd: self.get_leak_val(nd))
 
         kcat_pump = self.params["kcat_%s" % name]
         Km_pump = self.params["Km_%s" % name]
@@ -761,8 +754,8 @@ class CA1_PC:
                 kb_pump = self.params["kb_%s" % name]
                 # Keener and Sneyd, mathematical physiology, page 32
                 basal = self.params["ca_init"]
-                extrusion =-kcat_pump*self.g[name]*inside /(Km_pump + inside)/(1+self.g[name]*Km_pump/(Km_pump+inside)**2)
-                leak = g_leak*kcat_pump*self.g[name]*basal/(Km_pump + basal)/(1+self.g[name]*Km_pump/(Km_pump+basal)**2)
+                extrusion =-kcat_pump*self.g[name]*inside /(Km_pump + inside)#/(1 + self.g[name]*Km_pump/(Km_pump+inside)**2)
+                leak = kcat_pump*self.g[name]*basal/(Km_pump + basal)#/(1 + self.g[name]*Km_pump/(Km_pump+basal)**2)
                                 
                 pump = rxd.Rate(inside, extrusion + leak,
                                 regions=[self.shells[key][0]])
@@ -1036,11 +1029,6 @@ class CA1_PC:
                                                        border=self.borders[sec_name][i])
                     self.diffusions.append(rxn)
 
-    def get_leak_val(self, node):
-        if "head" in node.sec.name():
-            return self.params["g_leak_spine"]
-        return self.params["g_leak_ECS"]
-                    
 
     def add_rxd_calcium(self, buffer_names, pump_list):
         if self.sections_rxd:
@@ -1058,7 +1046,7 @@ class CA1_PC:
 
 
     def make_a_run(self, tstop):
-      #h.CVode().re_init()
+      h.CVode().re_init()
       h.finitialize(self.v_init)
       h.fcurrent()
       h.tstop = tstop
