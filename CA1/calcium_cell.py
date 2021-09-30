@@ -77,7 +77,7 @@ class CA1_PC:
                  where_spines=["lm_medium2"],
                  add_ER=False, buffer_list=["Calmodulin", "Calbindin", "Fixed"],
                  pump_list=["ncx", "pmca"], receptor_list=["AMPA", "NMDA"],
-                 spine_pos={}, recompile=True, add_to_h=True, v_init=-65, celsius=34):
+                 spine_pos={}, recompile=True, add_to_h=True, v_init=-70, celsius=34):
 
         h.load_file("stdrun.hoc")
         h.CVode()

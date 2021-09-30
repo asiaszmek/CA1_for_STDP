@@ -10,9 +10,8 @@ if __name__ == "__main__":
     add_ER = False
     where_spines = []
     where_ca = ["soma", "apical"]
-    t_stop = 5000
+    t_stop = 20000
     cell = CA1_PC(add_ER=add_ER, where_ca=where_ca, where_spines=where_spines)
-    h.CVode().re_init()
     section_order = [sec.name() for sec in cell.sections_rxd
                      if "head" not in sec.name()]
     first_shells = [cell.shells[name][0] for name in section_order]
