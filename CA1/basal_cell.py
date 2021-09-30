@@ -288,11 +288,11 @@ class CA1_PC_basal:
             sec.gbar_kmb = 0.003 
             sec.gbar_kdr = 0.05 
             sec.gbar_nax = 0.035 
-            sec.gbar_cal12 =  1e-6*0.35e-6
-            sec.gbar_cal13 =  3e-6*0.35e-6
-            sec.gbar_can = 2.26e-06*0.35e-6
-            sec.gbar_cav32 =  1.18e-06*0.35e-6
-            sec.gbar_cav33 =  3*1.18e-06*0.35e-6
+            sec.gbar_cal12 =  1e-6
+            sec.gbar_cal13 =  3e-6
+            sec.gbar_can = 2.26e-06
+            sec.gbar_cav32 =  1.18e-06
+            sec.gbar_cav33 =  3*1.18e-06
             sec.gbar_kca = 0.005 
             sec.gbar_cagk = 4.482e-05
             sec.Ra = 115.4
@@ -309,9 +309,9 @@ class CA1_PC_basal:
         for sec in self.apical: 
             sec.gbar_kdr = 0.0048
             sec.gbar_nax = 0.038
-            sec.gbar_cal12 = 0.0000025*0.35e-6
-            sec.gbar_cal13 = 0.0000025*0.35e-6
-            sec.gbar_can = 1.13e-06*0.35e-6
+            sec.gbar_cal12 = 0.0000025
+            sec.gbar_cal13 = 0.0000025
+            sec.gbar_can = 1.13e-06
             sec.gbar_cav32 = 0
             sec.gbar_cav33 = 0 #no Cav3.* in distal dendrites
             sec.gbar_kca = 9.03e-05
@@ -321,11 +321,11 @@ class CA1_PC_basal:
         for sec in self.trunk:
             sec.gbar_kdr = 0.02
             sec.gbar_nax = 0.025
-            sec.gbar_cal12 = 0.5*0.0000025*0.35e-6
-            sec.gbar_cal13 = 0.5*0.00000125*0.35e-6
-            sec.gbar_can = 2.26e-06*0.35e-6
-            sec.gbar_cav32 = 1.18e-06*0.35e-6
-            sec.gbar_cav33 = 3*1.18e-06*0.35e-6
+            sec.gbar_cal12 = 0.5*0.0000025
+            sec.gbar_cal13 = 0.5*0.00000125
+            sec.gbar_can = 2.26e-06
+            sec.gbar_cav32 = 1.18e-06
+            sec.gbar_cav33 = 3*1.18e-06
             sec.gbar_kca = 9.0311e-05
             sec.gbar_cagk = 4.48e-05
             sec.Ra = 115.4
@@ -333,11 +333,11 @@ class CA1_PC_basal:
         for sec in self.basal:
             sec.gbar_kdr = 0.0043
             sec.gbar_nax = 0.038
-            sec.gbar_cal12 = 0.00000125*0.35e-6
-            sec.gbar_cal13 = 2*0.00000125*0.35e-6
-            sec.gbar_can = 1.13e-06*0.35e-6
-            sec.gbar_cav32 = 1.18e-06*0.35e-6
-            sec.gbar_cav33 = 3*1.18e-06*0.35e-6
+            sec.gbar_cal12 = 0.00000125
+            sec.gbar_cal13 = 2*0.00000125
+            sec.gbar_can = 1.13e-06
+            sec.gbar_cav32 = 1.18e-06
+            sec.gbar_cav33 = 3*1.18e-06
             sec.gbar_kca = 9.03e-05
             sec.gbar_cagk = 4.48e-05
             sec.Ra = 115.4

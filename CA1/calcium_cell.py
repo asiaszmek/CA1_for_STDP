@@ -162,7 +162,7 @@ class CA1_PC:
                                       self.params["Ca_per"],
                                       is_ca=True)
         h.celsius = celsius
-        h.v_init = v_init
+        self.v_init = v_init
 
     def add_spines(self, dends, spine_no, spine_pos={}):
         """
@@ -392,7 +392,8 @@ class CA1_PC:
                         sec.Buffer_cad = 25
                         sec.cainf_cad = ca_init
                         #an additional buffer will change Ca dynamics
-                    sec.cao = self.params["Ca_Ext"]
+
+        h.cao0_ca_ion = self.params["Ca_Ext"]
         return
 
     def outermost_shell(diam, shell_width):
@@ -413,10 +414,10 @@ class CA1_PC:
                 self.factors[name] = []
                 self.shells[name] = []
                 
-            inner = 1-(sum(self.factors[name])+new_factor)
+            inner = 1 - (sum(self.factors[name])+new_factor)
             if inner < 0:
                 inner = 0
-            outer = 1-sum(self.factors[name])
+            outer = 1 - sum(self.factors[name])
             if i == 0 and inner == 0:
                 self.shells[name].append(rxd.Region(section, nrn_region='i',
                                                     name="%s_Shell_%d" %
@@ -847,6 +848,7 @@ class CA1_PC:
     def add_buffers(self, buffer_names):
         self.buffers = OrderedDict()
         self.indicator = None
+        self.indicator_ca = None
         for name in buffer_names:
             if name == "Calmodulin":
                 self.add_calmodulin()
@@ -975,6 +977,19 @@ class CA1_PC:
                                          kf_fluo3,
                                          kb_fluo3)
             self.reactions.append(fluo3_binding)
+        if "OGB1" in buffer_list:
+            ogb1_binding = rxd.Reaction(self.indicator + self.ca,
+                                         self.indicator_ca,
+                                         kf_OGB1,
+                                         kb_OGB1)
+            self.reactions.append(ogb1_binding)
+        if "BF2" in buffer_list:
+            bf2_binding = rxd.Reaction(self.indicator + self.ca,
+                                         self.indicator_ca,
+                                         kf_BF2,
+                                         kb_BF2)
+            self.reactions.append(bf2_binding)
+
         if self.add_ER:
             kf_calr = self.params["kf_calr"]
             kb_calr = self.params["kb_calr"]
@@ -1043,7 +1058,8 @@ class CA1_PC:
 
 
     def make_a_run(self, tstop):
-      h.CVode().re_init()
+      #h.CVode().re_init()
+      h.finitialize(self.v_init)
       h.fcurrent()
       h.tstop = tstop
       h.run(tstop)
