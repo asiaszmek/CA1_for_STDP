@@ -566,11 +566,19 @@ class CA1_PC:
     def ncx_val(self, node):
         if "head" in node.sec.name():
             return self.params["gncx_spine"]*self.params["kcat_ncx"]
+        h.distance(sec=self.soma)
+        dist = h.distance(node.segment, sec=node.sec)
+        if dist < 50:
+            return self.params["gncx"]*self.params["kcat_ncx"]*100
         return self.params["gncx"]*self.params["kcat_ncx"]
 
     def pmca_val(self, node):
         if "head" in node.sec.name():
             return self.params["gpmca_spine"]*self.params["kcat_pmca"]
+        h.distance(sec=self.soma)
+        dist = h.distance(node.segment, sec=node.sec)
+        if dist < 50:
+            return self.params["gpmca"]*self.params["kcat_pmca"]*100
         return self.params["gpmca"]*self.params["kcat_pmca"]
 
     def add_pump(self, name):
@@ -777,7 +785,7 @@ class CA1_PC:
                 self.buffers["BF2"] = [self.indicator, self.indicator_ca]
             elif name == "OGB1":
                 tot_indicator = self.params["tot_OGB1"]
-                indicator_bound = self.params["ca_init"]*tot_indicator*kf_OGB1/kb_OGB1
+                indicator_bound = 0.0388#self.params["ca_init"]*tot_indicator*kf_OGB1/kb_OGB1
                 indicatorDiff = self.params["OGB1Diff"]
                 self.indicator = rxd.Species(self.shell_list,
                                              initial=tot_indicator -
