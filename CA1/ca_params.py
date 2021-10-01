@@ -19,7 +19,7 @@ ca_init = 50e-6
 ca_init_ER = .180512
 ca_ECS = 2.
 
-caDiff = 0.174
+caDiff = 0.2
 ip3Diff = 0.1
 camDiff = 0.066
 calbDiff = 0.066
@@ -61,7 +61,7 @@ kf_pmca = 50
 kb_pmca = 0.007
 kcat_pmca = 0.0035
 Km_pmca = (kb_pmca+kcat_pmca)/kf_pmca
-gpmca = 3000
+gpmca = 30
 gpmca_spine = 50e-3*ca_factor # {"apical_dendrite[10]": 0.1e-5*ca_factor}
 
 ncx_pow = 1
@@ -70,7 +70,7 @@ kb_ncx = 0.0112
 kcat_ncx = 0.0056
 Km_ncx = (kb_ncx+kcat_ncx)/kf_ncx
 #  this dynamics is more similar to quasi-steady state approx
-gncx = 300
+gncx = 3
 gncx_spine = gncx/7 #{}
 # for key in gncx:
 #     gncx_spine[key] = gncx[key]/7

@@ -288,7 +288,7 @@ class CA1_PC_basal:
             sec.gbar_cal12 =  1e-06
             sec.gbar_cal13 =  3e-06
             sec.gbar_can = 2.26e-06
-            sec.gbar_cav32 =  4*1.18e-07
+            sec.gbar_cav32 =  4*1.18e-08
             sec.gbar_kca = 0.005 
             sec.gbar_cagk = 4.482e-05
             sec.Ra = 115.4
@@ -308,7 +308,7 @@ class CA1_PC_basal:
             sec.gbar_cal12 = 2.5e-07
             sec.gbar_cal13 = 2.5e-07
             sec.gbar_can = 1.13e-07
-            sec.gbar_cav32 = 1.18e-07
+            sec.gbar_cav32 = 1.18e-08
             sec.gbar_kca = 9.03e-05
             sec.gbar_cagk = 4.48e-05
             sec.Ra = 115.4
@@ -319,7 +319,7 @@ class CA1_PC_basal:
             sec.gbar_cal12 = 1.25e-07
             sec.gbar_cal13 = 1.25e-07
             sec.gbar_can = 2.26e-07
-            sec.gbar_cav32 = 2*1.18e-07
+            sec.gbar_cav32 = 2*1.18e-08
             sec.gbar_kca = 9.0311e-05
             sec.gbar_cagk = 4.48e-05
             sec.Ra = 115.4
@@ -330,7 +330,7 @@ class CA1_PC_basal:
             sec.gbar_cal12 = 1.25e-07
             sec.gbar_cal13 = 2.5e-07
             sec.gbar_can = 1.13e-07
-            sec.gbar_cav32 = 4*1.18e-07
+            sec.gbar_cav32 = 4*1.18e-08
             sec.gbar_kca = 9.03e-05
             sec.gbar_cagk = 4.48e-05
             sec.Ra = 115.4

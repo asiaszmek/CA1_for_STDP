@@ -81,14 +81,16 @@ if __name__ == "__main__":
     v_vecs_apical_trunk['263.63'] = h.Vector().record(sec_for_Vm['263.63']._ref_v)
     v_vecs_apical_trunk['336.36'] = h.Vector().record(sec_for_Vm['336.36']._ref_v)
     v_vecs_apical_trunk['354.54'] = h.Vector().record(sec_for_Vm['354.54']._ref_v)
-    h.distance(sec=cell.soma)
-    for sec in cell.sections:
-        for seg in sec:
-            print(seg, sec, h.distance(seg, sec=sec))
-
+    sec_list = ["soma", "radTprox1", "radTprox2", "radTmed1",
+                "radTmed2", "radTdist1", "radTdist2", "lm_thick1",
+                "lm_thick2", "lm_medium1",
+                "lm_medium2", "lm_thin1", "lm_thin2", "rad_t1",
+                "rad_t2", "rad_t3"]
 
     t_vec = h.Vector()
     t_vec.record(h._ref_t)
+
+
     cell.make_a_run(2000)
 
 
@@ -125,4 +127,4 @@ if __name__ == "__main__":
     plt.savefig(savepath + 'AP1_amps.png', format='png', bbox_extra_artists=(lgd,), bbox_inches='tight')
    
 
-
+    plt.show()
