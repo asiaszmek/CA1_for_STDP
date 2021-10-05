@@ -212,7 +212,7 @@ class CA1_PC_basal:
         
     def geom_nseg(self):
         for sec in self.sections:
-            sec.nseg = 1 + 2*int(sec.L/20)
+            sec.nseg = 1 + 2*int(sec.L/40)
         
     def load_neuron(self):
         working_dir = os.getcwd()
@@ -281,33 +281,33 @@ class CA1_PC_basal:
             sec.ena = 50
             sec.ek = -90
         for sec in self.somatic:
-            sec.gbar_kap = 0.02 
-            sec.gbar_kmb = 0.003 
-            sec.gbar_kdr = 0.05 
+            sec.gbar_kap = 0.0074 
+            sec.gbar_kmb = 0.001 
+            sec.gbar_kdr = 0.0015
             sec.gbar_nax = 0.035 
-            sec.gbar_cal12 =  1e-06
-            sec.gbar_cal13 =  3e-06
+            sec.gbar_cal12 =  1e-05
+            sec.gbar_cal13 =  3e-05
             sec.gbar_can = 2.26e-06
             sec.gbar_cav32 =  4*1.18e-08
-            sec.gbar_kca = 0.005 
+            sec.gbar_kca = 0.0015 
             sec.gbar_cagk = 4.482e-05
             sec.Ra = 115.4
             sec.g_pas = 9.03e-05
 
         for sec in self.axonal:
-            sec.gbar_nax = 0.05 #0.21113423945477339
-            sec.gbar_kdr = 0.1
-            sec.gbar_kmb = 0.05
-            sec.gbar_kap = 0.3
+            sec.gbar_nax = 0.035 #0.21113423945477339
+            sec.gbar_kdr = 0.012
+            sec.gbar_kmb = 0.0265
+            sec.gbar_kap = 0.164
             sec.Ra = 85.20
             sec.g_pas = 0.00013
             sec.e_pas = -79.92
         for sec in self.apical: 
-            sec.gbar_kdr = 0.0048
-            sec.gbar_nax = 0.038
-            sec.gbar_cal12 = 2.5e-07
-            sec.gbar_cal13 = 2.5e-07
-            sec.gbar_can = 1.13e-07
+            sec.gbar_kdr = 0.0043
+            sec.gbar_nax = 0.0383
+            sec.gbar_cal12 = 2.5e-06
+            sec.gbar_cal13 = 2.5e-06
+            sec.gbar_can = 1.13e-06
             sec.gbar_cav32 = 1.18e-08
             sec.gbar_kca = 9.03e-05
             sec.gbar_cagk = 4.48e-05
@@ -316,9 +316,9 @@ class CA1_PC_basal:
         for sec in self.trunk:
             sec.gbar_kdr = 0.02
             sec.gbar_nax = 0.025
-            sec.gbar_cal12 = 1.25e-07
-            sec.gbar_cal13 = 1.25e-07
-            sec.gbar_can = 2.26e-07
+            sec.gbar_cal12 = 1.25e-06
+            sec.gbar_cal13 = 1.25e-06
+            sec.gbar_can = 2.26e-05
             sec.gbar_cav32 = 2*1.18e-08
             sec.gbar_kca = 9.0311e-05
             sec.gbar_cagk = 4.48e-05
@@ -326,10 +326,10 @@ class CA1_PC_basal:
             sec.g_pas = 9.03e-05
         for sec in self.basal:
             sec.gbar_kdr = 0.0043
-            sec.gbar_nax = 0.038
-            sec.gbar_cal12 = 1.25e-07
-            sec.gbar_cal13 = 2.5e-07
-            sec.gbar_can = 1.13e-07
+            sec.gbar_nax = 0.0383
+            sec.gbar_cal12 = 1.25e-06
+            sec.gbar_cal13 = 2.5e-06
+            sec.gbar_can = 1.13e-06
             sec.gbar_cav32 = 4*1.18e-08
             sec.gbar_kca = 9.03e-05
             sec.gbar_cagk = 4.48e-05
