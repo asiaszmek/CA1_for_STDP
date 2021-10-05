@@ -568,18 +568,15 @@ class CA1_PC:
             return self.params["gncx_spine"]*self.params["kcat_ncx"]
         h.distance(sec=self.soma)
         dist = h.distance(node.segment, sec=node.sec)
-        if dist < 50:
-            return self.params["gncx"]*self.params["kcat_ncx"]*100
-        return self.params["gncx"]*self.params["kcat_ncx"]
+        return self.params["gncx"]*self.params["kcat_ncx"]*1000/dist
 
     def pmca_val(self, node):
         if "head" in node.sec.name():
             return self.params["gpmca_spine"]*self.params["kcat_pmca"]
         h.distance(sec=self.soma)
         dist = h.distance(node.segment, sec=node.sec)
-        if dist < 50:
-            return self.params["gpmca"]*self.params["kcat_pmca"]*100
-        return self.params["gpmca"]*self.params["kcat_pmca"]
+        print(node.sec.name(), node.segment, dist)
+        return self.params["gpmca"]*self.params["kcat_pmca"]*1000/dist
 
     def add_pump(self, name):
         memb_flux = False
