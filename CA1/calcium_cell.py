@@ -649,9 +649,8 @@ class CA1_PC:
                 
                 # Keener and Sneyd, mathematical physiology, page 32
                 basal = self.params["ca_init"]
-                extrusion =-self.g[name]*inside /(Km_pump + inside)/(1 + self.g[name]*Km_pump/(Km_pump+inside)**2)
-                leak = self.g[name]*basal/(Km_pump + basal)/(1 + self.g[name]*Km_pump/(Km_pump+basal)**2)
-                                
+                extrusion =-self.g[name]/(Km_pump/inside + 1)
+                leak = self.g[name]/(Km_pump/basal + 1)
                 pump = rxd.Rate(inside, extrusion + leak,
                                 regions=[self.shells[key][0]])
                 self.pumps.append(pump)
