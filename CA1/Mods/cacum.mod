@@ -58,7 +58,7 @@ PARAMETER {
 	depth	= .1	(um)		: depth of shell
 	taur	= 20	(ms)		: rate of calcium removal
 	cainf	= 100e-6(mM)
-	Buffer = 18     (mM)
+	Buffer = 1     (mM)
 	cai		(mM)
 }
 

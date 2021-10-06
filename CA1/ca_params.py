@@ -61,7 +61,7 @@ kf_pmca = 50
 kb_pmca = 0.007
 kcat_pmca = 0.0035
 Km_pmca = (kb_pmca+kcat_pmca)/kf_pmca
-gpmca = 30
+gpmca = 0.1
 gpmca_spine = 50e-3*ca_factor # {"apical_dendrite[10]": 0.1e-5*ca_factor}
 
 ncx_pow = 1

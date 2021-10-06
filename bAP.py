@@ -59,13 +59,13 @@ def extract_AP1_amps(v_vec_soma, v_vecs_apical_trunk, t_vec):
 if __name__ == "__main__":
     where_spines = []
     add_ER = False
-    where_ca = ["soma", "apical"]
+    where_ca = []#["soma", "apical"]
     t_stop = 5000
     cell = CA1_PC(add_ER=add_ER, where_ca=where_ca, where_spines=where_spines)
     
     stim = h.IClamp(cell.soma(0.5))
     stim.delay = 500
-    stim.amp = 0.8
+    stim.amp = 0.6
     stim.dur = 1000
     sec_for_Vm = {'50': cell.find_sec("radTprox2")(0.166667),
                   '150': cell.find_sec("radTmed2")(0.166667),
