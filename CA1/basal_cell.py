@@ -20,7 +20,13 @@ def gkabar_dist(x):
 my_loc = os.path.dirname(os.path.abspath(__file__))
 mechanisms_path = os.path.join(my_loc, "Mods")
 
-      
+gbar = {
+    "cav33": 1e-08,
+    "cav32": 3e-08,
+    "cal12": 1e-05,
+    "cal13": 1e-05,
+    "can": 1e-05,
+}
 class CA1_PC_basal:
     sections = []
     def __init__(self, recompile=True, add_to_h=True):
@@ -246,7 +252,7 @@ class CA1_PC_basal:
             sec.insert("cal12")
             sec.insert("cal13")
             sec.insert("cav32")
-
+            sec.insert("cav33")
         for sec in self.apical:
             sec.insert("kad")
             sec.insert("hd")
@@ -254,7 +260,7 @@ class CA1_PC_basal:
             sec.insert("cal12")
             sec.insert("cal13")
             sec.insert("cav32")
-
+            sec.insert("cav33")
         for sec in self.basal:
             sec.insert("kad")
             sec.insert("hd")
@@ -263,7 +269,7 @@ class CA1_PC_basal:
             sec.insert("cal12")
             sec.insert("cal13")
             sec.insert("cav32")
-
+            sec.insert("cav33")
         for sec in self.axonal:
              sec.insert("kmb")
              sec.insert("kap")
@@ -278,10 +284,6 @@ class CA1_PC_basal:
             sec.gbar_kmb = 0.001 
             sec.gbar_kdr = 0.0015
             sec.gbar_nax = 0.035 
-            sec.gbar_cal12 =  1e-05
-            sec.gbar_cal13 =  3e-05
-            sec.gbar_can = 2.26e-06
-            sec.gbar_cav32 =  4*1.18e-08
             sec.Ra = 115.4
             sec.g_pas = 9.03e-05
 
@@ -293,31 +295,20 @@ class CA1_PC_basal:
             sec.Ra = 85.20
             sec.g_pas = 0.00013
             sec.e_pas = -79.92
+            
         for sec in self.apical: 
             sec.gbar_kdr = 0.0043
             sec.gbar_nax = 0.0383
-            sec.gbar_cal12 = 2.5e-06
-            sec.gbar_cal13 = 2.5e-06
-            sec.gbar_can = 1.13e-06
-            sec.gbar_cav32 = 1.18e-08
             sec.Ra = 115.4
             sec.g_pas = 9.03e-05
         for sec in self.trunk:
             sec.gbar_kdr = 0.02
             sec.gbar_nax = 0.025
-            sec.gbar_cal12 = 1.25e-06
-            sec.gbar_cal13 = 1.25e-06
-            sec.gbar_can = 2.26e-05
-            sec.gbar_cav32 = 2*1.18e-08
             sec.Ra = 115.4
             sec.g_pas = 9.03e-05
         for sec in self.basal:
             sec.gbar_kdr = 0.0043
             sec.gbar_nax = 0.0383
-            sec.gbar_cal12 = 1.25e-06
-            sec.gbar_cal13 = 2.5e-06
-            sec.gbar_can = 1.13e-06
-            sec.gbar_cav32 = 4*1.18e-08
             sec.Ra = 115.4
             sec.g_pas = 9.03e-05
 
@@ -334,6 +325,28 @@ class CA1_PC_basal:
                 if "soma" not in sec.name():
                     to_mech = getattr(seg, "kad")
                     setattr(to_mech, "gbar", value_gkabar)
+                for mech in ["cav32", "cav33", "can", "cal12", "cal13"]:
+                    to_mech = getattr(seg, mech)
+                    if mech.startswith("cav"):
+                        if "soma" in sec.name():                        
+                            setattr(to_mech, "gbar", gbar[mech])
+                        elif x < 350:
+                            setattr(to_mech, "gbar", gbar[mech]/10)
+                        else:
+                            setattr(to_mech, "gbar", 0)
+                    if mech.startswith("can"):
+                        if "soma" in sec.name():
+                            setattr(to_mech, "gbar", gbar["can"])
+                        else:
+                            setattr(to_mech, "gbar", gbar["can"]/10)
+                    if mech.startswith("cal"):
+                        if x < 250 and sec in self.trunk or "soma" in sec.name():
+                            setattr(to_mech, "gbar", gbar[mech])
+                        else:
+                            setattr(to_mech, "gbar", gbar[mech]/10)
+                            
+                                        
+
         self.radTprox1.gbar_kad = 0.1
         self.radTprox2.gbar_kad = 0.1
         self.radTmed1.gbar_kad = 0.15
