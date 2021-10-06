@@ -390,7 +390,7 @@ class CA1_PC:
                     #print("Adding simple Ca dynamics to %s" % sec.name())
                     sec.insert("cad")
                     if len(buffer_list) > 2:
-                        sec.Buffer_cad = 25
+                        #sec.Buffer_cad = 25
                         sec.cainf_cad = self.params["ca_init"]
                         #an additional buffer will change Ca dynamics
 
@@ -568,15 +568,14 @@ class CA1_PC:
             return self.params["gncx_spine"]*self.params["kcat_ncx"]
         h.distance(sec=self.soma)
         dist = h.distance(node.segment, sec=node.sec)
-        return self.params["gncx"]*self.params["kcat_ncx"]*1000/dist
+        return self.params["gncx"]*self.params["kcat_ncx"]
 
     def pmca_val(self, node):
         if "head" in node.sec.name():
             return self.params["gpmca_spine"]*self.params["kcat_pmca"]
         h.distance(sec=self.soma)
         dist = h.distance(node.segment, sec=node.sec)
-        print(node.sec.name(), node.segment, dist)
-        return self.params["gpmca"]*self.params["kcat_pmca"]*1000/dist
+        return self.params["gpmca"]*self.params["kcat_pmca"]
 
     def add_pump(self, name):
         memb_flux = False
@@ -633,8 +632,8 @@ class CA1_PC:
                 
                 # Keener and Sneyd, mathematical physiology, page 32
                 basal = self.params["ca_init"]
-                extrusion =-self.g[name]*inside /(Km_pump + inside)/(1 + self.g[name]*Km_pump/(Km_pump+inside)**2)
-                leak = self.g[name]*basal/(Km_pump + basal)/(1 + self.g[name]*Km_pump/(Km_pump+basal)**2)
+                extrusion =-self.g[name]/(Km_pump/inside + 1)#/(1 + self.g[name]*Km_pump/(Km_pump+inside)**2)
+                leak = self.g[name]/(Km_pump/basal + 1)#/(1 + self.g[name]*Km_pump/(Km_pump+basal)**2)
                                 
                 pump = rxd.Rate(inside, extrusion + leak,
                                 regions=[self.shells[key][0]])
