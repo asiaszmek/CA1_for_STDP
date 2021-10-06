@@ -245,8 +245,6 @@ class CA1_PC_basal:
             sec.insert("can")
             sec.insert("cal")
             sec.insert("cat")
-            sec.insert("kca")
-            sec.insert("cagk")
 
         for sec in self.apical:
             sec.insert("kad")
@@ -254,8 +252,6 @@ class CA1_PC_basal:
             sec.insert("can")
             sec.insert("cal")
             sec.insert("cat")
-            sec.insert("kca")
-            sec.insert("cagk")
 
         for sec in self.basal:
             sec.insert("kad")
@@ -281,8 +277,6 @@ class CA1_PC_basal:
             sec.gbar_cal =  0.0005
             sec.gbar_can = 2.26e-06
             sec.gbar_cat =  0.00005
-            sec.gbar_kca = 0.0015 
-            sec.gbar_cagk = 4.482e-05
             sec.Ra = 115.4
             sec.g_pas = 9.03e-05
 
@@ -300,8 +294,6 @@ class CA1_PC_basal:
             sec.gbar_cal = 8.03e-06
             sec.gbar_can = 2.26e-06
             sec.gbar_cat = 1.185e-06
-            sec.gbar_kca = 9.03e-05
-            sec.gbar_cagk = 4.48e-05
             sec.Ra = 115.4
             sec.g_pas = 9.03e-05
         for sec in self.trunk:
@@ -310,8 +302,6 @@ class CA1_PC_basal:
             sec.gbar_cal = 8.03e-06
             sec.gbar_can = 2.26e-06
             sec.gbar_cat = 1.18e-06
-            sec.gbar_kca = 9.0311e-05
-            sec.gbar_cagk = 4.48e-05
             sec.Ra = 115.4
             sec.g_pas = 9.03e-05
         for sec in self.basal:
@@ -320,8 +310,6 @@ class CA1_PC_basal:
             sec.gbar_cal = 8e-06
             sec.gbar_can = 2.26e-06
             sec.gbar_cat = 1.18e-06
-            sec.gbar_kca = 9.03e-05
-            sec.gbar_cagk = 4.48e-05
             sec.Ra = 115.4
             sec.g_pas = 9.03e-05
 
