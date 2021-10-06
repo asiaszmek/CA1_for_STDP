@@ -288,8 +288,9 @@ class CA1_PC:
     
     def add_head(self, number, spine_type="ball and stick",
                  where="apical_dendrite[10]",
-                 position=0.5, head_mechanisms=["pas", "kdr", "nax", "cal12", "cal13", "can",
-                                                "car", "cav33", "cav32", "kca", "cagk", 'hd',
+                 position=0.5, head_mechanisms=["pas", "kdr", "nax", "cal12",
+                                                "cal13", "can",
+                                                "car", "cav33", "cav32", 'hd',
                                                 'kad', 'kdr'],
                  head_params_dict={"Ra":120000}):
     
