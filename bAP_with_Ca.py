@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 import numpy
 from neuron import h
 from CA1 import CA1_PC
-
+import utility_functions as uf
 savepath = './figs/'
 if not os.path.exists(savepath):
     os.mkdir(savepath)
@@ -58,8 +58,9 @@ def extract_AP1_amps(v_vec_soma, v_vecs_apical_trunk, t_vec):
 
 if __name__ == "__main__":
     where_spines = []
+    dt = 0.1
     add_ER = False
-    where_ca = []#["soma", "apical"]
+    where_ca = ["soma", "apical"]
     t_stop = 5000
     cell = CA1_PC(add_ER=add_ER, where_ca=where_ca, where_spines=where_spines)
     
@@ -73,24 +74,21 @@ if __name__ == "__main__":
                   '263.63': cell.find_sec("radTdist1")(0.7),
                   '336.36': cell.find_sec("radTdist2")(0.3),
                   '354.54': cell.find_sec("radTdist2")(0.5)}
-    v_vec_soma = h.Vector().record(cell.soma(0.5)._ref_v)
+    v_vec_soma = h.Vector().record(cell.soma(0.5)._ref_v, dt)
     v_vecs_apical_trunk = OrderedDict()
-    v_vecs_apical_trunk['50'] = h.Vector().record(sec_for_Vm['50']._ref_v)
-    v_vecs_apical_trunk['150'] = h.Vector().record(sec_for_Vm['150']._ref_v)
-    v_vecs_apical_trunk['245.45'] = h.Vector().record(sec_for_Vm['245.45']._ref_v)
-    v_vecs_apical_trunk['263.63'] = h.Vector().record(sec_for_Vm['263.63']._ref_v)
-    v_vecs_apical_trunk['336.36'] = h.Vector().record(sec_for_Vm['336.36']._ref_v)
-    v_vecs_apical_trunk['354.54'] = h.Vector().record(sec_for_Vm['354.54']._ref_v)
+    v_vecs_apical_trunk['50'] = h.Vector().record(sec_for_Vm['50']._ref_v, dt)
+    v_vecs_apical_trunk['150'] = h.Vector().record(sec_for_Vm['150']._ref_v, dt)
+    v_vecs_apical_trunk['245.45'] = h.Vector().record(sec_for_Vm['245.45']._ref_v,
+                                                      dt)
+    v_vecs_apical_trunk['263.63'] = h.Vector().record(sec_for_Vm['263.63']._ref_v,
+                                                      dt)
+    v_vecs_apical_trunk['336.36'] = h.Vector().record(sec_for_Vm['336.36']._ref_v,
+                                                      dt)
+    v_vecs_apical_trunk['354.54'] = h.Vector().record(sec_for_Vm['354.54']._ref_v,
+                                                      dt)
 
-    ca_vec_soma = h.Vector().record(cell.soma(0.5)._ref_cai)
-    ca_vecs_apical_trunk = OrderedDict()
-    ca_vecs_apical_trunk['50'] = h.Vector().record(sec_for_Vm['50']._ref_cai)
-    ca_vecs_apical_trunk['150'] = h.Vector().record(sec_for_Vm['150']._ref_cai)
-    ca_vecs_apical_trunk['245.45'] = h.Vector().record(sec_for_Vm['245.45']._ref_cai)
-    ca_vecs_apical_trunk['263.63'] = h.Vector().record(sec_for_Vm['263.63']._ref_cai)
-    ca_vecs_apical_trunk['336.36'] = h.Vector().record(sec_for_Vm['336.36']._ref_cai)
-    ca_vecs_apical_trunk['354.54'] = h.Vector().record(sec_for_Vm['354.54']._ref_cai)
-
+    ca_vec_soma, header = uf.record_specie_vec(cell.ca, cell.shells["soma"][0],
+                                               dt)
     
     
     sec_list = ["soma", "radTprox1", "radTprox2", "radTmed1",
@@ -100,7 +98,7 @@ if __name__ == "__main__":
                 "rad_t2", "rad_t3"]
 
     t_vec = h.Vector()
-    t_vec.record(h._ref_t)
+    t_vec.record(h._ref_t, dt)
 
 
     cell.make_a_run(2000)
@@ -115,16 +113,14 @@ if __name__ == "__main__":
     lgd = plt.legend(bbox_to_anchor=(1.0, 1.0), loc='upper left')
     plt.savefig(savepath + 'traces.png', format='png', bbox_extra_artists=(lgd,), bbox_inches='tight')
 
-
-    fig = plt.figure(figsize=(5, 5))
-    plt.plot(t_vec, 1e6*ca_vec_soma, label='soma')
-    for vec in ca_vecs_apical_trunk:
-        plt.plot(t_vec, 1e6*ca_vecs_apical_trunk[vec], label=vec + ' um')
-    plt.xlabel('Time (ms)')
-    plt.ylabel('Ca in the shell (nM)')
-    lgd = plt.legend(bbox_to_anchor=(1.0, 1.0), loc='upper left')
-    plt.savefig(savepath + 'Ca_decay_Ca_traces.png', format='png', bbox_extra_artists=(lgd,), bbox_inches='tight')
     
+    fig = plt.figure(figsize=(5, 5))
+    plt.plot(t_vec, 1e6*ca_vec_soma[0].as_numpy(), label='soma')
+    plt.xlabel('Time (ms)')
+    plt.ylabel('Ca in the outermost shell (nM)')
+    lgd = plt.legend(bbox_to_anchor=(1.0, 1.0), loc='upper left')
+    plt.savefig(savepath + 'Ca_outermost_shell_traces.png', format='png', bbox_extra_artists=(lgd,), bbox_inches='tight')
+
     fig = plt.figure(figsize=(5, 5))
     plt.plot(t_vec, v_vec_soma, label='soma')
     for vec in v_vecs_apical_trunk:
