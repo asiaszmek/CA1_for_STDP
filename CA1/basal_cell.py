@@ -246,8 +246,6 @@ class CA1_PC_basal:
             sec.insert("cal12")
             sec.insert("cal13")
             sec.insert("cav32")
-            sec.insert("kca")
-            sec.insert("cagk")
 
         for sec in self.apical:
             sec.insert("kad")
@@ -256,8 +254,6 @@ class CA1_PC_basal:
             sec.insert("cal12")
             sec.insert("cal13")
             sec.insert("cav32")
-            sec.insert("kca")
-            sec.insert("cagk")
 
         for sec in self.basal:
             sec.insert("kad")
@@ -267,9 +263,6 @@ class CA1_PC_basal:
             sec.insert("cal12")
             sec.insert("cal13")
             sec.insert("cav32")
-
-            sec.insert("kca")
-            sec.insert("cagk")
 
         for sec in self.axonal:
              sec.insert("kmb")
@@ -289,8 +282,6 @@ class CA1_PC_basal:
             sec.gbar_cal13 =  3e-05
             sec.gbar_can = 2.26e-06
             sec.gbar_cav32 =  4*1.18e-08
-            sec.gbar_kca = 0.0015 
-            sec.gbar_cagk = 4.482e-05
             sec.Ra = 115.4
             sec.g_pas = 9.03e-05
 
@@ -309,8 +300,6 @@ class CA1_PC_basal:
             sec.gbar_cal13 = 2.5e-06
             sec.gbar_can = 1.13e-06
             sec.gbar_cav32 = 1.18e-08
-            sec.gbar_kca = 9.03e-05
-            sec.gbar_cagk = 4.48e-05
             sec.Ra = 115.4
             sec.g_pas = 9.03e-05
         for sec in self.trunk:
@@ -320,8 +309,6 @@ class CA1_PC_basal:
             sec.gbar_cal13 = 1.25e-06
             sec.gbar_can = 2.26e-05
             sec.gbar_cav32 = 2*1.18e-08
-            sec.gbar_kca = 9.0311e-05
-            sec.gbar_cagk = 4.48e-05
             sec.Ra = 115.4
             sec.g_pas = 9.03e-05
         for sec in self.basal:
@@ -331,8 +318,6 @@ class CA1_PC_basal:
             sec.gbar_cal13 = 2.5e-06
             sec.gbar_can = 1.13e-06
             sec.gbar_cav32 = 4*1.18e-08
-            sec.gbar_kca = 9.03e-05
-            sec.gbar_cagk = 4.48e-05
             sec.Ra = 115.4
             sec.g_pas = 9.03e-05
 

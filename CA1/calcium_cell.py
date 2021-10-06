@@ -385,15 +385,31 @@ class CA1_PC:
         self.sections_rxd = list(set(self.sections_rxd))
         self.add_rxd_calcium(buffer_list, pump_list)
         for sec in self.sections:
-            if sec not in self.sections_rxd:
-                if h.ismembrane("ca_ion", sec=sec):
+            if h.ismembrane("ca_ion", sec=sec):
+                if sec not in self.sections_rxd:
                     #print("Adding simple Ca dynamics to %s" % sec.name())
                     sec.insert("cad")
                     if len(buffer_list) > 2:
                         sec.Buffer_cad = 25
                         sec.cainf_cad = self.params["ca_init"]
                         #an additional buffer will change Ca dynamics
-
+                    sec.insert("cagk")
+                    sec.gbar_cagk = self.params["gbar_cagk"][sec.name()]
+                    sec.insert("kca")
+                    sec.gbar_kca = self.params["gbar_kca"][sec.name()]
+                else:
+                    sec.insert("cagkShell")
+                    sec.insert("kcaShell")
+                    sec.gbar_cagkShell = self.params["gbar_cagk"][sec.name()]
+                    sec.gbar_kcaShell = self.params["gbar_kca"][sec.name()]
+                    for counter, seg in enumerate(sec):
+                        outshell = self.shells[sec.name()][0]
+                        ca = self.ca[outshell].nodes[counter]
+                        h.setpointer(ca._ref_concentration, "Cai",
+                                     seg.cagkShell)
+                        h.setpointer(ca._ref_concentration, "Cai",
+                                     seg.kcaShell)
+                    
         h.cao0_ca_ion = self.params["Ca_Ext"]
         return
 
@@ -575,7 +591,6 @@ class CA1_PC:
             return self.params["gpmca_spine"]*self.params["kcat_pmca"]
         h.distance(sec=self.soma)
         dist = h.distance(node.segment, sec=node.sec)
-        print(node.sec.name(), node.segment, dist)
         return self.params["gpmca"]*self.params["kcat_pmca"]*1000/dist
 
     def add_pump(self, name):
