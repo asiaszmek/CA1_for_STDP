@@ -26,6 +26,7 @@ gbar = {
     "cal12": 1e-05,
     "cal13": 1e-05,
     "can": 1e-05,
+    "car": 1e-05,
 }
 class CA1_PC_basal:
     sections = []
@@ -249,6 +250,7 @@ class CA1_PC_basal:
             sec.insert("kap")
             sec.insert("hd")
             sec.insert("can")
+            sec.insert("car")
             sec.insert("cal12")
             sec.insert("cal13")
             sec.insert("cav32")
@@ -257,6 +259,7 @@ class CA1_PC_basal:
             sec.insert("kad")
             sec.insert("hd")
             sec.insert("can")
+            sec.insert("car")
             sec.insert("cal12")
             sec.insert("cal13")
             sec.insert("cav32")
@@ -325,7 +328,8 @@ class CA1_PC_basal:
                 if "soma" not in sec.name():
                     to_mech = getattr(seg, "kad")
                     setattr(to_mech, "gbar", value_gkabar)
-                for mech in ["cav32", "cav33", "can", "cal12", "cal13"]:
+                for mech in ["cav32", "cav33", "can", "cal12", "cal13",
+                             "car"]:
                     to_mech = getattr(seg, mech)
                     if mech.startswith("cav"):
                         if "soma" in sec.name():                        
@@ -344,6 +348,8 @@ class CA1_PC_basal:
                             setattr(to_mech, "gbar", gbar[mech])
                         else:
                             setattr(to_mech, "gbar", gbar[mech]/10)
+                    if mech.startswith("car"):
+                            setattr(to_mech, "gbar", gbar[mech])
                             
                                         
 
