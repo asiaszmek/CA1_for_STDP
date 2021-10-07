@@ -62,7 +62,7 @@ kb_pmca = 0.007
 kcat_pmca = 0.0035
 Km_pmca = (kb_pmca)/kf_pmca
 gpmca = 0.3
-gpmca_soma = 0.3
+gpmca_soma = 1
 gpmca_spine = 50e-3*ca_factor # {"apical_dendrite[10]": 0.1e-5*ca_factor}
 
 ncx_pow = 1
@@ -72,7 +72,7 @@ kcat_ncx = 0.0056
 Km_ncx = (kb_ncx)/kf_ncx
 #  this dynamics is more similar to quasi-steady state approx
 gncx = 0.1
-gncx_soma = 3
+gncx_soma = 4
 gncx_spine = gncx/7 #{}
 # for key in gncx:
 #     gncx_spine[key] = gncx[key]/7

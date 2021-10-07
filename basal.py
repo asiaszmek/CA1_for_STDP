@@ -10,9 +10,9 @@ if __name__ == "__main__":
     add_ER = False
     where_spines = []
     where_ca = ["soma", "apical"]
-    t_stop = 10000
+    t_stop = 5000
     cell = CA1_PC(add_ER=add_ER, where_ca=where_ca, where_spines=where_spines,
-                  buffer_list=["Calmodulin", "Calbindin", "Fixed"])
+                  buffer_list=["Calmodulin", "Calbindin", "Fixed"]) #, "OGB1"])
     section_order = [sec.name() for sec in cell.sections_rxd
                      if "head" not in sec.name()]
     
@@ -22,7 +22,7 @@ if __name__ == "__main__":
                 "lm_medium2", "lm_thin1", "lm_thin2", "rad_t1",
                 "rad_t2", "rad_t3"]
     t = h.Vector().record(h._ref_t, dt)
-    # calcium_indicator = {}
+    calcium_indicator = {}
     calcium = {}
     headers = {}
     for sec_name in sec_list:
@@ -30,8 +30,8 @@ if __name__ == "__main__":
         calcium[sec_name] = []
         headers[sec_name] = []
         for shell in cell.shells[sec_name]:
-            #ind, header = uf.record_specie_vec(cell.indicator_ca, shell, 1)
-            #calcium_indicator[sec_name].append(ind)
+            # ind, header = uf.record_specie_vec(cell.indicator_ca, shell, 1)
+            # calcium_indicator[sec_name].append(ind)
             ca, header = uf.record_specie_vec(cell.ca, shell, 1)
             calcium[sec_name].append(ca)
             headers[sec_name].append(header)

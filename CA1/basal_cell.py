@@ -21,12 +21,12 @@ my_loc = os.path.dirname(os.path.abspath(__file__))
 mechanisms_path = os.path.join(my_loc, "Mods")
 
 gbar = {
-    "cav33": 2e-09,
-    "cav32": 3e-08,
-    "cal12": 1e-07,
+    "cav33": 0, #2e-09,
+    "cav32": 1e-07,
+    "cal12": 0,#1e-07,
     "cal13": 1e-05,
-    "can": 1e-05,
-    "car": 1e-05,
+    "can": 1e-04,
+    "car": 10e-05,
 }
 class CA1_PC_basal:
     sections = []
@@ -316,6 +316,8 @@ class CA1_PC_basal:
             sec.g_pas = 9.03e-05
 
         for sec in self.apical+self.basal+self.somatic:
+            dist = neuron.h.distance(self.soma(0.5), sec(0.5))
+            
             for seg in sec:
                 x = neuron.h.distance(self.soma(0.5), seg)
                 value_e_pas = e_pas_dist(x)
@@ -334,19 +336,17 @@ class CA1_PC_basal:
                     if mech.startswith("cav"):
                         if "soma" in sec.name():
                             setattr(to_mech, "gbar", gbar[mech])
-                        elif x < 100:
+                        elif dist < 100:
                             setattr(to_mech, "gbar", gbar[mech]/5)
                         else:
                             setattr(to_mech, "gbar", 0)
-                    if mech.startswith("can"):
-                            setattr(to_mech, "gbar", gbar["can"])
-                    if mech.startswith("cal"):
+                    elif mech.startswith("cal"):
                         if "soma" in sec.name():
-                            setattr(to_mech, "gbar", gbar[mech])
+                            setattr(to_mech, "gbar", 20*gbar[mech])
                         else:
                             setattr(to_mech, "gbar", gbar[mech])
-                    if mech.startswith("car"):
-                            setattr(to_mech, "gbar", gbar[mech])
+                    else:
+                        setattr(to_mech, "gbar", gbar[mech])
                             
                                         
 
