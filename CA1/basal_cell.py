@@ -3,7 +3,7 @@ from subprocess import run
 
 from numpy import exp
 import neuron
-
+#CaV3.3 and CaV3.2 distribution: DOI:10.1152/physrev.00018.2002.
 
 def e_pas_dist(x):
     return -65.73-5*x/150
@@ -21,7 +21,7 @@ my_loc = os.path.dirname(os.path.abspath(__file__))
 mechanisms_path = os.path.join(my_loc, "Mods")
 
 gbar = {
-    "cav33": 1e-08,
+    "cav33": 2e-09,
     "cav32": 3e-08,
     "cal12": 1e-05,
     "cal13": 1e-05,
@@ -332,10 +332,10 @@ class CA1_PC_basal:
                              "car"]:
                     to_mech = getattr(seg, mech)
                     if mech.startswith("cav"):
-                        if "soma" in sec.name():                        
+                        if "soma" in sec.name():
                             setattr(to_mech, "gbar", gbar[mech])
-                        elif x < 350:
-                            setattr(to_mech, "gbar", gbar[mech]/10)
+                        elif x < 100:
+                            setattr(to_mech, "gbar", gbar[mech]/5)
                         else:
                             setattr(to_mech, "gbar", 0)
                     if mech.startswith("can"):
