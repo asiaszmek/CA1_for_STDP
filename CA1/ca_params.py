@@ -71,8 +71,8 @@ kb_ncx = 0.0112
 kcat_ncx = 0.0056
 Km_ncx = (kb_ncx)/kf_ncx
 #  this dynamics is more similar to quasi-steady state approx
-gncx = 0.01
-gncx_soma = 0.1
+gncx = 0.1
+gncx_soma = 3
 gncx_spine = gncx/7 #{}
 # for key in gncx:
 #     gncx_spine[key] = gncx[key]/7

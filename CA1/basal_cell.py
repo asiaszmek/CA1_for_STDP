@@ -23,7 +23,7 @@ mechanisms_path = os.path.join(my_loc, "Mods")
 gbar = {
     "cav33": 2e-09,
     "cav32": 3e-08,
-    "cal12": 1e-05,
+    "cal12": 1e-07,
     "cal13": 1e-05,
     "can": 1e-05,
     "car": 1e-05,
@@ -339,15 +339,12 @@ class CA1_PC_basal:
                         else:
                             setattr(to_mech, "gbar", 0)
                     if mech.startswith("can"):
-                        if "soma" in sec.name():
                             setattr(to_mech, "gbar", gbar["can"])
-                        else:
-                            setattr(to_mech, "gbar", gbar["can"]/10)
                     if mech.startswith("cal"):
-                        if x < 250 and sec in self.trunk or "soma" in sec.name():
+                        if "soma" in sec.name():
                             setattr(to_mech, "gbar", gbar[mech])
                         else:
-                            setattr(to_mech, "gbar", gbar[mech]/10)
+                            setattr(to_mech, "gbar", gbar[mech])
                     if mech.startswith("car"):
                             setattr(to_mech, "gbar", gbar[mech])
                             
