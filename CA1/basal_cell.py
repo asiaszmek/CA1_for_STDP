@@ -6,7 +6,7 @@ import neuron
 
 
 def e_pas_dist(x):
-    return -65.73-5*x/150
+    return -65
 
 
 def ghdbar_dist(x):

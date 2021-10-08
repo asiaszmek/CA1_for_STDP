@@ -4,7 +4,8 @@ import numpy as np
 from neuron import rxd, h
 from .ca_params import *
 from .basal_cell import CA1_PC_basal
-inc_fac = 2
+inc_fac = 3
+
 
 
 # Nomenclature and values adapted from Harris KM, Jensen FE, Tsao BE.
@@ -583,6 +584,8 @@ class CA1_PC:
     def ncx_val(self, node):
         if "head" in node.sec.name():
             return self.params["gncx_spine"]*self.params["kcat_ncx"]
+        if "soma" in node.sec.name():
+            return self.params["gncx_soma"]*self.params["kcat_ncx"]
         h.distance(sec=self.soma)
         dist = h.distance(node.segment, sec=node.sec)
         return self.params["gncx"]*self.params["kcat_ncx"]
@@ -590,6 +593,9 @@ class CA1_PC:
     def pmca_val(self, node):
         if "head" in node.sec.name():
             return self.params["gpmca_spine"]*self.params["kcat_pmca"]
+        if "soma" in node.sec.name():
+            return self.params["gpmca_soma"]*self.params["kcat_pmca"]
+        
         h.distance(sec=self.soma)
         dist = h.distance(node.segment, sec=node.sec)
         return self.params["gpmca"]*self.params["kcat_pmca"]
@@ -649,8 +655,8 @@ class CA1_PC:
                 
                 # Keener and Sneyd, mathematical physiology, page 32
                 basal = self.params["ca_init"]
-                extrusion =-self.g[name]/(Km_pump/inside + 1)#/(1 + self.g[name]*Km_pump/(Km_pump+inside)**2)
-                leak = self.g[name]/(Km_pump/basal + 1)#/(1 + self.g[name]*Km_pump/(Km_pump+basal)**2)
+                extrusion =-self.g[name]/(Km_pump/inside + 1)
+                leak = self.g[name]/(Km_pump/basal + 1)
                                 
                 pump = rxd.Rate(inside, extrusion + leak,
                                 regions=[self.shells[key][0]])

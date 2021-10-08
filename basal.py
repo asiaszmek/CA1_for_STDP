@@ -10,7 +10,7 @@ if __name__ == "__main__":
     add_ER = False
     where_spines = []
     where_ca = ["soma", "apical"]
-    t_stop = 50000
+    t_stop = 5000
     cell = CA1_PC(add_ER=add_ER, where_ca=where_ca, where_spines=where_spines,
                   buffer_list=["Calmodulin", "Calbindin", "Fixed"])
     section_order = [sec.name() for sec in cell.sections_rxd
