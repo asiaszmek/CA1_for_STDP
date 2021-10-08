@@ -120,7 +120,7 @@ membrane_shell_width = .1
 
 
 gbar_kca = {
-    "soma": 0.002,
+    "soma": 0.0015,
     "radTprox1": 9.03e-05,
     "radTprox2": 9.03e-05,
     "radTmed1": 9.03e-05,
@@ -144,7 +144,7 @@ gbar_kca = {
     "oridist2_2": 9.03e-05,
 }
 
-gbar_bk = {
+gbar_cagk = {
     "soma": 4.48e-05,
     "radTprox1": 4.48e-05,
     "radTprox2": 4.48e-05,
