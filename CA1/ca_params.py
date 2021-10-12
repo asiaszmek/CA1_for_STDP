@@ -121,12 +121,9 @@ membrane_shell_width = .1
 
 gbar_kca = {
     "soma": 0.0015,
-    "radTprox1": 9.03e-05,
-    "radTprox2": 9.03e-05,
-    "radTmed1": 9.03e-05,
-    "radTmed2": 9.03e-05,
-    "radTdist1": 9.03e-05,
-    "radTdist2": 9.03e-05,
+    "radTprox": 9.03e-05,
+    "radTmed": 9.03e-05,
+    "radTdist": 9.03e-05,
     "lm_thick1": 9.03e-05,
     "lm_thick2": 9.03e-05,
     "lm_medium1": 9.03e-05,
@@ -146,12 +143,9 @@ gbar_kca = {
 
 gbar_cagk = {
     "soma": 4.48e-05,
-    "radTprox1": 4.48e-05,
-    "radTprox2": 4.48e-05,
-    "radTmed1": 4.48e-05,
-    "radTmed2": 4.48e-05,
-    "radTdist1": 4.48e-05,
-    "radTdist2": 4.48e-05,
+    "radTprox": 4.48e-05,
+    "radTmed": 4.48e-05,
+    "radTdist": 4.48e-05,
     "lm_thick1": 4.48e-05,
     "lm_thick2": 4.48e-05,
     "lm_medium1": 4.48e-05,

@@ -30,12 +30,9 @@ class CA1_PC_basal:
 
     def make_sections(self):
         self.soma = neuron.h.Section(name="soma")
-        self.radTprox1 = neuron.h.Section(name="radTprox1")
-        self.radTprox2 = neuron.h.Section(name="radTprox2")
-        self.radTmed1 = neuron.h.Section(name="radTmed1")
-        self.radTmed2 = neuron.h.Section(name="radTmed2")
-        self.radTdist1 = neuron.h.Section(name="radTdist1")
-        self.radTdist2 = neuron.h.Section(name="radTdist2")
+        self.radTprox = neuron.h.Section(name="radTprox")
+        self.radTmed = neuron.h.Section(name="radTmed")
+        self.radTdist = neuron.h.Section(name="radTdist")
         self.lm_thick1 = neuron.h.Section(name="lm_thick1")
         self.lm_thick2 = neuron.h.Section(name="lm_thick2")
         self.lm_medium1 = neuron.h.Section(name="lm_medium1")
@@ -54,20 +51,17 @@ class CA1_PC_basal:
         self.rad_t3 = neuron.h.Section(name="rad_t3")
         
     def connections(self):
-        self.radTprox1.connect(self.soma(1))
-        self.radTprox2.connect(self.radTprox1(1))
-        self.radTmed1.connect(self.radTprox2(1))
-        self.radTmed2.connect(self.radTmed1(1))
-        self.radTdist1.connect(self.radTmed2(1))
-        self.radTdist2.connect(self.radTdist1(1))
-        self.rad_t1.connect(self.radTprox1(0.5))
-        self.rad_t2.connect(self.radTmed1(1))
-        self.rad_t3.connect(self.radTdist1(1))
+        self.radTprox.connect(self.soma(1))
+        self.radTmed.connect(self.radTprox(1))
+        self.radTdist.connect(self.radTmed(1))
+        self.rad_t1.connect(self.radTprox(0.5))
+        self.rad_t2.connect(self.radTmed(0.5))
+        self.rad_t3.connect(self.radTdist(0.5))
         
-        self.lm_thick2.connect(self.radTdist2(1))
+        self.lm_thick2.connect(self.radTdist(1))
         self.lm_medium2.connect(self.lm_thick2(1))
         self.lm_thin2.connect(self.lm_medium2(1))
-        self.lm_thick1.connect(self.radTdist2(1))
+        self.lm_thick1.connect(self.radTdist(1))
         self.lm_medium1.connect(self.lm_thick1(1))
         self.lm_thin1.connect(self.lm_medium1(1))
 
@@ -80,33 +74,29 @@ class CA1_PC_basal:
         self.axon.connect(self.soma(1))
 
     def make_lists(self):
-        self.sections = [self.soma, self.axon, self.radTprox1,
-                         self.radTprox2, self.radTmed1, self.radTmed2,
-                         self.radTdist1,
-                         self.radTdist2, self.lm_thick2, self.lm_medium2,
-                         self.lm_thin2,
+        self.sections = [self.soma,  self.radTprox,
+                         self.radTmed, self.radTdist,
+                         self.rad_t1, self.rad_t2, self.rad_t3,
+                         self.lm_thick2, self.lm_medium2, self.lm_thin2,
                          self.lm_thick1,self.lm_medium1, self.lm_thin1,
                          self.oriprox1, self.oridist1_1, self.oridist1_2,
                          self.oriprox2, self.oridist2_1, self.oridist2_2,
-                         self.rad_t1, self.rad_t2, self.rad_t3]
+                         self.axon,]
 
         self.somatic = [self.soma]
         self.axonal = [self.axon]
-        self.apical = [self.radTprox1, self.radTprox2, self.radTmed1,
-                       self.radTmed2, self.radTdist1,
-                       self.radTdist2, self.rad_t1, self.rad_t2, self.rad_t3,
+        self.apical = [self.radTprox, 
+                       self.radTmed,
+                       self.radTdist, self.rad_t1, self.rad_t2, self.rad_t3,
                        self.lm_thick2, self.lm_medium2,
                        self.lm_thin2, self.lm_thick1, self.lm_medium1,
                        self.lm_thin1]
         self.basal = [self.oriprox1, self.oridist1_1, self.oridist1_2,
                       self.oriprox2, self.oridist2_1, self.oridist2_2]
         self.trunk = [
-            self.radTprox1,
-            self.radTprox2,
-            self.radTmed1,
-            self.radTmed2,
-            self.radTdist1,
-            self.radTdist2,
+            self.radTprox,
+            self.radTmed,
+            self.radTdist,
         ]
         self.oblique = [self.rad_t2]
 
@@ -115,18 +105,12 @@ class CA1_PC_basal:
             neuron.h.pt3dclear(sec=sec)
         neuron.h.pt3dadd(0, 0, 0, 1, sec=self.soma)
         neuron.h.pt3dadd(15, 0, 0, 1, sec=self.soma)
-        neuron.h.pt3dadd(15, 0, 0, 1, sec=self.radTprox1)
-        neuron.h.pt3dadd(15, 15, 0, 1, sec=self.radTprox1)
-        neuron.h.pt3dadd(15, 15, 0, 1, sec=self.radTprox2)
-        neuron.h.pt3dadd(15, 30, 0, 1, sec=self.radTprox2)
-        neuron.h.pt3dadd(15, 30, 0, 1, sec=self.radTmed1)
-        neuron.h.pt3dadd(15, 45, 0, 1, sec=self.radTmed1)
-        neuron.h.pt3dadd(15, 45, 0, 1, sec=self.radTmed2)
-        neuron.h.pt3dadd(15, 60, 0, 1, sec=self.radTmed2)
-        neuron.h.pt3dadd(15, 60, 0, 1, sec=self.radTdist1)
-        neuron.h.pt3dadd(15, 75, 0, 1, sec=self.radTdist1)
-        neuron.h.pt3dadd(15, 75, 0, 1, sec=self.radTdist2)
-        neuron.h.pt3dadd(15, 90, 0, 1, sec=self.radTdist2)
+        neuron.h.pt3dadd(15, 0, 0, 1, sec=self.radTprox)
+        neuron.h.pt3dadd(15, 30, 0, 1, sec=self.radTprox)
+        neuron.h.pt3dadd(15, 30, 0, 1, sec=self.radTmed)
+        neuron.h.pt3dadd(15, 60, 0, 1, sec=self.radTmed)
+        neuron.h.pt3dadd(15, 60, 0, 1, sec=self.radTdist)
+        neuron.h.pt3dadd(15, 90, 0, 1, sec=self.radTdist)
         neuron.h.pt3dadd(15, 15, 0, 1, sec=self.rad_t1)
         neuron.h.pt3dadd(75, 45, 0, 1, sec=self.rad_t1)
         neuron.h.pt3dadd(15, 45, 0, 1, sec=self.rad_t2)
@@ -165,18 +149,12 @@ class CA1_PC_basal:
     def geometry(self):
         self.soma.L = 10
         self.soma.diam = 10
-        self.radTprox1.L = 50
-        self.radTprox1.diam = 4
-        self.radTprox2.L = 50
-        self.radTprox2.diam = 4
-        self.radTmed1.L = 50
-        self.radTmed1.diam = 3
-        self.radTmed2.L = 50
-        self.radTmed2.diam = 3
-        self.radTdist1.L = 100
-        self.radTdist1.diam = 2
-        self.radTdist2.L = 100
-        self.radTdist2.diam = 2
+        self.radTprox.L = 100
+        self.radTprox.diam = 4
+        self.radTmed.L = 100
+        self.radTmed.diam = 3
+        self.radTdist.L = 200
+        self.radTdist.diam = 2
         self.rad_t1.L = 150
         self.rad_t1.diam = 1
         self.rad_t2.L = 150
@@ -326,12 +304,9 @@ class CA1_PC_basal:
                 if "soma" not in sec.name():
                     to_mech = getattr(seg, "kad")
                     setattr(to_mech, "gbar", value_gkabar)
-        self.radTprox1.gbar_kad = 0.1
-        self.radTprox2.gbar_kad = 0.1
-        self.radTmed1.gbar_kad = 0.15
-        self.radTmed2.gbar_kad = 0.15
+        self.radTprox.gbar_kad = 0.1
+        self.radTmed.gbar_kad = 0.15
         self.rad_t2.gbar_kad = 0.1
         self.rad_t2.gbar_nax = 0.038
         self.rad_t2.gbar_kdr = 0.002
-        self.radTdist1.gbar_kad = 0.2
-        self.radTdist2.gbar_kad = 0.2
+        self.radTdist.gbar_kad = 0.2
