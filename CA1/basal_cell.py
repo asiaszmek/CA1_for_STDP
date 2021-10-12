@@ -9,10 +9,6 @@ def e_pas_dist(x):
     return -65
 
 
-def ghdbar_dist(x):
-    return (1. + 3./100. * x)*1.90e-05
-
-
 def gkabar_dist(x):
     return (15./(1. + exp((300-x)/50)))* 0.013
 
@@ -255,6 +251,7 @@ class CA1_PC_basal:
             sec.gbar_cal =  0.0005
             sec.gbar_can = 2.26e-06
             sec.gbar_cat =  0.00005
+            sec.gbar_hd = 1.9e-5
             sec.Ra = 115.4
             sec.g_pas = 9.03e-05
 
@@ -265,7 +262,7 @@ class CA1_PC_basal:
             sec.gbar_kap = 0.164
             sec.Ra = 85.20
             sec.g_pas = 0.00013
-            sec.e_pas = -79.92
+            sec.e_pas = -79.9
         for sec in self.apical: 
             sec.gbar_kdr = 0.0043
             sec.gbar_nax = 0.0383
@@ -274,33 +271,32 @@ class CA1_PC_basal:
             sec.gbar_cat = 1.185e-06
             sec.Ra = 115.4
             sec.g_pas = 9.03e-05
+            sec.gbar_hd = 1.9e-5*10
         for sec in self.trunk:
             sec.gbar_kdr = 0.02
             sec.gbar_nax = 0.025
             sec.gbar_cal = 8.03e-06
             sec.gbar_can = 2.26e-06
-            sec.gbar_cat = 1.18e-06
+            sec.gbar_cat = 1.185e-06
             sec.Ra = 115.4
             sec.g_pas = 9.03e-05
         for sec in self.basal:
             sec.gbar_kdr = 0.0043
             sec.gbar_nax = 0.0383
-            sec.gbar_cal = 8e-06
+            sec.gbar_cal = 8.03e-06
             sec.gbar_can = 2.26e-06
-            sec.gbar_cat = 1.18e-06
+            sec.gbar_cat = 1.185e-06
             sec.Ra = 115.4
             sec.g_pas = 9.03e-05
+            sec.gbar_hd = 1.9e-5*5
 
         for sec in self.apical+self.basal+self.somatic:
             for seg in sec:
                 x = neuron.h.distance(self.soma(0.5), seg)
                 value_e_pas = e_pas_dist(x)
-                value_ghdbar = ghdbar_dist(x)
                 value_gkabar = gkabar_dist(x)
                 to_mech = getattr(seg, "pas")
                 setattr(to_mech, "e", value_e_pas)
-                to_mech = getattr(seg, "hd")
-                setattr(to_mech, "gbar", value_ghdbar)
                 if "soma" not in sec.name():
                     to_mech = getattr(seg, "kad")
                     setattr(to_mech, "gbar", value_gkabar)
