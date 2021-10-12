@@ -5,13 +5,6 @@ from numpy import exp
 import neuron
 #CaV3.3 and CaV3.2 distribution: DOI:10.1152/physrev.00018.2002.
 
-def e_pas_dist(x):
-    return -65.73-5*x/150
-
-
-def ghdbar_dist(x):
-    return (1. + 3./100. * x)*1.90e-05
-
 
 def gkabar_dist(x):
     return (15./(1. + exp((300-x)/50)))* 0.013
@@ -260,6 +253,7 @@ class CA1_PC_basal:
             sec.cm = 1
             sec.ena = 50
             sec.ek = -90
+            sec.e_pas = -65
         for sec in self.somatic:
             sec.gbar_kap = 0.0075
             sec.gbar_kmb = 0.001 
@@ -299,11 +293,8 @@ class CA1_PC_basal:
             
             for seg in sec:
                 x = neuron.h.distance(self.soma(0.5), seg)
-                value_e_pas = e_pas_dist(x)
-                value_gkabar = gkabar_dist(x)
-                to_mech = getattr(seg, "pas")
-                setattr(to_mech, "e", value_e_pas)
                 if "soma" not in sec.name():
+                    value_gkabar = gkabar_dist(x)
                     to_mech = getattr(seg, "kad")
                     setattr(to_mech, "gbar", value_gkabar)
                 for mech in ["cav32", "cav33", "can", "cal12", "cal13",
