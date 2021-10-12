@@ -6,10 +6,6 @@ import neuron
 #CaV3.3 and CaV3.2 distribution: DOI:10.1152/physrev.00018.2002.
 
 
-def gkabar_dist(x):
-    return (15./(1. + exp((300-x)/50)))* 0.013
-
-
 my_loc = os.path.dirname(os.path.abspath(__file__))
 mechanisms_path = os.path.join(my_loc, "Mods")
 
@@ -288,15 +284,22 @@ class CA1_PC_basal:
             sec.g_pas = 9.03e-05
             sec.gbar_hd = 1.9e-5*5
 
+        for sec in self.apical:
+            if sec.name() in ["radTprox", "rad_t2"]:
+                sec.gbar_kad = 0.1
+            elif sec.name() in ["redTmed", "rad_t1"]:
+                sec.gbar_kad = 0.15
+            else:
+                sec.gbar_kad = 0.2
+        for sec in self.basal:
+            if sec.name() in ["oriprox1", "oriprox2"]:
+                sec.gbar_kad = 0.002
+            else:
+                sec.gbar_kad = 0.01
+                
         for sec in self.apical+self.basal+self.somatic:
             dist = neuron.h.distance(self.soma(0.5), sec(0.5))
-            
             for seg in sec:
-                x = neuron.h.distance(self.soma(0.5), seg)
-                if "soma" not in sec.name():
-                    value_gkabar = gkabar_dist(x)
-                    to_mech = getattr(seg, "kad")
-                    setattr(to_mech, "gbar", value_gkabar)
                 for mech in ["cav32", "cav33", "can", "cal12", "cal13",
                              "car"]:
                     to_mech = getattr(seg, mech)
@@ -316,10 +319,5 @@ class CA1_PC_basal:
                         setattr(to_mech, "gbar", gbar[mech])
                             
                                         
-
-        self.radTprox.gbar_kad = 0.1
-        self.radTmed.gbar_kad = 0.15
-        self.rad_t2.gbar_kad = 0.1
         self.rad_t2.gbar_nax = 0.038
         self.rad_t2.gbar_kdr = 0.002
-        self.radTdist.gbar_kad = 0.2
