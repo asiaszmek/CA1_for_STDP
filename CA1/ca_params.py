@@ -100,12 +100,12 @@ fluo3Diff = 15e-3 # um^2/ms take Fluo5's
 tot_BF2 = 0.1 # bis-Fura-2, 100 uM, Frick, Migliore, Johnston
 kf_BF2 = 6e2 # 0.53uM DOI: 10.1117/1.NPh.2.2.021010 
 kb_BF2 = 0.318
-BF2Diff = .66
+BF2Diff = .066
 
 tot_OGB1 = 0.2 # Oregon Green 488 BAPTA-1
 kf_OGB1 = 6e2
 kb_OGB1 = 0.126
-OGB1Diff = .66
+OGB1Diff = .066
 
 diffusions = {"Calmodulin": camDiff,
               "Calbindin": calbDiff,

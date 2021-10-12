@@ -16,8 +16,8 @@ if __name__ == "__main__":
     section_order = [sec.name() for sec in cell.sections_rxd
                      if "head" not in sec.name()]
     
-    sec_list = ["soma", "radTprox1", "radTprox2", "radTmed1",
-                "radTmed2", "radTdist1", "radTdist2", "lm_thick1",
+    sec_list = ["soma", "radTprox", "radTmed",
+                "radTdist", "lm_thick1",
                 "lm_thick2", "lm_medium1",
                 "lm_medium2", "lm_thin1", "lm_thin2", "rad_t1",
                 "rad_t2", "rad_t3"]
