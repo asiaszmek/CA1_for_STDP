@@ -197,7 +197,7 @@ class CA1_PC_basal:
         
     def geom_nseg(self):
         for sec in self.sections:
-            sec.nseg = 1 + 2*int(sec.L/40)
+            sec.nseg = 1 + 2*int(sec.L/80)
         
     def load_neuron(self):
         working_dir = os.getcwd()
