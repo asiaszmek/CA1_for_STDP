@@ -1,99 +1,57 @@
-TITLE decay of internal calcium concentration
-:
-: Internal calcium concentration due to calcium currents and pump.
-: Differential equations.
-:
-: Simple model of ATPase pump with 3 kinetic constants (Destexhe 92)
-:     Cai + P <-> CaP -> Cao + P  (k1,k2,k3)
-: A Michaelis-Menten approximation is assumed, which reduces the complexity
-: of the system to 2 parameters: 
-:       kt = <tot enzyme concentration> * k3  -> TIME CONSTANT OF THE PUMP
-:	kd = k2/k1 (dissociation constant)    -> EQUILIBRIUM CALCIUM VALUE
-: The values of these parameters are chosen assuming a high affinity of 
-: the pump to calcium and a low transport capacity (cfr. Blaustein, 
-: TINS, 11: 438, 1988, and references therein).  
-:
-: Units checked using "modlunit" -> factor 10000 needed in ca entry
-:
-: VERSION OF PUMP + DECAY (decay can be viewed as simplified buffering)
-:
-: All variables are range variables
-:
-:
-: This mechanism was published in:  Destexhe, A. Babloyantz, A. and 
-: Sejnowski, TJ.  Ionic mechanisms for intrinsic slow oscillations in
-: thalamic relay neurons. Biophys. J. 65: 1538-1552, 1993)
-:
-: Written by Alain Destexhe, Salk Institute, Nov 12, 1992
-:
-: This file was modified by Yiota Poirazi (poirazi@LNC.usc.edu) on April 18, 2001 to account for the sharp
-: Ca++ spike repolarization observed in: Golding, N. Jung H-Y., Mickus T. and Spruston N
-: "Dendritic Calcium Spike Initiation and Repolarization are controlled by distinct potassium channel
-: subtypes in CA1 pyramidal neurons". J. of Neuroscience 19(20) 8789-8798, 1999.
-:
-:  factor 10000 is replaced by 10000/18 needed in ca entry
-:  taur --rate of calcium removal-- is replaced by taur*7 (7 times faster) 
-
-
-INDEPENDENT {t FROM 0 TO 1 WITH 1 (ms)}
+COMMENT
+	calcium accumulation into a volume of area*depth next to the
+	membrane with a decay (time constant tau) to resting level
+	given by the global calcium variable cai0_ca_ion
+	Modified to include a resting current (irest) and peak value
+	(cmax)
+	i is a dummy current needed to force a BREAKPOINT
+ENDCOMMENT
 
 NEURON {
 	SUFFIX cad
-	USEION ca READ ica, cai WRITE cai	
-        RANGE ca, Buffer
-	RANGE depth, cainf, taur
+	USEION ca READ ica WRITE cai
+	NONSPECIFIC_CURRENT i
+	RANGE depth, tau, cai0, cmax
 }
 
 UNITS {
-	(molar) = (1/liter)			: moles do not appear in units
-	(mM)	= (millimolar)
-	(um)	= (micron)
-	(mA)	= (milliamp)
-	(msM)	= (ms mM)
-	FARADAY = (faraday) (coulomb)
+	(mM) = (milli/liter)
+	(mA) = (milliamp)
+	F = (faraday) (coulombs)
 }
-
 
 PARAMETER {
-	depth	= .1	(um)		: depth of shell
-	taur	= 20	(ms)		: rate of calcium removal
-	cainf	= 100e-6(mM)
-	Buffer = 1     (mM)
-	cai		(mM)
-}
-
-STATE {
-	ca		(mM) 
-}
-
-INITIAL {
-	ca = cainf
+	depth = 0.1 (um)	: assume volume = area*depth
+	irest = 0  (mA/cm2)		: to be initialized in hoc	
+	tau = 100 (ms)
+	cai0 = 50e-6 (mM)	: Requires explicit use in INITIAL
+			: block for it to take precedence over cai0_ca_ion
+			: Do not forget to initialize in hoc if different
+			: from this default.
 }
 
 ASSIGNED {
-	ica		(mA/cm2)
-	drive_channel	(mM/ms)
+	ica (mA/cm2)
+	cmax
+	i  	 (mA/cm2)
 }
-	
+
+STATE {
+	cai (mM)
+}
+
+INITIAL {
+	cai = cai0
+	:irest = ica
+	cmax=cai
+}
+
 BREAKPOINT {
-	SOLVE state METHOD cnexp
+	SOLVE integrate METHOD derivimplicit
+	if (cai>cmax) {cmax=cai}
+	i=0
 }
 
-DERIVATIVE state { 
-
-	drive_channel =  - (10000) * ica / (2 * FARADAY * depth)
-	if (drive_channel <= 0.) { drive_channel = 0.  }   : cannot pump inward 
-         
-	ca' = drive_channel/Buffer + (cainf-ca)/taur
-      : ca' = drive_channel/20 + (cainf -ca)/(taur*9)
-       
-  
-
-	cai = ca
+DERIVATIVE integrate {
+	cai' = (irest-ica)/depth/F/2 * (1e4) + (cai0 - cai)/tau
 }
-
-
-
-
-
-

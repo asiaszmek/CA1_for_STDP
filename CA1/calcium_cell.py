@@ -391,9 +391,9 @@ class CA1_PC:
                 if sec not in self.sections_rxd:
                     #print("Adding simple Ca dynamics to %s" % sec.name())
                     sec.insert("cad")
-                    if len(buffer_list) > 2:
+                    #if len(buffer_list) > 2:
                         #sec.Buffer_cad = 25
-                        sec.cainf_cad = self.params["ca_init"]
+                        #sec.cainf_cad = self.params["ca_init"]
                         #an additional buffer will change Ca dynamics
                     sec.insert("cagk")
                     sec.gbar_cagk = self.params["gbar_cagk"][sec.name()]
