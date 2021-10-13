@@ -5,14 +5,6 @@ from numpy import exp
 import neuron
 
 
-def e_pas_dist(x):
-    return -65
-
-
-def gkabar_dist(x):
-    return (15./(1. + exp((300-x)/50)))* 0.013
-
-
 my_loc = os.path.dirname(os.path.abspath(__file__))
 mechanisms_path = os.path.join(my_loc, "Mods")
 
@@ -243,6 +235,7 @@ class CA1_PC_basal:
             sec.cm = 1
             sec.ena = 50
             sec.ek = -90
+            sec.e_pas = -65
         for sec in self.somatic:
             sec.gbar_kap = 0.0075
             sec.gbar_kmb = 0.001 
@@ -254,7 +247,6 @@ class CA1_PC_basal:
             sec.gbar_hd = 1.9e-5
             sec.Ra = 115.4
             sec.g_pas = 9.03e-05
-
         for sec in self.axonal:
             sec.gbar_nax = 0.035 #0.21113423945477339
             sec.gbar_kdr = 0.012
@@ -289,20 +281,18 @@ class CA1_PC_basal:
             sec.Ra = 115.4
             sec.g_pas = 9.03e-05
             sec.gbar_hd = 1.9e-5*5
+        for sec in self.apical:
+            if sec.name() in ["radTprox", "rad_t2"]:
+                sec.gbar_kad = 0.1
+            elif sec.name() in ["redTmed", "rad_t1"]:
+                sec.gbar_kad = 0.15
+            else:
+                sec.gbar_kad = 0.2
+        for sec in self.basal:
+            if sec.name() in ["oriprox1", "oriprox2"]:
+                sec.gbar_kad = 0.002
+            else:
+                sec.gbar_kad = 0.01
 
-        for sec in self.apical+self.basal+self.somatic:
-            for seg in sec:
-                x = neuron.h.distance(self.soma(0.5), seg)
-                value_e_pas = e_pas_dist(x)
-                value_gkabar = gkabar_dist(x)
-                to_mech = getattr(seg, "pas")
-                setattr(to_mech, "e", value_e_pas)
-                if "soma" not in sec.name():
-                    to_mech = getattr(seg, "kad")
-                    setattr(to_mech, "gbar", value_gkabar)
-        self.radTprox.gbar_kad = 0.1
-        self.radTmed.gbar_kad = 0.15
-        self.rad_t2.gbar_kad = 0.1
         self.rad_t2.gbar_nax = 0.038
         self.rad_t2.gbar_kdr = 0.002
-        self.radTdist.gbar_kad = 0.2
