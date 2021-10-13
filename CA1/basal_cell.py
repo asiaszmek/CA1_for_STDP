@@ -86,7 +86,7 @@ class CA1_PC_basal:
             self.radTmed,
             self.radTdist,
         ]
-        self.oblique = [self.rad_t2]
+        self.oblique = [self.rad_t1, self.rad_t2, self.rad_t3]
 
     def make_basic_shape(self):
         for sec in self.sections:
@@ -242,8 +242,8 @@ class CA1_PC_basal:
             sec.gbar_kdr = 0.0015
             sec.gbar_nax = 0.035 
             sec.gbar_cal =  0.0005
-            sec.gbar_can = 2.26e-06
-            sec.gbar_cat =  0.00005
+            sec.gbar_can = 2.26e-05
+            sec.gbar_cat =  0.000005
             sec.gbar_hd = 1.9e-5
             sec.Ra = 115.4
             sec.g_pas = 9.03e-05
@@ -256,43 +256,40 @@ class CA1_PC_basal:
             sec.g_pas = 0.00013
             sec.e_pas = -79.9
         for sec in self.apical: 
-            sec.gbar_kdr = 0.0043
+            sec.gbar_kdr = 0.0033
             sec.gbar_nax = 0.0383
-            sec.gbar_cal = 8.03e-06
-            sec.gbar_can = 2.26e-06
-            sec.gbar_cat = 1.185e-06
+            sec.gbar_cal = 8.03e-05
+            sec.gbar_can = 2.26e-05
+            sec.gbar_cat = 1.185e-07
             sec.Ra = 115.4
             sec.g_pas = 9.03e-05
             sec.gbar_hd = 1.9e-5*10
         for sec in self.trunk:
             sec.gbar_kdr = 0.02
             sec.gbar_nax = 0.025
-            sec.gbar_cal = 8.03e-06
-            sec.gbar_can = 2.26e-06
-            sec.gbar_cat = 1.185e-06
+            sec.gbar_cal = 8.03e-05
+            sec.gbar_can = 2.26e-05
+            sec.gbar_cat = 1.185e-07
             sec.Ra = 115.4
             sec.g_pas = 9.03e-05
         for sec in self.basal:
             sec.gbar_kdr = 0.0043
             sec.gbar_nax = 0.0383
-            sec.gbar_cal = 8.03e-06
-            sec.gbar_can = 2.26e-06
-            sec.gbar_cat = 1.185e-06
+            sec.gbar_cal = 8.03e-05
+            sec.gbar_can = 2.26e-05
+            sec.gbar_cat = 1.185e-07
             sec.Ra = 115.4
             sec.g_pas = 9.03e-05
             sec.gbar_hd = 1.9e-5*5
         for sec in self.apical:
-            if sec.name() in ["radTprox", "rad_t2"]:
+            if sec.name() in ["radTprox", "rad_t1"]:
                 sec.gbar_kad = 0.1
-            elif sec.name() in ["redTmed", "rad_t1"]:
+            elif sec.name() in ["redTmed", "rad_t2"]:
                 sec.gbar_kad = 0.15
             else:
-                sec.gbar_kad = 0.2
+                sec.gbar_kad = 0.17
         for sec in self.basal:
             if sec.name() in ["oriprox1", "oriprox2"]:
                 sec.gbar_kad = 0.002
             else:
                 sec.gbar_kad = 0.01
-
-        self.rad_t2.gbar_nax = 0.038
-        self.rad_t2.gbar_kdr = 0.002

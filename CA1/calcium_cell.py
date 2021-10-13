@@ -4,7 +4,7 @@ import numpy as np
 from neuron import rxd, h
 from .ca_params import *
 from .basal_cell import CA1_PC_basal
-inc_fac = 3
+inc_fac = 2.5
 
 
 
@@ -598,6 +598,8 @@ class CA1_PC:
         
         h.distance(sec=self.soma)
         dist = h.distance(node.segment, sec=node.sec)
+        if dist > 400:
+            return self.params["gpmca"]*self.params["kcat_pmca"]*2
         return self.params["gpmca"]*self.params["kcat_pmca"]
 
     def add_pump(self, name):
