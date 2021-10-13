@@ -235,7 +235,6 @@ class CA1_PC_basal:
             sec.cm = 1
             sec.ena = 50
             sec.ek = -90
-            sec.e_pas = -65
         for sec in self.somatic:
             sec.gbar_kap = 0.0075
             sec.gbar_kmb = 0.001 
@@ -254,7 +253,6 @@ class CA1_PC_basal:
             sec.gbar_kap = 0.164
             sec.Ra = 85.20
             sec.g_pas = 0.00013
-            sec.e_pas = -79.9
         for sec in self.apical: 
             sec.gbar_kdr = 0.0033
             sec.gbar_nax = 0.0383

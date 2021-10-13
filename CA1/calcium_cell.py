@@ -165,6 +165,24 @@ class CA1_PC:
                                       is_ca=True)
         h.celsius = celsius
         self.v_init = v_init
+        self.current_balance(self.v_init)
+
+    def current_balance(self, v):
+        h.fcurrent()
+        for sec in self.sections:
+            for x, seg in enumerate(sec):
+                if (h.ismembrane("na_ion", sec=sec) and h.ismembrane("ca_ion",
+                                                                     sec=sec)
+                    and h.ismembrane("k_ion", sec=sec)):
+                    value = (seg.ina + seg.ik + seg.ica +
+                             seg.g_pas*v)/seg.g_pas
+                elif (h.ismembrane("na_ion", sec=sec)
+                      and h.ismembrane("k_ion", sec=sec)):
+                    value = (seg.ina + seg.ik + seg.g_pas*v)/seg.g_pas
+                else:
+                    value = v
+                to_mech = getattr(seg, "pas")
+                setattr(to_mech, "e", value)
 
     def add_spines(self, dends, spine_no, spine_pos={}):
         """
