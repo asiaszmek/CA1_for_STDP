@@ -223,7 +223,7 @@ class CA1_PC_basal:
             sec.insert("na3")
 
         for sec in self.basal:
-            sec.insert("kad")
+            sec.insert("kap")
             sec.insert("hd")
             sec.insert("can")
             sec.insert("cal")
@@ -239,7 +239,7 @@ class CA1_PC_basal:
         for sec in self.sections:
             sec.cm = 1
             sec.ena = 50
-            sec.ek = -80
+            sec.ek = -90
         for sec in self.somatic:
             sec.gbar_kap = 0.0005
             sec.gbar_kmb = 0.001 
@@ -254,7 +254,6 @@ class CA1_PC_basal:
         for sec in self.axonal:
             sec.gbar_nax = 0.035 #0.21113423945477339
             sec.gbar_kdr = 0.009
-            sec.gbar_kmb = 0.003
             sec.gbar_kap = 0.0061
             sec.Ra = 85.20
             sec.g_pas = 0.00013
@@ -278,11 +277,12 @@ class CA1_PC_basal:
             sec.Ra = 115.4
             sec.g_pas = 9.03e-05
         for sec in self.basal:
-            sec.gbar_kdr = 0.0043
+            sec.gbar_kdr = 0.009
             sec.gbar_na3 = 0.0125
             sec.gbar_cal = 8.03e-05
             sec.gbar_can = 2.26e-05
             sec.gbar_cat = 1.185e-07
+            sec.gbar_kap = 0.0061
             sec.Ra = 115.4
             sec.g_pas = 9.03e-05
             sec.gbar_hd = 1.9e-5*5
@@ -293,8 +293,8 @@ class CA1_PC_basal:
                 sec.gbar_kad = 0.15
             else:
                 sec.gbar_kad = 0.17
-        for sec in self.basal:
-            if sec.name() in ["oriprox1", "oriprox2"]:
-                sec.gbar_kad = 0.002
-            else:
-                sec.gbar_kad = 0.01
+        # for sec in self.basal:
+        #     if sec.name() in ["oriprox1", "oriprox2"]:
+        #         sec.gbar_kad = 0.002
+        #     else:
+        #         sec.gbar_kad = 0.01
