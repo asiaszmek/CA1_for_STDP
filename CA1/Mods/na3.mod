@@ -22,8 +22,8 @@ PARAMETER {
 	thi2  = -45 	(mV)		: v 1/2 for inact 	
 	qd   = 1.5	(mV)	        : inact tau slope
 	qg   = 1.5      (mV)
-	mmin=0.02	
-	hmin=0.5			
+	mmin=0.02       (ms)	
+	hmin=0.5	(ms)		
 	q10=2
 	Rg   = 0.01 	(/ms)		: inact recov (v) 	
 	Rd   = .03 	(/ms)		: inact (v)	
@@ -32,19 +32,21 @@ PARAMETER {
 
 	thinf  = -50	(mV)		: inact inf slope	
 	:qinf  = 4 	(mV)		: inact inf slope 
-       qinf  = 1(mV)		: inact inf slope 
+        qinf  = 1(mV)		: inact inf slope 
 
         vhalfs=-60	(mV)		: slow inact.
-        a0s=0.0003	(ms)		: a0s=b0s
-        zetas=12	(1)
+        a0s=0.0003	(/ms)		: a0s=b0s
+        zetas=12	(/mV)
         gms=0.2		(1)
         smax=10		(ms)
         vvh=-58		(mV) 
         vvs=2		(mV)
         ar2=1		(1)		: 1=no inact., 0=max inact.
 	ena		(mV)            : must be explicitly def. in hoc
-	celsius
+	celsius         (degC)
 	v 		(mV)
+	zero = 273.16 (degC)
+	tunslope = 8.315 (/degC)	
 }
 
 
@@ -58,9 +60,12 @@ UNITS {
 ASSIGNED {
 	ina 		(mA/cm2)
 	thegna		(mho/cm2)
-	minf 		hinf 		
-	mtau (ms)	htau (ms) 	
-	sinf (ms)	taus (ms)
+	minf
+	hinf 		
+	mtau (ms)
+	htau (ms) 	
+	sinf (1)
+	taus (ms)
 }
  
 
@@ -73,7 +78,7 @@ BREAKPOINT {
 } 
 
 INITIAL {
-	trates(v,ar2)
+	trates(v, ar2)
 	m=minf  
 	h=hinf
 	s=sinf
@@ -85,25 +90,25 @@ FUNCTION alpv(v(mV)) {
 }
         
 FUNCTION alps(v(mV)) {  
-  alps = exp(1.e-3*zetas*(v-vhalfs)*9.648e4/(8.315*(273.16+celsius)))
+  alps = exp(1.e-3*zetas*(v-vhalfs)*9.648e4/(tunslope*(zero+celsius)))
 }
 
 FUNCTION bets(v(mV)) {
-  bets = exp(1.e-3*zetas*gms*(v-vhalfs)*9.648e4/(8.315*(273.16+celsius)))
+  bets = exp(1.e-3*zetas*gms*(v-vhalfs)*9.648e4/(tunslope*(zero+celsius)))
 }
 
 LOCAL mexp, hexp, sexp
 
 DERIVATIVE states {   
-        trates(v,ar2)      
+        trates(v, ar2)      
         m' = (minf-m)/mtau
         h' = (hinf-h)/htau
         s' = (sinf - s)/taus
 }
 
-PROCEDURE trates(vm,a2) {  
+PROCEDURE trates(vm (mV), a2) {  
         LOCAL  a, b, c, qt
-        qt=q10^((celsius-24)/10)
+        qt=q10^((celsius-24 (degC))/10 (degC))
 	a = trap0(vm,tha,Ra,qa)
 	b = trap0(-vm,-tha,Rb,qa)
 	mtau = 1/(a+b)/qt
@@ -121,11 +126,11 @@ PROCEDURE trates(vm,a2) {
         if (taus<smax) {taus=smax}
 }
 
-FUNCTION trap0(v,th,a,q) {
-	if (fabs(v-th) > 1e-6) {
-	        trap0 = a * (v - th) / (1 - exp(-(v - th)/q))
+FUNCTION trap0(v (mV), th (mV), a (/ms), q (mV)) (/ms) {
+	if (fabs((v-th)/1 (mV)) > 1e-6) {
+	        trap0 = a * (v - th) / (1 - exp(-(v - th)/q))*1 (/mV)
 	} else {
-	        trap0 = a * q
+	        trap0 = a * q *1 (/mV)
  	}
 }	
 

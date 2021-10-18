@@ -9,19 +9,19 @@ UNITS {
 
 PARAMETER {
 	v 		(mV)
-	ek
+	ek              (mV)
 	celsius 	(degC)
 	gbar=.0001 	(mho/cm2)
         vhalfl=-40   	(mV)
-	kl=-10
+	kl=-10          (mV)
         vhalft=-42   	(mV)
         a0t=0.003      	(/ms)
-        zetat=7    	(1)
+        zetat=7    	(/mV)
         gmt=.4   	(1)
 	q10=5
-	b0=60
+	b0=60           (ms)
 	st=1
-	sh =0
+	sh =0           (mV)
 }
 
 
@@ -39,9 +39,9 @@ STATE {
 ASSIGNED {
 	ik (mA/cm2)
         inf
-	tau
-        taua
-	taub
+	tau (ms)
+        taua (ms)
+	taub (ms)
 }
 
 INITIAL {
@@ -71,7 +71,7 @@ DERIVATIVE state {
 
 PROCEDURE rate(v (mV)) { :callable from hoc
         LOCAL a,qt
-        qt=q10^((celsius-35)/10)
+        qt=q10^((celsius-35 (degC))/10 (degC))
         inf = (1/(1 + exp((v-vhalfl-sh)/kl)))
         a = alpt(v)
         tau = b0 + bett(v)/(a0t*(1+a))

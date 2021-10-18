@@ -5,7 +5,7 @@ TITLE n-calcium channel
 UNITS {
 	(mA) = (milliamp)
 	(mV) = (millivolt)
-
+        (mM) = (milli/liter)
 	FARADAY = 96520 (coul)
 	R = 8.3134 (joule/degC)
 	KTOMV = .0853 (mV/degC)
@@ -17,14 +17,18 @@ PARAMETER {
 	gbar=.0003 (mho/cm2)
 	ki=.001 (mM)
 	cai=50.e-6 (mM)
-	cao = 2  (mM)
+        cao = 2  (mM)
+	c_2 = 2 (mM)		    
 	q10=5
-	mmin = 0.2
-	hmin = 3
+	mmin = 0.2 (ms)
+	hmin = 3 (ms)
 	a0m =0.03
 	zetam = 2
 	vhalfm = -14
-	gmm=0.1	
+        gmm=0.1
+	tshift = 25 (degC)
+	tslope = 10 (degC)
+	A = 1 (ms)
 }
 
 
@@ -32,7 +36,7 @@ NEURON {
 	SUFFIX can
 	USEION ca READ cai,cao WRITE ica
         RANGE gbar, ica, gcan       
-        GLOBAL hinf,minf,taum,tauh
+        RANGE hinf,minf,taum,tauh
 }
 
 STATE {
@@ -44,8 +48,8 @@ ASSIGNED {
         gcan  (mho/cm2) 
         minf
         hinf
-        taum
-        tauh
+        taum  (ms)
+        tauh  (ms)
 }
 
 INITIAL {
@@ -57,7 +61,7 @@ INITIAL {
 BREAKPOINT {
 	SOLVE states METHOD cnexp
 	gcan = gbar*m*m*h*h2(cai)
-	ica = gcan*ghk(v,cai,cao)
+	ica = gcan*ghk(v,cai,cao)*cao/c_2
 
 }
 
@@ -69,14 +73,14 @@ FUNCTION h2(cai(mM)) {
 
 FUNCTION ghk(v(mV), ci(mM), co(mM)) (mV) {
         LOCAL nu,f
-
-        f = KTF(celsius)/2
+        f = KTF(celsius)
         nu = v/f
         ghk=-f*(1. - (ci/co)*exp(nu))*efun(nu)
 }
 
 FUNCTION KTF(celsius (degC)) (mV) {
-        KTF = ((25./293.15)*(celsius + 273.15))
+     KTF = (1e+3)*(R*(celsius + 273.15)/FARADAY/2)
+     :KTF = RT/(zF)
 }
 
 
@@ -108,8 +112,8 @@ FUNCTION alpmt(v(mV)) {
   alpmt = exp(0.0378*zetam*(v-vhalfm)) 
 }
 
-FUNCTION betmt(v(mV)) {
-  betmt = exp(0.0378*zetam*gmm*(v-vhalfm)) 
+FUNCTION betmt(v(mV)) (ms) {
+  betmt = A*exp(0.0378*zetam*gmm*(v-vhalfm)) 
 }
 
 UNITSON
@@ -122,7 +126,7 @@ DERIVATIVE states {     : exact when v held constant; integrates over dt step
 
 PROCEDURE rates(v (mV)) { :callable from hoc
         LOCAL a, b, qt
-        qt=q10^((celsius-25)/10)
+        qt=q10^((celsius-tshift)/tslope)
         a = alpm(v)
         b = 1/(a + betm(v))
         minf = a*b

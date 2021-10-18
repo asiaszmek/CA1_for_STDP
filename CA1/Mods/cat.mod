@@ -20,16 +20,19 @@ PARAMETER {
 	cai = 50.e-6 (mM)
 	cao = 2 (mM)
 	q10 = 5
-	mmin=0.2
-	hmin=10
+	mmin=0.2 (ms)
+	hmin=10 (ms)
 	a0h =0.015
-	zetah = 3.5
-	vhalfh = -75
+	zetah = 3.5 (/mV)
+	vhalfh = -75 (mV)
 	gmh=0.6	
 	a0m =0.04
-	zetam = 2
-	vhalfm = -28
-	gmm=0.1	
+	zetam = 2 (/mV)
+	vhalfm = -28 (mV)
+        gmm=0.1
+	tshift = 25 (degC)
+        tslope = 10 (degC)
+	A = 0.2 (/mV)
 }
 
 
@@ -37,7 +40,7 @@ NEURON {
 	SUFFIX cat
 	USEION ca READ cai,cao WRITE ica
         RANGE gbar, ica, gcat
-        GLOBAL hinf,minf,mtau,htau
+        RANGE hinf,minf,mtau,htau
 }
 
 STATE {
@@ -48,9 +51,9 @@ ASSIGNED {
 	ica (mA/cm2)
         gcat (mho/cm2)
 	hinf
-	htau
+	htau (ms)
 	minf
-	mtau
+	mtau (ms)
 }
 
 INITIAL {
@@ -80,10 +83,11 @@ FUNCTION ghk(v(mV), ci(mM), co(mM)) (mV) {
         nu = v/f
         ghk=-f*(1. - (ci/co)*exp(nu))*efun(nu)
 }
-
-FUNCTION KTF(celsius (DegC)) (mV) {
-        KTF = ((25./293.15)*(celsius + 273.15))
+FUNCTION KTF(celsius (degC)) (mV) {
+     KTF = (1e+3)*(R*(celsius + 273.15)/FARADAY/2)
+     :KTF = RT/(zF)
 }
+
 
 
 FUNCTION efun(z) {
@@ -98,31 +102,32 @@ FUNCTION alph(v(mV)) {
   alph = exp(0.0378*zetah*(v-vhalfh)) 
 }
 
-FUNCTION beth(v(mV)) {
-  beth = exp(0.0378*zetah*gmh*(v-vhalfh)) 
+FUNCTION beth(v(mV)) (ms) {
+  beth = exp(0.0378*zetah*gmh*(v-vhalfh)) *1 (ms)
 }
 
 FUNCTION alpmt(v(mV)) {
   alpmt = exp(0.0378*zetam*(v-vhalfm)) 
 }
 
-FUNCTION betmt(v(mV)) {
-  betmt = exp(0.0378*zetam*gmm*(v-vhalfm)) 
+FUNCTION betmt(v(mV)) (ms){
+  betmt = exp(0.0378*zetam*gmm*(v-vhalfm)) *1 (ms)
 }
 
 PROCEDURE rates(v (mV)) { :callable from hoc
 	LOCAL a,b, qt
-        qt=q10^((celsius-25)/10)
+        qt=q10^((celsius-tshift)/tslope)
 
-	a = 0.2*(-1.0*v+19.26)/(exp((-1.0*v+19.26)/10.0)-1.0)
-	b = 0.009*exp(-v/22.03)
+	a = A*(-1.0*v+19.26)/(exp((-1.0*v+19.26 (mV))/10.0 (mV))-1.0)
+	b = 0.009*exp(-v/22.03 (mV))
 	minf = a/(a+b)
 	mtau = betmt(v)/(qt*a0m*(1+alpmt(v)))
 	if (mtau<mmin) {mtau=mmin}
 
-	a = 1.e-6*exp(-v/16.26)
-	b = 1/(exp((-v+29.79)/10.)+1.)
+	a = 1.e-6*exp(-v/16.26 (mV))
+	b = 1/(exp((-v+29.79 (mV))/10. (mV))+1.) 
 	hinf = a/(a+b)
 	htau = beth(v)/(a0h*(1+alph(v)))
 	if (htau<hmin) {htau=hmin}
 }
+

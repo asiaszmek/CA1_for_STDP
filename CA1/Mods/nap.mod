@@ -7,7 +7,7 @@ TITLE  Na persistent channel
 NEURON {
 	SUFFIX nap
 	USEION na READ ena WRITE ina
-        RANGE  gbar,vhalf, K, ina
+        RANGE  gbar, vhalf, K, ina
 
 }
 
@@ -19,7 +19,6 @@ UNITS {
 
 PARAMETER {            
 	K = 2            (1)      : slope of steady state variable
-:	gbar = 0.001e-2 (mho/cm2) : suggested conductance, 1 percent of the transient Na current
 	gbar = 0        (mho/cm2)
 	vhalf  = -60.4    (mV)      : half potential was -50.4 I changed to -60.4
       
@@ -52,8 +51,8 @@ DERIVATIVE states {
 }
 
 PROCEDURE rates(v(mV)) {
-	n_inf = 1 / (1 + (exp(vhalf - v)/K))
-	tau =10
+	n_inf = 1 / (1 + (exp((vhalf - v)/ 1 (mV))/K))
+	tau = 10 (ms)
 }
 
 

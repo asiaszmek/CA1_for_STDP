@@ -16,18 +16,20 @@ PARAMETER {
         vhalfl=-56   (mV)
         a0l=0.05      (/ms)
         a0n=0.05    (/ms)
-        zetan=-1.5    (1)
-        zetal=3    (1)
+        zetan=-1.5    (/mV)
+        zetal=3    (/mV)
         gmn=0.55   (1)
         gml=1   (1)
-	lmin=2  (mS)
-	nmin=0.1  (mS)
-	pw=-1    (1)
-	tq=-40
-	qq=5
-	q10=5
+	lmin=2  (ms)
+	nmin=0.1  (ms)
+	pw=-1    (/mV)
+	tq=-40 (mV)
+	qq=5 (mV)
+	q10=5 
 	qtl=1
-	ek
+	zero = 273.16 (degC)
+	tunslope = 8.315 (/degC)		  
+	ek (mV)
 }
 
 
@@ -39,17 +41,25 @@ NEURON {
 }
 
 STATE {
-	n
+        n
         l
 }
 
+
 ASSIGNED {
-	ik (mA/cm2)
+        ik (mA/cm2)
         ninf
         linf      
-        taul
-        taun
-        gka
+        taul (ms)
+        taun (ms)
+        gka (mho/cm2)
+}
+
+BREAKPOINT {
+        SOLVE states METHOD cnexp
+        gka = gbar*n*l
+        ik = gka*(v-ek)
+
 }
 
 INITIAL {
@@ -59,49 +69,42 @@ INITIAL {
 }
 
 
-BREAKPOINT {
-	SOLVE states METHOD cnexp
-	gka = gbar*n*l
-	ik = gka*(v-ek)
-
-}
-
-
 FUNCTION alpn(v(mV)) {
 LOCAL zeta
   zeta=zetan+pw/(1+exp((v-tq)/qq))
-  alpn = exp(1.e-3*zeta*(v-vhalfn)*9.648e4/(8.315*(273.16+celsius))) 
+  alpn = exp(1.e-3*zeta*(v-vhalfn)*9.648e4/(tunslope*(zero +celsius))) 
 }
 
 FUNCTION betn(v(mV)) {
 LOCAL zeta
   zeta=zetan+pw/(1+exp((v-tq)/qq))
-  betn = exp(1.e-3*zeta*gmn*(v-vhalfn)*9.648e4/(8.315*(273.16+celsius))) 
+  betn = exp(1.e-3*zeta*gmn*(v-vhalfn)*9.648e4/(tunslope*(zero+celsius))) 
 }
 
 FUNCTION alpl(v(mV)) {
-  alpl = exp(1.e-3*zetal*(v-vhalfl)*9.648e4/(8.315*(273.16+celsius))) 
+  alpl = exp(1.e-3*zetal*(v-vhalfl)*9.648e4/(tunslope*(zero +celsius))) 
 }
 
 FUNCTION betl(v(mV)) {
-  betl = exp(1.e-3*zetal*gml*(v-vhalfl)*9.648e4/(8.315*(273.16+celsius))) 
+  betl = exp(1.e-3*zetal*gml*(v-vhalfl)*9.648e4/(tunslope*(zero+celsius)))
+ 
 }
 
-DERIVATIVE states {     : exact when v held constant; integrates over dt step
+DERIVATIVE states {  
         rates(v)
         n' = (ninf - n)/taun
-        l' =  (linf - l)/taul
+        l' = (linf - l)/taul
 }
 
 PROCEDURE rates(v (mV)) { :callable from hoc
         LOCAL a,qt
-        qt=q10^((celsius-24)/10)
+        qt=q10^((celsius-24 (degC))/10 (degC))
         a = alpn(v)
         ninf = 1/(1 + a)
         taun = betn(v)/(qt*a0n*(1+a))
-	if (taun<nmin) {taun=nmin}
+        if (taun<nmin) {taun=nmin}
         a = alpl(v)
         linf = 1/(1+ a)
-	taul = 0.26*(v+50)/qtl
-	if (taul<lmin/qtl) {taul=lmin/qtl}
+        taul = ((v+50 (mV))/1 (mV))/qtl *0.26 (ms)
+        if (taul<lmin/qtl) {taul=lmin/qtl}
 }

@@ -7,7 +7,7 @@ TITLE nax
 NEURON {
 	SUFFIX nax
 	USEION na READ ena WRITE ina
-    USEION ttx READ ttxo, ttxi VALENCE 1
+        USEION ttx READ ttxo, ttxi VALENCE 1
 	RANGE  gbar, sh
 	RANGE minf, hinf, mtau, htau,thinf, qinf
 }
@@ -25,8 +25,8 @@ PARAMETER {
 	thi2  = -45 	(mV)		: v 1/2 for inact 	
 	qd   = 1.5	(mV)	        : inact tau slope
 	qg   = 1.5      (mV)
-	mmin=0.02	
-	hmin=0.5			
+	mmin = 0.02	(ms)
+	hmin = 0.5	(ms)		
 	q10=2
 	Rg   = 0.01 	(/ms)		: inact recov (v) 	
 	Rd   = .03 	(/ms)		: inact (v)	
@@ -35,7 +35,7 @@ PARAMETER {
 	qinf  = 4 	(mV)		: inact inf slope 
 
 	ena		(mV)            : must be explicitly def. in hoc
-	celsius
+	celsius         (degC)
 	v 		(mV)
 }
 
@@ -44,7 +44,8 @@ UNITS {
 	(mA) = (milliamp)
 	(mV) = (millivolt)
 	(pS) = (picosiemens)
-	(um) = (micron)
+        (um) = (micron)
+	(mM) = (milli/liter)
 } 
 
 ASSIGNED {
@@ -72,7 +73,7 @@ INITIAL {
         hinf = 1.0
         htau = 1e-12
     } else {
-        trates(v,sh)      
+        trates(v, sh)      
     }
 
 	m=minf  
@@ -93,9 +94,9 @@ DERIVATIVE states {
         h' = (hinf-h)/htau
 }
 
-PROCEDURE trates(vm,sh2) {  
+PROCEDURE trates(vm (mV), sh2 (mV)) {  
         LOCAL  a, b, qt
-        qt=q10^((celsius-24)/10)
+        qt=q10^((celsius-24 (degC))/10 (degC))
 	a = trap0(vm,tha+sh2,Ra,qa)
 	b = trap0(-vm,-tha-sh2,Rb,qa)
 	mtau = 1/(a+b)/qt
@@ -109,10 +110,10 @@ PROCEDURE trates(vm,sh2) {
 	hinf = 1/(1+exp((vm-thinf-sh2)/qinf))
 }
 
-FUNCTION trap0(v,th,a,q) {
-	if (fabs(v-th) > 1e-6) {
-	        trap0 = a * (v - th) / (1 - exp(-(v - th)/q))
+FUNCTION trap0(v (mV), th (mV), a (/ms), q (mV)) (/ms) {
+	if (fabs((v-th) / 1 (mV)) > 1e-6) {
+	        trap0 = a * (v - th) / (1 - exp(-(v - th)/q))*1 (/mV)
 	} else {
-	        trap0 = a * q
+	        trap0 = a * q* 1 (/mV)
  	}
 }

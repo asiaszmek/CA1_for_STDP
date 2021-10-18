@@ -16,10 +16,12 @@ PARAMETER {
 	gbar=.003 (mho/cm2)
         vhalfn=13   (mV)
         a0n=0.02      (/ms)
-        zetan=-3    (1)
+        zetan=-3    (/mV)
         gmn=0.7  (1)
-	nmax=2  (1)
+	nmax=2  (ms)
 	q10=1
+	zero = 273.16 (degC)
+	tunslope = 8.315 (/degC)
 }
 
 
@@ -37,8 +39,8 @@ STATE {
 ASSIGNED {
 	ik (mA/cm2)
         ninf
-        gkdr
-        taun
+        gkdr (mho/cm2)
+        taun (ms)
 }
 
 BREAKPOINT {
@@ -55,11 +57,11 @@ INITIAL {
 
 
 FUNCTION alpn(v(mV)) {
-  alpn = exp(1.e-3*zetan*(v-vhalfn)*9.648e4/(8.315*(273.16+celsius))) 
+  alpn = exp(1.e-3*zetan*(v-vhalfn)*9.648e4/(tunslope*(zero+celsius))) 
 }
 
 FUNCTION betn(v(mV)) {
-  betn = exp(1.e-3*zetan*gmn*(v-vhalfn)*9.648e4/(8.315*(273.16+celsius))) 
+  betn = exp(1.e-3*zetan*gmn*(v-vhalfn)*9.648e4/(tunslope*(zero+celsius))) 
 }
 
 DERIVATIVE states {     : exact when v held constant; integrates over dt step
@@ -69,7 +71,7 @@ DERIVATIVE states {     : exact when v held constant; integrates over dt step
 
 PROCEDURE rates(v (mV)) { :callable from hoc
         LOCAL a,qt
-        qt=q10^((celsius-24)/10)
+        qt=q10^((celsius-24 (degC))/10 (degC))
         a = alpn(v)
         ninf = 1/(1+a)
         taun = betn(v)/(qt*a0n*(1+a))

@@ -12,10 +12,10 @@ PARAMETER {
 	celsius 	(degC)
 	gbar=.0001 	(mho/cm2)
         vhalfl=-81   	(mV)
-	kl=-8
+	kl=-8           (mV)
         vhalft=-75   	(mV)
         a0t=0.011      	(/ms)
-        zetat=2.2    	(1)
+        zetat=2.2    	(/mV)
         gmt=.4   	(1)
 	q10=4.5
 	qtl=1
@@ -30,14 +30,14 @@ NEURON {
 }
 
 STATE {
-        l
+     l
 }
 
 ASSIGNED {
 	i (mA/cm2)
         linf      
-        taul
-        ghd
+        taul (ms)
+        ghd (mho/cm2)
 }
 
 INITIAL {
@@ -69,7 +69,7 @@ DERIVATIVE states {     : exact when v held constant; integrates over dt step
 
 PROCEDURE rate(v (mV)) { :callable from hoc
         LOCAL a,qt
-        qt=q10^((celsius-33)/10)
+        qt=q10^((celsius-33 (degC))/10 (degC))
         a = alpt(v)
         linf = 1/(1 + exp(-(v-vhalfl)/kl))
 :       linf = 1/(1+ alpl(v))
