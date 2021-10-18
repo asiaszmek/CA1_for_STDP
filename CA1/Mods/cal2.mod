@@ -5,27 +5,26 @@ TITLE l-calcium channel
 UNITS {
 	(mA) = (milliamp)
 	(mV) = (millivolt)
-
-	FARADAY = 96520 (coul)
+        (mM) = (milli/liter)
+	FARADAY = 96485 (coul)
 	R = 8.3134 (joule/degC)
-	KTOMV = .0853 (mV/degC)
 }
 
 PARAMETER {
 	v (mV)
-	celsius 	(degC)
-	gbar=.003 (mho/cm2)
+	celsius= 34	(degC)
+	gbar=0 (mho/cm2)
 	ki=.001 (mM)
-	cai = 50.e-6 (mM)
-	cao = 2 (mM)
-	q10 = 5
-	mmin=0.2
-	tfa = 1
-	a0m =0.1
-	zetam = 2
-	vhalfm = 4
-	gmm=0.1	
-	ggk
+	cai = 100.e-6 (mM)
+        cao = 2 (mM)
+	c_2 = 2 (mM)
+     	tfa = 5 
+        alpha_th = -27.01 (mV)
+	alpha_slope = 3.8 (mV)
+	alpha_mult = 0.055 (1/ms-mV)
+        beta_th = -63.01 (mV)
+	beta_slope = 17 (mV)
+	beta_mult = 0.94 (1/ms)
 }
 
 
@@ -33,7 +32,7 @@ NEURON {
 	SUFFIX cal
 	USEION ca READ cai,cao WRITE ica
         RANGE gbar,cai, ica, gcal, ggk
-        GLOBAL minf,tau
+        RANGE minf,taum
 }
 
 STATE {
@@ -44,7 +43,7 @@ ASSIGNED {
 	ica (mA/cm2)
         gcal (mho/cm2)
         minf
-        tau   (ms)
+        taum  (ms)
 }
 
 INITIAL {
@@ -54,9 +53,8 @@ INITIAL {
 
 BREAKPOINT {
 	SOLVE state METHOD cnexp
-	gcal = gbar*m*m*h2(cai)
-	ggk=ghk(v,cai,cao)
-	ica = gcal*ggk
+	gcal = gbar*m*h2(cai)    
+	ica = gcal*ghk(v, cai, cao)*cao/c_2
 
 }
 
@@ -67,16 +65,15 @@ FUNCTION h2(cai(mM)) {
 
 FUNCTION ghk(v(mV), ci(mM), co(mM)) (mV) {
         LOCAL nu,f
-
-        f = KTF(celsius)/2
+        f = KTF(celsius)
         nu = v/f
         ghk=-f*(1. - (ci/co)*exp(nu))*efun(nu)
 }
 
-FUNCTION KTF(celsius (DegC)) (mV) {
-        KTF = ((25./293.15)*(celsius + 273.15))
+FUNCTION KTF(celsius (degC)) (mV) {
+     KTF = (1e+3)*(R*(celsius + 273.15)/FARADAY/2)
+     :KTF = RT/(zF)
 }
-
 
 FUNCTION efun(z) {
 	if (fabs(z) < 1e-4) {
@@ -86,33 +83,32 @@ FUNCTION efun(z) {
 	}
 }
 
-FUNCTION alp(v(mV)) (1/ms) {
-	alp = 15.69*(-1.0*v+81.5)/(exp((-1.0*v+81.5)/10.0)-1.0)
+
+
+
+FUNCTION alpm(v(mV)) (1/ms) {
+	TABLE FROM -150 TO 150 WITH 200
+	alpm = alpha_mult*(alpha_th - v)/(exp((alpha_th-v)/alpha_slope) - 1)
 }
 
-FUNCTION bet(v(mV)) (1/ms) {
-	bet = 0.29*exp(-v/10.86)
+
+FUNCTION betm(v(mV)) (1/ms){
+        TABLE FROM -150 TO 150 WITH 200
+        betm = beta_mult*exp((beta_th-v)/beta_slope)
 }
 
-FUNCTION alpmt(v(mV)) {
-  alpmt = exp(0.0378*zetam*(v-vhalfm)) 
-}
 
-FUNCTION betmt(v(mV)) {
-  betmt = exp(0.0378*zetam*gmm*(v-vhalfm)) 
-}
 
 DERIVATIVE state {  
         rate(v)
-        m' = (minf - m)/tau
+        m' = (minf - m)/taum
 }
 
 PROCEDURE rate(v (mV)) { :callable from hoc
         LOCAL a, b, qt
-        qt=q10^((celsius-25)/10)
-        a = alp(v)
-        b = 1/((a + bet(v)))
-        minf = a*b
-	tau = betmt(v)/(qt*a0m*(1+alpmt(v)))
-	if (tau<mmin/qt) {tau=mmin/qt}
+        a = alpm(v)
+        taum = 1/(tfa*(a+betm(v))) : estimation of activation tau
+        minf = a/(a+betm(v))       : estimation of activation steady state value
+
+	
 }

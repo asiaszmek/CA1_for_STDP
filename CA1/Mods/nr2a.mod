@@ -44,7 +44,7 @@ NEURON {
     RANGE gmax, mg_on, mg_off, rb, rb_Mg, fCa
     RANGE kd1_plus, kd1_minus, kd2_plus, kd2_minus, kf_plus, ks_plus0, ks_plus, kf_minus, ks_minus, kon, koff, Erev
     GLOBAL mg
-    GLOBAL vmin, vmax
+    RANGE vmin, vmax
 
 }
 

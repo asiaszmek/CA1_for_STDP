@@ -30,7 +30,7 @@ TITLE Slow Ca-dependent potassium current
                                     USEION k READ ek WRITE ik
                                     USEION ca READ cai
                                     RANGE gk, gbar, m_inf, tau_m,ik
-                                    GLOBAL beta, cac
+                                    RANGE beta, cac
                             }
 
 

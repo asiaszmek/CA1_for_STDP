@@ -27,9 +27,9 @@ NEURON {
 	RANGE g, gmax, rb
 	RANGE Erev
 	RANGE Ka		    
-	GLOBAL ka, k_a, k1, k_1, k2, k_2, k3, k_3
-	GLOBAL alpha, beta
-	GLOBAL vmin, vmax
+	RANGE ka, k_a, k1, k_1, k2, k_2, k3, k_3
+	RANGE alpha, beta
+	RANGE vmin, vmax
 	NONSPECIFIC_CURRENT i
 }
 
