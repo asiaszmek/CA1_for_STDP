@@ -3,13 +3,11 @@ TITLE CaGk
 : Modified from Moczydlowski and Latorre (1983) J. Gen. Physiol. 82
 
 UNITS {
-	(molar) = (1/liter)
-}
-
-UNITS {
 	(mV) =	(millivolt)
 	(mA) =	(milliamp)
-	(mM) =	(millimolar)
+	(mM) =	(milli/liter)
+	FARADAY = 96485 (coul)
+	R = 8.3134 (joule/degC)
 }
 
 
@@ -17,72 +15,96 @@ NEURON {
 	SUFFIX cagkShell
 	USEION k READ ek WRITE ik
 	POINTER Cai       
-	RANGE gbar, gkca, ik
-	RANGE oinf, tau
-}
-
-UNITS {
-	FARADAY = (faraday)  (kilocoulombs)
-	R = 8.313424 (joule/degC)
+        RANGE gbar, ik
 }
 
 PARAMETER {
-	celsius		(degC)
-	v		(mV)
-	gbar=.01	(mho/cm2)	: Maximum Permeability
-
-	ek		(mV)
-
-	d1 = .84
-	d2 = 1.
-	k1 = .48e-3	(mM)
-	k2 = .13e-6	(mM)
-	abar = .28	(/ms)
-	bbar = .48	(/ms)
-        st=1            (1)
+    gbar = 0.0 (mho/cm2)
+    k1 = 0.003 (mM)
+    k4 = 0.009 (mM)
+    d1 = 0.84
+    d4 = 1.0
+    q = 1	: body temperature 35 C
+    z (/mV)			       
 }
 
 ASSIGNED {
-	ik		(mA/cm2)
-	oinf
-	tau		(ms)
-        gkca          (mho/cm2)
-	Cai 		(mM)
+    v (mV)
+    ik (mA/cm2)
+    celsius (degC)
+    Cai (mM) 
+    ek (mV)
+    oinf
+    otau (ms)
+}
+
+STATE { o }
+
+BREAKPOINT {
+    
+    SOLVE state METHOD cnexp
+    ik = gbar*o*(v-ek)
+}
+
+DERIVATIVE state {
+    rate(v, Cai)
+    o' = (oinf-o)/otau*q
 }
 
 INITIAL {
-        rate(v, Cai)
-        o=oinf
+    z = (0.001)*2*FARADAY/(R*(celsius+273.15 (degC)))
+    rate(v, Cai)
+    o = oinf
 }
 
-STATE {	o }		: fraction of open channels
-
-BREAKPOINT {
-	SOLVE state METHOD cnexp
-	gkca = gbar*o^st
-	ik = gkca*(v - ek)
+PROCEDURE rate(v (mV), ca (mM)) {
+    LOCAL a, b, sum, z
+    UNITSOFF
+    z = 1e-3*2*FARADAY/(R*(celsius+273.15))
+    a = 0.48*ca/(ca+k1*exp(-z*d1*v))
+    b = 0.28/(1+ca/(k4*exp(-z*d4*v)))
+    sum = a+b
+    oinf = a/sum
+    otau = 1/sum
+    UNITSON
 }
 
-DERIVATIVE state {	: exact when v held constant; integrates over dt step
-	rate(v, Cai)
-	o' = (oinf - o)/tau
-}
+COMMENT
 
-FUNCTION alp(v (mV), c (mM)) (1/ms) { :callable from hoc
-	alp = c*abar/(c + exp1(k1,d1,v))
-}
+Experimental data was obtained from BKCa channels from rat brain injected
+as cRNAs into Xenopus oocytes [1].  Electrophysiological recordings were
+performed at room temperature 22-24 C [1, supporting online material].
 
-FUNCTION bet(v (mV), c (mM)) (1/ms) { :callable from hoc
-	bet = bbar/(1 + c/exp1(k2,d2,v))
-}
+Original model [2, model 3 in Tab.1] was implemented by De Schutter
+and adapted by Kai Du [5].  In the model revisions [3,4] parameters k1 and k4
+[2, channel A in Tab.2] were adjusted to fit rat/Xenopus data
+[1, Fig.3C and Fig.4A, 10 uM Ca] at body temperature 35 C.
 
-FUNCTION exp1(k (mM), d, v (mV)) (mM) { :callable from hoc
-	exp1 = k*exp(-2*d*FARADAY*v/R/(273.15 + celsius))
-}
+NEURON implementation by Alexander Kozlov <akozlov@kth.se>.
 
-PROCEDURE rate(v (mV), c (mM)) { :callable from hoc
-	LOCAL a
-	a = alp(v,c)
-	tau = 1/(a + bet(v, c))
-	oinf = a*tau
-}
+[1] Berkefeld H, Sailer CA, Bildl W, Rohde V, Thumfart JO, Eble S,
+Klugbauer N, Reisinger E, Bischofberger J, Oliver D, Knaus HG, Schulte U,
+Fakler B (2006) BKCa-Cav channel complexes mediate rapid and localized
+Ca2+-activated K+ signaling. Science 314(5799):615-20.
+
+[2] Moczydlowski E, Latorre R (1983) Gating kinetics of Ca2+-activated K+
+channels from rat muscle incorporated into planar lipid bilayers. Evidence
+for two voltage-dependent Ca2+ binding reactions. J Gen Physiol
+82(4):511-42.
+
+[3] Evans RC, Morera-Herreras T, Cui Y, Du K, Sheehan T, Kotaleski JH,
+Venance L, Blackwell KT (2012) The effects of NMDA subunit composition on
+calcium influx and spike timing-dependent plasticity in striatal medium
+spiny neurons. PLoS Comput Biol 8(4):e1002493.
+
+[4] Evans RC, Maniar YM, Blackwell KT (2013) Dynamic modulation of
+spike timing-dependent calcium influx during corticostriatal upstates. J
+Neurophysiol 110(7):1631-45.
+
+[5] Du K, Wu YW, Lindroos R, Liu Y, Rózsa B, Katona G, Ding JB,
+Kotaleski JH (2017) Cell-type-specific inhibition of the dendritic
+plateau potential in striatal spiny projection neurons. Proc Natl Acad
+Sci USA 114:E7612-E7621.
+
+ENDCOMMENT
+
