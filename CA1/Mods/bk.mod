@@ -12,7 +12,7 @@ UNITS {
 
 
 NEURON {
-	SUFFIX cagk
+	SUFFIX bk
 	USEION k READ ek WRITE ik
 	USEION ca READ cai       
         RANGE gbar, ik

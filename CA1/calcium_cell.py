@@ -413,20 +413,20 @@ class CA1_PC:
                         #sec.Buffer_cad = 25
                         #sec.cainf_cad = self.params["ca_init"]
                         #an additional buffer will change Ca dynamics
-                    sec.insert("cagk")
-                    sec.gbar_cagk = self.params["gbar_cagk"][sec.name()]
+                    sec.insert("bk")
+                    sec.gbar_bk = self.params["gbar_bk"][sec.name()]
                     sec.insert("kca")
                     sec.gbar_kca = self.params["gbar_kca"][sec.name()]
                 else:
-                    sec.insert("cagkShell")
+                    sec.insert("bkShell")
                     sec.insert("kcaShell")
-                    sec.gbar_cagkShell = self.params["gbar_cagk"][sec.name()]
+                    sec.gbar_bkShell = self.params["gbar_bk"][sec.name()]
                     sec.gbar_kcaShell = self.params["gbar_kca"][sec.name()]
                     for counter, seg in enumerate(sec):
                         outshell = self.shells[sec.name()][0]
                         ca = self.ca[outshell].nodes[counter]
                         h.setpointer(ca._ref_concentration, "Cai",
-                                     seg.cagkShell)
+                                     seg.bkShell)
                         h.setpointer(ca._ref_concentration, "Cai",
                                      seg.kcaShell)
                     

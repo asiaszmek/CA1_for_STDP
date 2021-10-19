@@ -12,7 +12,7 @@ UNITS {
 
 
 NEURON {
-	SUFFIX cagkShell
+	SUFFIX bkShell
 	USEION k READ ek WRITE ik
 	POINTER Cai       
         RANGE gbar, ik

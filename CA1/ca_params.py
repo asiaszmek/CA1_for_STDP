@@ -141,7 +141,7 @@ gbar_kca = {
     "oridist2_2": 9.03e-05,
 }
 
-gbar_cagk = {
+gbar_bk = {
     "soma": 4.48e-05,
     "radTprox": 4.48e-05,
     "radTmed": 4.48e-05,
