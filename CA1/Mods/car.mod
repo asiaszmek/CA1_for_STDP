@@ -1,20 +1,8 @@
-TITLE R-type calcium current (Cav2.3)
+TITLE R-type calcium current (CaR)
 
 COMMENT
-neuromodulation is added as functions:
-    
-    modulation = 1 + damod*(maxMod-1)*level
-
-where:
-    
-    damod  [0]: is a switch for turning modulation on or off {1/0}
-    maxMod [1]: is the maximum modulation for this specific channel (read from the param file)
-                e.g. 10% increase would correspond to a factor of 1.1 (100% +10%) {0-inf}
-    level  [0]: is an additional parameter for scaling modulation. 
-                Can be used simulate non static modulation by gradually changing the value from 0 to 1 {0-1}
-
-[] == default values
-{} == ranges
+This is translated from Blackwell's moose_nerp, taking into accout that moose's
+units are V and sec
     
 ENDCOMMENT
 
@@ -24,32 +12,51 @@ UNITS {
     (S) = (siemens)
     (molar) = (1/liter)
     (mM) = (millimolar)
-    FARADAY = (faraday) (coulomb)
-    R = (k-mole) (joule/degC)
+    FARADAY = 96485 (coul)
+    R = 8.3134 (joule/degC)
 }
 
 NEURON {
+    THREADSAFE
     SUFFIX car
     USEION ca READ cai, cao WRITE ica VALENCE 2
     RANGE gbar, ica
-    RANGE damod, maxMod, level, max2, lev2
+    RANGE qfactCaR
+    RANGE m_A, m_B
+    RANGE h_A, h_B
 }
 
 PARAMETER {
     gbar = 0.0 (cm/s)
-    :q = 1	: room temperature 22 C
-    q = 3	: body temperature 35 C
-    damod = 0
-    maxMod = 1
-    level = 0
-    max2 = 1
-    lev2 = 0
+    a = 0.17
+    Z (/mV)
+    mA_A = 0.24 (/ms)
+    mA_B =  0 (/mV-ms)
+    mA_C = 0 
+    mA_vhalf = 0 (mV)
+    mA_vslope = -28 (mV)
+    mB_A = 1264(/ms)
+    mB_B =  8(/mV-ms)
+    mB_C = -1
+    mB_vhalf = 158 (mV)
+    mB_vslope = 13.6 (mV)
+    hA_A = 1.10 (/ms)
+    hA_B =  0.01(/mV-ms)
+    hA_C = -1
+    hA_vhalf = 110 (mV)
+    hA_vslope = 17 (mV)
+    hB_A = 20e-3(/ms)
+    hB_B =  0(/mV-ms)
+    hB_C = 0
+    hB_vhalf = 0 (mV)
+    hB_vslope = -30 (mV)
+    qfactCaR = 2
+
 } 
 
 ASSIGNED { 
     v (mV)
     ica (mA/cm2)
-    eca (mV)
     celsius (degC)
     cai (mM)
     cao (mM)
@@ -57,39 +64,48 @@ ASSIGNED {
     mtau (ms)
     hinf
     htau (ms)
+    m_A (/ms)
+    m_B (/ms)
+    h_A (/ms)
+    h_B (/ms)
 }
 
 STATE { m h }
 
 BREAKPOINT {
     SOLVE states METHOD cnexp
-    ica = gbar*m*m*m*h*ghk(v, cai, cao) *modulation()
+    ica = gbar*m^3*h*ghk(v, cai, cao)
 }
 
 INITIAL {
-    rates()
+    Z = (0.001)*2*FARADAY/(R*(celsius+273.15 (degC)))
+    rates(v)
     m = minf
     h = hinf
 }
 
 DERIVATIVE states { 
-    rates()
-    m' = (minf-m)/mtau*q
-    h' = (hinf-h)/htau*q
+    rates(v)
+    m' = (minf-m)/mtau
+    h' = (hinf-h)/htau
 }
 
-PROCEDURE rates() {
-    UNITSOFF
-    minf = 1/(1+exp((v-(-29))/(-9.6)))
-    mtau = 5.1*3
-    hinf = 1/(1+exp((v-(-33.3))/17))
-    htau = 22+80/(1+exp((v-(-19))/5))
-    UNITSON
+PROCEDURE rates(v (mV)) {
+    m_A = (mA_A + mA_B*v)/(mA_C+exp((v+mA_vhalf)/mA_vslope))*qfactCaR
+    m_B = (mB_A + mB_B*v)/(mB_C+exp((v+mB_vhalf)/mB_vslope))*qfactCaR
+    h_A = (hA_A + hA_B*v)/(hA_C+exp((v+hA_vhalf)/hA_vslope))
+    h_B = (hB_A + hB_B*v)/(hB_C+exp((v+hB_vhalf)/hB_vslope))
+				
+    minf = m_A/(m_A+m_B)
+    mtau = 1/(m_A+m_B)
+    hinf = h_A/(h_A+h_B)
+    htau = 1/(h_A+h_B)
+
 }
 
 FUNCTION ghk(v (mV), ci (mM), co (mM)) (.001 coul/cm3) {
     LOCAL z, eci, eco
-    z = (1e-3)*2*FARADAY*v/(R*(celsius+273.15))
+    z = Z*v
     if(z == 0) {
         z = z+1e-6
     }
@@ -98,44 +114,3 @@ FUNCTION ghk(v (mV), ci (mM), co (mM)) (.001 coul/cm3) {
     ghk = (1e-3)*2*FARADAY*(eci-eco)
 }
 
-FUNCTION modulation() {
-    : returns modulation factor
-    
-    modulation = 1 + damod * ( (maxMod-1)*level + (max2-1)*lev2 ) 
-    if (modulation < 0) {
-        modulation = 0
-    }  
-}
-
-COMMENT
-
-Original data by Foehring  et al (2000) [1] for dissociated MSNs from
-P28-P42 Sprague-Dawley rat brain. Unspecified recording temperature. The
-liquid junction potential was around 8 mV and was not corrected. Kinetics
-of m3h type was fitted.  Inactivation time constants were measured in
-neurons from endopiriform nucleus of P7-P21 Hartley guinea pigs [2]
-at room temperature 22 C.
-
-Original NEURON model by Wolf (2005) [3] modified by Alexander Kozlov
-<akozlov@kth.se>. Activation curve fitted to m3 kinetics [4],
-activation time constant scaled up as well. Smooth fit of inactivation
-time constant from [2,3].
-
-[1] Foehring RC, Mermelstein PG, Song WJ, Ulrich S, Surmeier DJ
-(2000) Unique properties of R-type calcium currents in neocortical and
-neostriatal neurons. J Neurophysiol 84(5):2225-36.
-
-[2] Brevi S, de Curtis M, Magistretti J (2001) Pharmacological and
-biophysical characterization of voltage-gated calcium currents in the
-endopiriform nucleus of the guinea pig. J Neurophysiol 85(5):2076-87.
-
-[3] Wolf JA, Moyer JT, Lazarewicz MT, Contreras D, Benoit-Marand M,
-O'Donnell P, Finkel LH (2005) NMDA/AMPA ratio impacts state transitions
-and entrainment to oscillations in a computational model of the nucleus
-accumbens medium spiny projection neuron. J Neurosci 25(40):9080-95.
-
-[4] Evans RC, Maniar YM, Blackwell KT (2013) Dynamic modulation of
-spike timing-dependent calcium influx during corticostriatal upstates. J
-Neurophysiol 110(7):1631-45.
-
-ENDCOMMENT

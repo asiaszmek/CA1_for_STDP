@@ -22,14 +22,12 @@ NEURON {
     USEION ca READ cai, cao WRITE ica VALENCE 2
     RANGE gbar, ica
     RANGE m_A, m_B
-    GLOBAL qfactCaL
+    RANGE qfactCaL
 }
 
 PARAMETER {
     gbar = 0.0 (cm/s)
     a = 0.17
-    :q = 1	          : room temperature 22-25 C
-    q = 2	          : body temperature 35 C
     Z (/mV)
     hmin = 0.83
     hmax = 0.17
@@ -80,8 +78,8 @@ INITIAL {
 
 DERIVATIVE states { 
     rates(v)
-    m' = (minf-m)/mtau*q
-    h' = (hinf-h)/htau*q
+    m' = (minf-m)/mtau
+    h' = (hinf-h)/htau
 }
 
 PROCEDURE rates(v (mV)) {

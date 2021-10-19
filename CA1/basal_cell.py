@@ -10,10 +10,10 @@ my_loc = os.path.dirname(os.path.abspath(__file__))
 mechanisms_path = os.path.join(my_loc, "Mods")
 
 gbar = {
-    "cav33": 0, #2e-09,
+    "cav33": 2e-07,
     "cav32": 1e-07,
-    "cal12": 1e-07,
-    "cal13": 1e-05,
+    "cal12": 1e-06,
+    "cal13": 1e-06,
     "can": 1e-04,
     "car": 10e-05,
 }

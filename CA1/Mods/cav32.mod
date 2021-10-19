@@ -1,4 +1,10 @@
-TITLE T-type calcium channel (Cav3.2)
+TITLE T-type calcium current (Cav3.2)
+
+COMMENT
+This is translated from Blackwell's moose_nerp, taking into accout that moose's
+units are V and sec
+    
+ENDCOMMENT
 
 UNITS {
     (mV) = (millivolt)
@@ -6,24 +12,40 @@ UNITS {
     (S) = (siemens)
     (molar) = (1/liter)
     (mM) = (millimolar)
-    FARADAY = (faraday) (coulomb)
-    R = (k-mole) (joule/degC)
+    FARADAY = 96485 (coul)
+    R = 8.3134 (joule/degC)
 }
 
 NEURON {
+    THREADSAFE
     SUFFIX cav32
     USEION ca READ cai, cao WRITE ica VALENCE 2
-    RANGE gbar, ica, a, perm, I
+    RANGE gbar, ica
+    RANGE qfactCaT
 }
 
 PARAMETER {
-    gbar = 6.7e-6   (cm/s)
-    mvhalf = -61.5  (mV)
-    mslope = -8.0   (mV)
-    hvhalf = -73.7  (mV)
-    hslope = 9.1   (mV) :9.1 
-    a      = 0.9
-}
+    gbar = 0.0 (cm/s)
+    a = 0.17
+    Z (/mV)
+    mmin = 0.0
+    mmax = 1
+    mvhalf = -52.3 (mV)
+    mvslope = -6.8 (mV)
+    mtmin = 0.916 (ms)
+    mtmax = 13.3 (ms)
+    mtvhalf = -53.6 (mV)
+    mtvslope = 10.4 (mV)
+    hmin = 0.
+    hmax = 1.
+    hvhalf = -73.8 (mV)
+    hvslope = 2.8 (mV)
+    htmin = 20.4 (ms)
+    htmax = 45.6 (ms)
+    htvhalf = -45.5 (mV)
+    htvslope = 3 (mV)
+    qfactCaT = 1
+} 
 
 ASSIGNED { 
     v (mV)
@@ -32,25 +54,20 @@ ASSIGNED {
     cai (mM)
     cao (mM)
     minf
+    mtau (ms)
     hinf
-    mtau  (ms)
-    htau  (ms)
-    htau2 (ms)
-    htot  (ms)
-    perm
-    I
+    htau (ms)
 }
 
 STATE { m h }
 
 BREAKPOINT {
     SOLVE states METHOD cnexp
-    perm = gbar*m*m*m*h
-    ica = ghk(v, cai, cao)*perm
-    I    = ica
+    ica = gbar*m^3*h*ghk(v, cai, cao)
 }
 
 INITIAL {
+    Z = (0.001)*2*FARADAY/(R*(celsius+273.15 (degC)))
     rates(v)
     m = minf
     h = hinf
@@ -59,21 +76,20 @@ INITIAL {
 DERIVATIVE states { 
     rates(v)
     m' = (minf-m)/mtau
-    h' = (hinf-h)/htot
+    h' = (hinf-h)/htau
 }
 
 PROCEDURE rates(v (mV)) {
-    minf  = 1/(1+exp((v-mvhalf)/mslope))
-    hinf  = 1/(1+exp((v-hvhalf)/hslope))    
-    mtau  = 6.0/(1+exp((v+66.0)/15.0  ))+0.6
-    htau  = 4.3/(1+exp(0.06*(v)))+8
-    htau2 = 95*exp(-(v+58.0)/25.0)+20
-    htot  = a*htau + (1-a)*htau2
+    minf = mmin + mmax / (1 + exp((v + mvhalf) / mvslope))
+    mtau = (mtmin + mtmax / (1 + exp((v + mtvhalf) / mtvslope)))/qfactCaT
+    hinf = hmin + hmax / (1 + exp((v + hvhalf) / hvslope))
+    htau = (htmin + htmax / (1 + exp((v + htvhalf) / htvslope)))/qfactCaT
+
 }
 
 FUNCTION ghk(v (mV), ci (mM), co (mM)) (.001 coul/cm3) {
     LOCAL z, eci, eco
-    z = (1e-3)*2*FARADAY*v/(R*(celsius+273.15))
+    z = Z*v
     if(z == 0) {
         z = z+1e-6
     }
@@ -82,21 +98,3 @@ FUNCTION ghk(v (mV), ci (mM), co (mM)) (.001 coul/cm3) {
     ghk = (1e-3)*2*FARADAY*(eci-eco)
 }
 
-COMMENT 
-
-Original data by Iftinca (2006) , rat, 37 C.
-
-Genesis implementation by Kai Du (21 C) <kaidu828@gmail.com> m^2*h.
-
-NEURON implementation by Alexander Kozlov <akozlov@nada.kth.se>, smooth
-fit of mtau and htau.
-
-Revised NEURON model by Robert Lindroos
--> 37 C (kinetics and infinity parameters)
--> Half activation and slope factors were found that approximated the activation curve 
-   from the paper when cubed (m3). m3 were used in order to remove the large current 
-   obtained when stepping back to holding potential (-110 mV), at the end of the trace. 
--> slow and fast inactivation was approximated from the paper and combined as
-   tauh = 0.9 * fast + 0.1 * slow. Activation kinetics was also extracted from paper.
-
-ENDCOMMENT
