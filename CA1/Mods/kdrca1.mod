@@ -6,7 +6,8 @@ TITLE K-DR channel
 UNITS {
 	(mA) = (milliamp)
 	(mV) = (millivolt)
-
+	FARADAY = 96485 (coul)
+	R = 8.3134 (joule/degC)
 }
 
 PARAMETER {
@@ -16,12 +17,11 @@ PARAMETER {
 	gbar=.003 (mho/cm2)
         vhalfn=13   (mV)
         a0n=0.02      (/ms)
-        zetan=-3    (/mV)
+        zetan=-1.5    
         gmn=0.7  (1)
 	nmax=2  (ms)
 	q10=1
-	zero = 273.16 (degC)
-	tunslope = 8.315 (/degC)
+	z (/mV)
 }
 
 
@@ -51,17 +51,18 @@ BREAKPOINT {
 }
 
 INITIAL {
+        z = (0.001)*2*FARADAY/(R*(celsius+273.15 (degC)))
 	rates(v)
 	n=ninf
 }
 
 
 FUNCTION alpn(v(mV)) {
-  alpn = exp(1.e-3*zetan*(v-vhalfn)*9.648e4/(tunslope*(zero+celsius))) 
+  alpn = exp(zetan*(v-vhalfn)*z)
 }
 
 FUNCTION betn(v(mV)) {
-  betn = exp(1.e-3*zetan*gmn*(v-vhalfn)*9.648e4/(tunslope*(zero+celsius))) 
+  betn = exp(zetan*gmn*(v-vhalfn)*z)
 }
 
 DERIVATIVE states {     : exact when v held constant; integrates over dt step
@@ -71,7 +72,7 @@ DERIVATIVE states {     : exact when v held constant; integrates over dt step
 
 PROCEDURE rates(v (mV)) { :callable from hoc
         LOCAL a,qt
-        qt=q10^((celsius-24 (degC))/10 (degC))
+        qt = q10^((celsius-24 (degC))/10 (degC))
         a = alpn(v)
         ninf = 1/(1+a)
         taun = betn(v)/(qt*a0n*(1+a))
