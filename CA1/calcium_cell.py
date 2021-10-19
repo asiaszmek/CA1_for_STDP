@@ -396,20 +396,20 @@ class CA1_PC:
                         #an additional buffer will change Ca dynamics
                     sec.insert("bk")
                     sec.gbar_bk = self.params["gbar_bk"][sec.name()]
-                    sec.insert("kca")
-                    sec.gbar_kca = self.params["gbar_kca"][sec.name()]
+                    sec.insert("sk")
+                    sec.gbar_sk = self.params["gbar_sk"][sec.name()]
                 else:
                     sec.insert("bkShell")
-                    sec.insert("kcaShell")
+                    sec.insert("skShell")
                     sec.gbar_bkShell = self.params["gbar_bk"][sec.name()]
-                    sec.gbar_kcaShell = self.params["gbar_kca"][sec.name()]
+                    sec.gbar_skShell = self.params["gbar_sk"][sec.name()]
                     for counter, seg in enumerate(sec):
                         outshell = self.shells[sec.name()][0]
                         ca = self.ca[outshell].nodes[counter]
                         h.setpointer(ca._ref_concentration, "Cai",
                                      seg.bkShell)
                         h.setpointer(ca._ref_concentration, "Cai",
-                                     seg.kcaShell)
+                                     seg.skShell)
                     
         h.cao0_ca_ion = self.params["Ca_Ext"]
         return
@@ -582,26 +582,26 @@ class CA1_PC:
 
     def ncx_val(self, node):
         if "head" in node.sec.name():
-            return self.params["gncx_spine"]*self.params["kcat_ncx"]
+            return self.params["gncx_spine"]*self.params["skt_ncx"]
         if "soma" in node.sec.name():
-            return self.params["gncx_soma"]*self.params["kcat_ncx"]
+            return self.params["gncx_soma"]*self.params["skt_ncx"]
         # h.distance(sec=self.soma)
         # dist = h.distance(node.sec(0.5), sec=node.sec)
         # if dist > 100:
-        #     return self.params["gncx"]*self.params["kcat_ncx"]/5
-        return self.params["gncx"]*self.params["kcat_ncx"]
+        #     return self.params["gncx"]*self.params["skt_ncx"]/5
+        return self.params["gncx"]*self.params["skt_ncx"]
         
 
     def pmca_val(self, node):
         if "head" in node.sec.name():
-            return self.params["gpmca_spine"]*self.params["kcat_pmca"]
+            return self.params["gpmca_spine"]*self.params["skt_pmca"]
         if "soma" in node.sec.name():
-            self.params["gpmca_soma"]*self.params["kcat_pmca"]
+            self.params["gpmca_soma"]*self.params["skt_pmca"]
         # h.distance(sec=self.soma)
         # dist = h.distance(node.sec(0.5), sec=node.sec)
         # if dist > 100:
-        #     return self.params["gpmca"]*self.params["kcat_pmca"]/5
-        return self.params["gpmca"]*self.params["kcat_pmca"]
+        #     return self.params["gpmca"]*self.params["skt_pmca"]/5
+        return self.params["gpmca"]*self.params["skt_pmca"]
 
     def add_pump(self, name):
         memb_flux = False
@@ -634,7 +634,7 @@ class CA1_PC:
             membrane_list = [membranes[key] for key in membranes.keys()]
             n = 1
 
-        kcat_pump = self.params["kcat_%s" % name]
+        skt_pump = self.params["skt_%s" % name]
         Km_pump = self.params["Km_%s" % name]
         for key in self.shells.keys():
             if "head" in key:
@@ -647,7 +647,7 @@ class CA1_PC:
                 inside = self.ca[self.shells[key][0]]
             membrane = membranes[key]
             if outside is not None:
-                rate = self.g[name]*inside**n*kcat_pump/(Km_pump**n+inside**n)
+                rate = self.g[name]*inside**n*skt_pump/(Km_pump**n+inside**n)
                 pump = rxd.MultiCompartmentReaction(inside > outside,
                                                     rate,
                                                     membrane=membrane,

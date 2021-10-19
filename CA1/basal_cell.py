@@ -12,7 +12,7 @@ mechanisms_path = os.path.join(my_loc, "Mods")
 gbar = {
     "cav33": 0, #2e-09,
     "cav32": 1e-07,
-    "cal12": 0,#1e-07,
+    "cal12": 1e-07,
     "cal13": 1e-05,
     "can": 1e-04,
     "car": 10e-05,

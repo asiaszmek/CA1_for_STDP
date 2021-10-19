@@ -236,7 +236,7 @@ proc insertChannel() {
 	insert cal13		
         insert cav33
 	insert cav32
-        insert kca
+        insert sk
         insert cagk
         insert cad
     }
@@ -250,7 +250,7 @@ proc insertChannel() {
 	insert cal13		
         insert cav33
 	insert cav32
-        insert kca
+        insert sk
         insert cagk
         insert cad
     }
@@ -264,7 +264,7 @@ proc insertChannel() {
 	insert cal13		
         insert cav33
 	insert cav32
-        insert kca
+        insert sk
         insert cagk
         insert cad
     }
@@ -297,7 +297,7 @@ proc biophys() {
         gbar_can = 2.2618914062501833e-06
         gbar_cav32 =  0.000025 // 1.184948741542104e-06	
         gbar_cav33 =  0.000025 // 1.184948741542104e-06
-        gbar_kca = 0.0015 //9.0311387916396796e-05
+        gbar_sk = 0.0015 //9.0311387916396796e-05
         gbar_cagk = 4.4820097108998517e-05
         Ra = 115.3957607556371
         g_pas = 9.031387191839301e-05
@@ -321,7 +321,7 @@ proc biophys() {
 	gbar_can = 2.2618914062501833e-06
         gbar_cav32 = 1.184948741542104e-06
         gbar_cav33 = 1.184948741542104e-06
-	gbar_kca = 9.0311387916396796e-05
+	gbar_sk = 9.0311387916396796e-05
         gbar_cagk = 4.4820097108998517e-05
         Ra = 115.3957607556371
         g_pas = 9.031387191839301e-05
@@ -337,7 +337,7 @@ proc biophys() {
 	gbar_can = 2.2618914062501833e-06
         gbar_cav32 = 1.184948741542104e-06
         gbar_cav33 = 1.184948741542104e-06
-        gbar_kca = 9.0311387916396796e-05
+        gbar_sk = 9.0311387916396796e-05
         gbar_cagk = 4.4820097108998517e-05
         Ra = 115.3957607556371
         g_pas = 9.031387191839301e-05
@@ -351,7 +351,7 @@ proc biophys() {
 	gbar_can = 2.2618914062501833e-06
         gbar_cav32 = 1.184948741542104e-06
         gbar_cav33 = 1.184948741542104e-06
-        gbar_kca = 9.0311387916396796e-05
+        gbar_sk = 9.0311387916396796e-05
         gbar_cagk = 4.4820097108998517e-05
         Ra = 115.3957607556371
         g_pas = 9.031387191839301e-05

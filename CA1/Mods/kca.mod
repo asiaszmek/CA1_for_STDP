@@ -1,94 +1,84 @@
-TITLE Slow Ca-dependent potassium current
-                            :
-                            :   Ca++ dependent K+ current IC responsible for slow AHP
-                            :   Differential equations
-                            :
-                            :   Model based on a first order kinetic scheme
-                            :
-                            :       + n cai <->     (alpha,beta)
-                            :
-                            :   Following this model, the activation fct will be half-activated at 
-                            :   a concentration of Cai = (beta/alpha)^(1/n) = cac (parameter)
-                            :
-                            :   The mod file is here written for the case n=2 (2 binding sites)
-                            :   ---------------------------------------------
-                            :
-                            :   This current models the "slow" IK[Ca] (IAHP): 
-                            :      - potassium current
-                            :      - activated by intracellular calcium
-                            :      - NOT voltage dependent
-                            :
-                            :   A minimal value for the time constant has been added
-                            :
-                            :   Ref: Destexhe et al., J. Neurophysiology 72: 803-818, 1994.
-                            :   See also: http://www.cnl.salk.edu/~alain , http://cns.fmed.ulaval.ca
-                            :   modifications by Yiota Poirazi 2001 (poirazi@LNC.usc.edu)
-			    :   taumin = 0.5 ms instead of 0.1 ms	
+TITLE SK-type calcium activated K channel (KCa2.2)
 
-                            NEURON {
-                                    SUFFIX kca
-                                    USEION k READ ek WRITE ik
-                                    USEION ca READ cai
-                                    RANGE gk, gbar, m_inf, tau_m,ik
-                                    GLOBAL beta, cac
-                            }
+UNITS {
+    (molar) = (1/liter)
+    (mV) = (millivolt)
+    (mA) = (milliamp)
+    (mM) = (millimolar)
+}
 
+NEURON {
+    SUFFIX sk
+    USEION ca READ cai
+    USEION k READ ek WRITE ik
+    RANGE gbar, ik
+}
 
-                            UNITS {
-                                    (mA) = (milliamp)
-                                    (mV) = (millivolt)
-                                    (molar) = (1/liter)
-                                    (mM) = (millimolar)
-                            }
+PARAMETER {
+    gbar = 0.0 	(mho/cm2)
+    q = 1	: body temperature
+    otau = 4.9 (ms)
+    Kd = 0.57e-3 (mM)
+    n = 5.2
+}
 
+ASSIGNED {
+    v (mV)
+    ik (mA/cm2)
+    cai (mM) 
+    ek (mV)
+    oinf
+}
 
-                            PARAMETER {
-                                    v               (mV)
-                                    celsius = 36    (degC)
-                                    ek      = -80   (mV)
-                                    cai     = 2.4e-5 (mM)           : initial [Ca]i
-                                    gbar    = 0.01   (mho/cm2)
-                                    beta    = 0.03   (1/ms)          : backward rate constant
-                                    cac     = 0.00035  (mM)            : middle point of activation fct
-       				    taumin  = 0.5    (ms)            : minimal value of the time cst
-                                    gk
-                                  }
+STATE { o }
 
+BREAKPOINT {
+    SOLVE state METHOD cnexp
+    ik = gbar*o*(v-ek)
+}
 
-                            STATE {m}        : activation variable to be solved in the DEs       
+DERIVATIVE state {
+    rate(cai)
+    o' = (oinf-o)/otau*q
+}
 
-                            ASSIGNED {       : parameters needed to solve DE 
-                                    ik      (mA/cm2)
-                                    m_inf
-                                    tau_m   (ms)
-                                    tadj
-                            }
-                            BREAKPOINT { 
-                                    SOLVE states METHOD derivimplicit
-                                    gk = gbar*m*m*m     : maximum channel conductance
-                                    ik = gk*(v - ek)    : potassium current induced by this channel
-                            }
+INITIAL {
+    rate(cai)
+    o = oinf
+}
 
-                            DERIVATIVE states { 
-                                    evaluate_fct(v,cai)
-                                    m' = (m_inf - m) / tau_m
-                            }
+PROCEDURE rate(ca (mM)) {
+    LOCAL a
+    a = (ca/Kd)^n
+    oinf = a/(1+a)
 
-                            UNITSOFF
-                            INITIAL {
-                            :
-                            :  activation kinetics are assumed to be at 22 deg. C
-                            :  Q10 is assumed to be 3
-                            :
-                                    tadj = 3 ^ ((celsius-22.0)/10) : temperature-dependent adjastment factor
-                                    evaluate_fct(v,cai)
-                                    m = m_inf
-                            }
+}
 
-                            PROCEDURE evaluate_fct(v(mV),cai(mM)) {  LOCAL car
-                                    car = (cai/cac)^4
-                                    m_inf = car / ( 1 + car )      : activation steady state value
-                                    tau_m =  1 / beta / (1 + car) / tadj
-                                    if(tau_m < taumin) { tau_m = taumin }   : activation min value of time cst
-                            }
-                            UNITSON
+COMMENT
+
+Experimental data was obtained for the apamin-sensitive clone rSK2 from
+rat brain cDNA expressed in Xenopus oocytes [1,2].  All experiments were
+performed at room tempretaure.
+
+Original model [3] used calcium dependence from [2, Fig.2] and calcium
+activation time constant from [1,  Fig.13]. NEURON implementation by
+Alexander Kozlov <akozlov@kth.se> follows the revised model [4].
+
+[1] Hirschberg B, Maylie J, Adelman JP, Marrion NV (1998) Gating of
+recombinant small-conductance Ca-activated K+ channels by calcium. J
+Gen Physiol 111(4):565-81.
+
+[2] Maylie J, Bond CT, Herson PS, Lee WS, Adelman JP (2004) Small
+conductance Ca2+-activated K+ channels and calmodulin. J Physiol 554(Pt
+2):255-61.
+
+[3] Evans RC, Morera-Herreras T, Cui Y, Du K, Sheehan T, Kotaleski JH,
+Venance L, Blackwell KT (2012) The effects of NMDA subunit composition on
+calcium influx and spike timing-dependent plasticity in striatal medium
+spiny neurons. PLoS Comput Biol 8(4):e1002493.
+
+[4] Evans RC, Maniar YM, Blackwell KT (2013) Dynamic modulation of
+spike timing-dependent calcium influx during corticostriatal upstates. J
+Neurophysiol 110(7):1631-45.
+
+ENDCOMMENT

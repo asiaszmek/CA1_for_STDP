@@ -33,7 +33,7 @@ Kip3 = 0.15e-3 #Wagner 2004 oocytes and later Ausra's astrocyte model
 Kact = 0.8e-3 #Wagner 2004 oocytes and later Ausra's astrocyte model
 k_inh = 2e-3 #Wagner 2004 oocytes and later Ausra's astrocyte model
 Km_Serca = 0.13e-3 # Michaelis constant for SERCA pump
-kcat_Serca = 7.5e-3 #ms
+skt_Serca = 7.5e-3 #ms
 gSerca = 1#signaling pathways model
 ip3r_gate_state = 0.8
 calbindin_tot = 0.150 #(150 uM)
@@ -59,7 +59,7 @@ calbca = kf_calbindin*ca_init*calbindin_tot/kb_calbindin
 
 kf_pmca = 50
 kb_pmca = 0.007
-kcat_pmca = 0.0035
+skt_pmca = 0.0035
 Km_pmca = (kb_pmca)/kf_pmca
 gpmca = 0.3
 gpmca_soma = 1
@@ -68,7 +68,7 @@ gpmca_spine = 50e-3*ca_factor # {"apical_dendrite[10]": 0.1e-5*ca_factor}
 ncx_pow = 1
 kf_ncx = 16.8
 kb_ncx = 0.0112
-kcat_ncx = 0.0056
+skt_ncx = 0.0056
 Km_ncx = (kb_ncx)/kf_ncx
 #  this dynamics is more similar to quasi-steady state approx
 gncx = 0.1
@@ -119,7 +119,7 @@ diffusions = {"Calmodulin": camDiff,
 membrane_shell_width = .1
 
 
-gbar_kca = {
+gbar_sk = {
     "soma": 0.0015,
     "radTprox": 9.03e-05,
     "radTmed": 9.03e-05,
