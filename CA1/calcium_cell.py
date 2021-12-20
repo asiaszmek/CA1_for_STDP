@@ -460,7 +460,7 @@ class CA1_PC:
                                                     name="%s_Shell_%d" %
                                                     (which_dend, i)))
             else:
-                self.shells[name].append(rxd.Region(section, nrn_region='i',
+                self.shells[name].append(rxd.Region(section,
                                                     geometry=rxd.Shell(inner,
                                                                        outer),
                                                     name="%s_Shell_%d" %
@@ -547,7 +547,7 @@ class CA1_PC:
             sec_name = sec.name()
             which_dend = sec_name.replace("[", "").replace("]", "")
             l_s_d = 1 - sum(self.factors[sec_name]) #last shell diameter
-            self.ER[sec_name] = rxd.Region(sec, nrn_region='i',
+            self.ER[sec_name] = rxd.Region(sec,
                                            geometry=rxd.Shell(0,
                                                               l_s_d),
                                            name="%s_ER" % which_dend)
