@@ -12,10 +12,10 @@ mechanisms_path = os.path.join(my_loc, "Mods")
 gbar = {
     "cav33": 2e-07,
     "cav32": 1e-07,
-    "cal12": 1e-06,
-    "cal13": 1e-06,
-    "can": 1e-04,
-    "car": 10e-05,
+    "cal12": 8e-06,
+    "cal13": 4e-06,
+    "can": 0,
+    "car": 10e-06,
 }
 class CA1_PC_basal:
     sections = []
