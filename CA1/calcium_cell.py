@@ -441,11 +441,19 @@ class CA1_PC:
                                                     name="%s_Shell_%d" %
                                                     (which_dend, i)))
             else:
-                self.shells[name].append(rxd.Region(section,
-                                                    geometry=rxd.Shell(inner,
-                                                                       outer),
-                                                    name="%s_Shell_%d" %
-                                                    (which_dend, i)))
+                if i:
+                    self.shells[name].append(rxd.Region(section,
+                                                        geometry=rxd.Shell(inner,
+                                                                           outer),
+                                                        name="%s_Shell_%d" %
+                                                        (which_dend, i)))
+                else:
+                    self.shells[name].append(rxd.Region(section, nrn_region='i',
+                                                        geometry=rxd.Shell(inner,
+                                                                           outer),
+                                                        name="%s_Shell_%d" %
+                                                        (which_dend, i)))
+                    
             if i == 1:
                 self.borders[name] = []
             if i > 0:
