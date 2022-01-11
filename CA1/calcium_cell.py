@@ -387,6 +387,10 @@ class CA1_PC:
         self.add_rxd_calcium(buffer_list, pump_list)
         for sec in self.sections:
             if h.ismembrane("ca_ion", sec=sec):
+                sec.insert("bk")
+                sec.gbar_bk = self.params["gbar_bk"][sec.name()]
+                sec.insert("sk")
+                sec.gbar_sk = self.params["gbar_sk"][sec.name()]
                 if sec not in self.sections_rxd:
                     #print("Adding simple Ca dynamics to %s" % sec.name())
                     sec.insert("cad")
@@ -394,22 +398,6 @@ class CA1_PC:
                         sec.Buffer_cad = 25
                         sec.cainf_cad = self.params["ca_init"]
                         #an additional buffer will change Ca dynamics
-                    sec.insert("bk")
-                    sec.gbar_bk = self.params["gbar_bk"][sec.name()]
-                    sec.insert("sk")
-                    sec.gbar_sk = self.params["gbar_sk"][sec.name()]
-                else:
-                    sec.insert("bkShell")
-                    sec.insert("skShell")
-                    sec.gbar_bkShell = self.params["gbar_bk"][sec.name()]
-                    sec.gbar_skShell = self.params["gbar_sk"][sec.name()]
-                    for counter, seg in enumerate(sec):
-                        outshell = self.shells[sec.name()][0]
-                        ca = self.ca[outshell].nodes[counter]
-                        h.setpointer(ca._ref_concentration, "Cai",
-                                     seg.bkShell)
-                        h.setpointer(ca._ref_concentration, "Cai",
-                                     seg.skShell)
                     
         h.cao0_ca_ion = self.params["Ca_Ext"]
         return
