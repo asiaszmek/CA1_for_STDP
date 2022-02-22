@@ -578,26 +578,26 @@ class CA1_PC:
 
     def ncx_val(self, node):
         if "head" in node.sec.name():
-            return self.params["gncx_spine"]*self.params["skt_ncx"]
+            return self.params["gncx_spine"]*self.params["kcat_ncx"]
         if "soma" in node.sec.name():
-            return self.params["gncx_soma"]*self.params["skt_ncx"]
+            return self.params["gncx_soma"]*self.params["kcat_ncx"]
         # h.distance(sec=self.soma)
         # dist = h.distance(node.sec(0.5), sec=node.sec)
         # if dist > 100:
-        #     return self.params["gncx"]*self.params["skt_ncx"]/5
-        return self.params["gncx"]*self.params["skt_ncx"]
+        #     return self.params["gncx"]*self.params["kcat_ncx"]/5
+        return self.params["gncx"]*self.params["kcat_ncx"]
         
 
     def pmca_val(self, node):
         if "head" in node.sec.name():
-            return self.params["gpmca_spine"]*self.params["skt_pmca"]
+            return self.params["gpmca_spine"]*self.params["kcat_pmca"]
         if "soma" in node.sec.name():
-            self.params["gpmca_soma"]*self.params["skt_pmca"]
+            self.params["gpmca_soma"]*self.params["kcat_pmca"]
         # h.distance(sec=self.soma)
         # dist = h.distance(node.sec(0.5), sec=node.sec)
         # if dist > 100:
-        #     return self.params["gpmca"]*self.params["skt_pmca"]/5
-        return self.params["gpmca"]*self.params["skt_pmca"]
+        #     return self.params["gpmca"]*self.params["kcat_pmca"]/5
+        return self.params["gpmca"]*self.params["kcat_pmca"]
 
     def add_pump(self, name):
         memb_flux = False
@@ -630,7 +630,7 @@ class CA1_PC:
             membrane_list = [membranes[key] for key in membranes.keys()]
             n = 1
 
-        skt_pump = self.params["skt_%s" % name]
+        kcat_pump = self.params["kcat_%s" % name]
         Km_pump = self.params["Km_%s" % name]
         for key in self.shells.keys():
             if "head" in key:
@@ -643,7 +643,7 @@ class CA1_PC:
                 inside = self.ca[self.shells[key][0]]
             membrane = membranes[key]
             if outside is not None:
-                rate = self.g[name]*inside**n*skt_pump/(Km_pump**n+inside**n)
+                rate = self.g[name]*inside**n*kcat_pump/(Km_pump**n+inside**n)
                 pump = rxd.MultiCompartmentReaction(inside > outside,
                                                     rate,
                                                     membrane=membrane,
